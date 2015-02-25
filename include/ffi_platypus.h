@@ -95,8 +95,8 @@ struct _ffi_pl_type;
 typedef struct _ffi_pl_type_extra_closure {
   ffi_cif ffi_cif;
   int flags;
-  struct _ffi_pl_type *return_type;
-  struct _ffi_pl_type *argument_types[0];
+  void *return_type; /* SV * */
+  void *argument_types[0]; /* SV * */
 } ffi_pl_type_extra_closure;
 
 typedef struct _ffi_pl_type_extra_string {
@@ -122,15 +122,15 @@ typedef struct _ffi_pl_function {
   void *address;
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
-  ffi_pl_type *return_type;
-  ffi_pl_type *argument_types[0];
+  void *return_type;       /* really SV* */
+  void *argument_types[0]; /* really SV* */
 } ffi_pl_function;
 
 typedef struct _ffi_pl_closure {
   ffi_closure *ffi_closure;
   void *function_pointer; /* C function pointer */
   void *coderef;          /* Perl HV* pointing to FFI::Platypus::Closure object */
-  ffi_pl_type *type;
+  void *type;             /* Perl SV* */
 } ffi_pl_closure;
 
 typedef const char *ffi_pl_string;

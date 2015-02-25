@@ -60,7 +60,8 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   dSP;
 
   ffi_pl_closure *closure = (ffi_pl_closure*) user;
-  ffi_pl_type_extra_closure *extra = &closure->type->extra[0].closure;
+  ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)closure->type)));
+  ffi_pl_type_extra_closure *extra = &type->extra[0].closure;
   int flags = extra->flags;
   int i;
   int count;
@@ -79,9 +80,11 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   {
     for(i=0; i< ffi_cif->nargs; i++)
     {
-      if(extra->argument_types[i]->platypus_type == FFI_PL_NATIVE)
+      ffi_pl_type *arg_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)extra->argument_types[i])));
+
+      if(arg_type->platypus_type == FFI_PL_NATIVE)
       {
-        switch(extra->argument_types[i]->ffi_type->type)
+        switch(arg_type->ffi_type->type)
         {
           case FFI_TYPE_VOID:
             break;
@@ -151,13 +154,13 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
             break;
         }
       }
-      else if(extra->argument_types[i]->platypus_type == FFI_PL_STRING)
+      else if(arg_type->platypus_type == FFI_PL_STRING)
       {
         sv = sv_newmortal();
         if( *((char**)arguments[i]) != NULL)
         {
-          if(extra->argument_types[i]->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
-            sv_setpvn(sv, *((char**)arguments[i]), extra->argument_types[i]->extra[0].string.size);
+          if(arg_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
+            sv_setpvn(sv, *((char**)arguments[i]), arg_type->extra[0].string.size);
           else
             sv_setpv(sv, *((char**)arguments[i]));
         }
@@ -191,9 +194,10 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     else
       sv = POPs;
 
-    if(extra->return_type->platypus_type == FFI_PL_NATIVE)
+    ffi_pl_type *return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)extra->return_type)));
+    if(return_type->platypus_type == FFI_PL_NATIVE)
     {
-      switch(extra->return_type->ffi_type->type)
+      switch(return_type->ffi_type->type)
       {
         case FFI_TYPE_UINT8:
 #ifdef FFI_PL_PROBE_BIGENDIAN

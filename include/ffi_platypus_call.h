@@ -18,13 +18,14 @@
 
     for(i=0; i < self->ffi_cif.nargs; i++)
     {
-      int platypus_type = self->argument_types[i]->platypus_type;
+      ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+      int platypus_type = type->platypus_type;
       argument_pointers[i] = (void*) &arguments->slot[i];
 
       arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
       if(platypus_type == FFI_PL_NATIVE)
       {
-        switch(self->argument_types[i]->ffi_type->type)
+        switch(type->ffi_type->type)
         {
           case FFI_TYPE_UINT8:
             ffi_pl_arguments_set_uint8(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
@@ -75,7 +76,7 @@
       }
       else if(platypus_type == FFI_PL_STRING)
       {
-        switch(self->argument_types[i]->extra[0].string.platypus_string_type)
+        switch(type->extra[0].string.platypus_string_type)
         {
           case FFI_PL_STRING_RW:
           case FFI_PL_STRING_RO:
@@ -86,7 +87,7 @@
               int expected;
               STRLEN size;
               void *ptr;
-              expected = self->argument_types[i]->extra[0].string.size;
+              expected = type->extra[0].string.size;
               ptr = SvOK(arg) ? SvPV(arg, size) : NULL;
               if(ptr != NULL && expected != 0 && size != expected)
                 warn("fixed string argument %d has wrong size (is %d, expected %d)", i, (int)size, expected);
@@ -104,7 +105,7 @@
           SV *arg2 = SvRV(arg);
           if(SvTYPE(arg2) < SVt_PVAV)
           {
-            switch(self->argument_types[i]->ffi_type->type)
+            switch(type->ffi_type->type)
             {
               case FFI_TYPE_UINT8:
                 Newx_or_alloca(ptr, 1, uint8_t);
@@ -190,7 +191,7 @@
         void *ptr;
         STRLEN size;
         int expected;
-        expected = self->argument_types[i]->extra[0].record.size;
+        expected = type->extra[0].record.size;
         if(SvROK(arg))
         {
           SV *arg2 = SvRV(arg);
@@ -207,13 +208,13 @@
       else if(platypus_type == FFI_PL_ARRAY)
       {
         void *ptr;
-        int count = self->argument_types[i]->extra[0].array.element_count;
+        int count = type->extra[0].array.element_count;
         if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
         {
           AV *av = (AV*) SvRV(arg);
           if(count == 0)
             count = av_len(av)+1;
-          switch(self->argument_types[i]->ffi_type->type)
+          switch(type->ffi_type->type)
           {
             case FFI_TYPE_UINT8:
               Newx(ptr, count, uint8_t);
@@ -312,7 +313,7 @@
               break;
 #endif
             default:
-              Newxz(ptr, count*self->argument_types[i]->ffi_type->size, char);
+              Newxz(ptr, count*type->ffi_type->size, char);
               warn("argument type not supported (%d)", i);
               break;
           }
@@ -320,7 +321,7 @@
         else
         {
           warn("passing non array reference into ffi/platypus array argument type");
-          Newxz(ptr, count*self->argument_types[i]->ffi_type->size, char);
+          Newxz(ptr, count*type->ffi_type->size, char);
         }
         ffi_pl_arguments_set_pointer(arguments, i, ptr);
       }
@@ -358,7 +359,7 @@
 
               ffi_status = ffi_prep_closure_loc(
                 closure->ffi_closure,
-                &self->argument_types[i]->extra[0].closure.ffi_cif,
+                &type->extra[0].closure.ffi_cif,
                 ffi_pl_closure_call,
                 closure,
                 closure->function_pointer
@@ -384,14 +385,14 @@
       else if(platypus_type == FFI_PL_CUSTOM_PERL)
       {
         SV *arg2 = ffi_pl_custom_perl(
-          self->argument_types[i]->extra[0].custom_perl.perl_to_native,
+          type->extra[0].custom_perl.perl_to_native,
           arg,
           i
         );
 
         if(arg2 != NULL)
         {
-          switch(self->argument_types[i]->ffi_type->type)
+          switch(type->ffi_type->type)
           {
             case FFI_TYPE_UINT8:
               ffi_pl_arguments_set_uint8(arguments, i, SvUV(arg2));
@@ -442,7 +443,9 @@
           SvREFCNT_dec(arg2);
         }
 
-        for(n=0; n < self->argument_types[i]->extra[0].custom_perl.argument_count; n++)
+        ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+
+        for(n=0; n < type->extra[0].custom_perl.argument_count; n++)
         {
           i++;
           argument_pointers[i] = &arguments->slot[i];
@@ -450,7 +453,7 @@
       }
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
-        switch(self->argument_types[i]->ffi_type->type)
+        switch(type->ffi_type->type)
         {
 #ifdef FFI_PL_PROBE_LONGDOUBLE
           case FFI_TYPE_LONGDOUBLE:
@@ -464,7 +467,7 @@
 #endif
 #ifdef FFI_PL_PROBE_COMPLEX
           case FFI_TYPE_COMPLEX:
-            switch(self->argument_types[i]->ffi_type->size)
+            switch(type->ffi_type->size)
             {
               case  8:
                 {
@@ -509,20 +512,20 @@
     {
       fprintf(stderr, "# [%d] <%d:%d> %p %p",
         i,
-        self->argument_types[i]->ffi_type->type,
-        self->argument_types[i]->platypus_type,
+        type->ffi_type->type,
+        type->platypus_type,
         argument_pointers[i],
         &arguments->slot[i]
       );
-      if(self->argument_types[i]->platypus_type  == FFI_PL_EXOTIC_FLOAT)
+      if(type->platypus_type  == FFI_PL_EXOTIC_FLOAT)
       {
-        switch(self->argument_types[i]->ffi_type->type)
+        switch(type->ffi_type->type)
         {
           case FFI_TYPE_LONGDOUBLE:
             fprintf(stderr, " %Lg", *((long double*)argument_pointers[i]));
             break;
           case FFI_TYPE_COMPLEX:
-            switch(self->argument_types[i]->ffi_type->size)
+            switch(type->ffi_type->size)
             {
               case 8:
                 fprintf(stderr, " %g + %g * i",
@@ -570,7 +573,8 @@
     for(i=self->ffi_cif.nargs-1; i >= 0; i--)
     {
       platypus_type platypus_type;
-      platypus_type = self->argument_types[i]->platypus_type;
+      ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+      platypus_type = type->platypus_type;
     
       if(platypus_type == FFI_PL_POINTER)
       {
@@ -580,7 +584,7 @@
           arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
           if(!SvREADONLY(SvRV(arg)))
           {
-            switch(self->argument_types[i]->ffi_type->type)
+            switch(type->ffi_type->type)
             {
               case FFI_TYPE_UINT8:
                 sv_setuv(SvRV(arg), *((uint8_t*)ptr));
@@ -644,14 +648,14 @@
       else if(platypus_type == FFI_PL_ARRAY)
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
-        int count = self->argument_types[i]->extra[0].array.element_count;
+        int count = type->extra[0].array.element_count;
         arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
         if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
         {
           AV *av = (AV*) SvRV(arg);
           if(count == 0)
             count = av_len(av)+1;
-          switch(self->argument_types[i]->ffi_type->type)
+          switch(type->ffi_type->type)
           {
             case FFI_TYPE_UINT8:
               for(n=0; n<count; n++)
@@ -761,9 +765,9 @@
       else if(platypus_type == FFI_PL_CUSTOM_PERL)
       {
         /* FIXME: need to fill out argument_types for skipping */
-        i -= self->argument_types[i]->extra[0].custom_perl.argument_count;
+        i -= type->extra[0].custom_perl.argument_count;
         {
-          SV *coderef = self->argument_types[i]->extra[0].custom_perl.perl_to_native_post;
+          SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
           if(coderef != NULL)
           {
             arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
@@ -790,16 +794,18 @@
      * RETURN VALUE
      */
 
-    if(self->return_type->platypus_type == FFI_PL_NATIVE)
+    ffi_pl_type *return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)self->return_type)));
+
+    if(return_type->platypus_type == FFI_PL_NATIVE)
     {
-      int type = self->return_type->ffi_type->type;
+      int type = return_type->ffi_type->type;
       if(type == FFI_TYPE_VOID || (type == FFI_TYPE_POINTER && result.pointer == NULL))
       {
         XSRETURN_EMPTY;
       }
       else
       {
-        switch(self->return_type->ffi_type->type)
+        switch(return_type->ffi_type->type)
         {
           case FFI_TYPE_UINT8:
 #ifdef FFI_PL_PROBE_BIGENDIAN
@@ -869,7 +875,7 @@
         }
       }
     }
-    else if(self->return_type->platypus_type == FFI_PL_STRING)
+    else if(return_type->platypus_type == FFI_PL_STRING)
     {
       if( result.pointer == NULL )
       {
@@ -877,10 +883,10 @@
       }
       else
       {
-        if(self->return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
+        if(return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
         {
           SV *value = sv_newmortal();
-          sv_setpvn(value, result.pointer, self->return_type->extra[0].string.size);
+          sv_setpvn(value, result.pointer, return_type->extra[0].string.size);
           ST(0) = value;
           XSRETURN(1);
         }
@@ -890,7 +896,7 @@
         }
       }
     }
-    else if(self->return_type->platypus_type == FFI_PL_POINTER)
+    else if(return_type->platypus_type == FFI_PL_POINTER)
     {
       if(result.pointer == NULL)
       {
@@ -899,7 +905,7 @@
       else
       {
         SV *value;
-        switch(self->return_type->ffi_type->type)
+        switch(return_type->ffi_type->type)
         {
           case FFI_TYPE_UINT8:
             value = sv_newmortal();
@@ -970,16 +976,16 @@
         XSRETURN(1);
       }
     }
-    else if(self->return_type->platypus_type == FFI_PL_RECORD)
+    else if(return_type->platypus_type == FFI_PL_RECORD)
     {
       if(result.pointer != NULL)
       {
         SV *value = sv_newmortal();
-        sv_setpvn(value, result.pointer, self->return_type->extra[0].record.size);
-        if(self->return_type->extra[0].record.stash)
+        sv_setpvn(value, result.pointer, return_type->extra[0].record.size);
+        if(return_type->extra[0].record.stash)
         {
           SV *ref = ST(0) = newRV_inc(value);
-          sv_bless(ref, self->return_type->extra[0].record.stash);
+          sv_bless(ref, return_type->extra[0].record.stash);
         }
         else
         {
@@ -992,7 +998,7 @@
         XSRETURN_EMPTY;
       }
     }
-    else if(self->return_type->platypus_type == FFI_PL_ARRAY)
+    else if(return_type->platypus_type == FFI_PL_ARRAY)
     {
       if(result.pointer == NULL)
       {
@@ -1000,11 +1006,11 @@
       }
       else
       {
-        int count = self->return_type->extra[0].array.element_count;
+        int count = return_type->extra[0].array.element_count;
         AV *av;
         SV **sv;
         Newx(sv, count, SV*);
-        switch(self->return_type->ffi_type->type)
+        switch(return_type->ffi_type->type)
         {
           case FFI_TYPE_UINT8:
             for(i=0; i<count; i++)
@@ -1106,11 +1112,11 @@
         XSRETURN(1);
       }
     }
-    else if(self->return_type->platypus_type == FFI_PL_CUSTOM_PERL)
+    else if(return_type->platypus_type == FFI_PL_CUSTOM_PERL)
     {
       SV *ret_in=NULL, *ret_out;
 
-      switch(self->return_type->ffi_type->type)
+      switch(return_type->ffi_type->type)
       {
         case FFI_TYPE_UINT8:
 #ifdef FFI_PL_PROBE_BIGENDIAN
@@ -1181,7 +1187,7 @@
       current_argv = arguments;
 
       ret_out = ffi_pl_custom_perl(
-        self->return_type->extra[0].custom_perl.native_to_perl,
+        return_type->extra[0].custom_perl.native_to_perl,
         ret_in != NULL ? ret_in : &PL_sv_undef,
         -1
       );
@@ -1208,9 +1214,9 @@
       }
 
     }
-    else if(self->return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
+    else if(return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
     {
-      switch(self->return_type->ffi_type->type)
+      switch(return_type->ffi_type->type)
       {
 #ifdef FFI_PL_PROBE_LONGDOUBLE
         case FFI_TYPE_LONGDOUBLE:
