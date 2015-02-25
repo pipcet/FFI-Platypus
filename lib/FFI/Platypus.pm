@@ -1055,15 +1055,18 @@ sub new
 sub add_data
 {
   my($self, $payload, $type) = @_;
-  $self->{cbdata}{$type} = bless \$payload, 'FFI::Platypus::ClosureData';
+  $self->{cbdata}{refaddr $type} = {
+    closure_data => bless(\$payload, 'FFI::Platypus::ClosureData'),
+    type => $type,
+  };
 }
 
 sub get_data
 {
   my($self, $type) = @_;
 
-  if (exists $self->{cbdata}{$type}) {
-      return ${$self->{cbdata}{$type}};
+  if (exists $self->{cbdata}{refaddr $type}) {
+    return ${$self->{cbdata}{refaddr $type}{closure_data}};
   }
 
   return 0;
