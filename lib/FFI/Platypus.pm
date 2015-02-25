@@ -1046,7 +1046,7 @@ sub new
 {
   my($class, $coderef) = @_;
   croak "not a coderef" unless ref($coderef) eq 'CODE';
-  my $self = bless $coderef, $class;
+  my $self = bless { code => $coderef }, $class;
   $cbdata{refaddr $self} = {};
   $self;
 }
