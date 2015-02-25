@@ -1047,14 +1047,25 @@ sub new
   my($class, $coderef) = @_;
   croak "not a coderef" unless ref($coderef) eq 'CODE';
   my $self = bless $coderef, $class;
-  $cbdata{refaddr $self} = [];
+  $cbdata{refaddr $self} = {};
   $self;
 }
 
 sub add_data
 {
-  my($self, $payload) = @_;
-  push @{ $cbdata{refaddr $self} }, bless \$payload, 'FFI::Platypus::ClosureData';
+  my($self, $payload, $type) = @_;
+  $cbdata{refaddr $self}{$type} = bless \$payload, 'FFI::Platypus::ClosureData';
+}
+
+sub get_data
+{
+  my($self, $type) = @_;
+
+  if (exists $cbdata{refaddr $self}{$type}) {
+      return ${$cbdata{refaddr $self}{$type}};
+  }
+
+  return;
 }
 
 sub DESTROY
