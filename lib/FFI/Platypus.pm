@@ -1037,12 +1037,12 @@ package FFI::Platypus::Closure;
 
 use Scalar::Util qw( refaddr);
 use Carp qw( croak );
-
-# VERSION
 use overload '&{}' => sub {
   my $self = shift;
   sub { $self->{code}->(@_) };
 };
+
+# VERSION
 
 sub new
 {
