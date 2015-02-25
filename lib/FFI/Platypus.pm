@@ -1069,7 +1069,7 @@ sub get_data
       return ${$cbdata{refaddr $self}{$type}};
   }
 
-  return;
+  return 0;
 }
 
 sub DESTROY
