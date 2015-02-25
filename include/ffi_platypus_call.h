@@ -344,12 +344,12 @@
 	      closure->type = self->argument_types[i];
 
 	      ffi_status = ffi_prep_closure_loc(
-						closure->ffi_closure,
-						&self->argument_types[i]->extra[0].closure.ffi_cif,
-						ffi_pl_closure_call,
-						closure,
-						closure->function_pointer
-						);
+		closure->ffi_closure,
+		&self->argument_types[i]->extra[0].closure.ffi_cif,
+		ffi_pl_closure_call,
+		closure,
+		closure->function_pointer
+	      );
 
 	      if(ffi_status != FFI_OK)
 	      {
