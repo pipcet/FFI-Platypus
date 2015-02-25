@@ -1044,38 +1044,29 @@ use overload '&{}' => sub {
   sub { $self->{code}->(@_) };
 };
 
-our %cbdata;
-
 sub new
 {
   my($class, $coderef) = @_;
   croak "not a coderef" unless ref($coderef) eq 'CODE';
-  my $self = bless { code => $coderef }, $class;
-  $cbdata{refaddr $self} = {};
+  my $self = bless { code => $coderef, cbdata => {} }, $class;
   $self;
 }
 
 sub add_data
 {
   my($self, $payload, $type) = @_;
-  $cbdata{refaddr $self}{$type} = bless \$payload, 'FFI::Platypus::ClosureData';
+  $self->{cbdata}{$type} = bless \$payload, 'FFI::Platypus::ClosureData';
 }
 
 sub get_data
 {
   my($self, $type) = @_;
 
-  if (exists $cbdata{refaddr $self}{$type}) {
-      return ${$cbdata{refaddr $self}{$type}};
+  if (exists $self->{cbdata}{$type}) {
+      return ${$self->{cbdata}{$type}};
   }
 
   return 0;
-}
-
-sub DESTROY
-{
-  my($self) = @_;
-  delete $cbdata{refaddr $self};
 }
 
 package FFI::Platypus::ClosureData;
