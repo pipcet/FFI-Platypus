@@ -19,7 +19,7 @@ ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
   PUSHMARK(SP);
   XPUSHs(closure);
   XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data))));
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data->type))));
+  XPUSHs(closure_data->type);
   PUTBACK;
   call_pv("FFI::Platypus::Closure::add_data", G_DISCARD);
   FREETMPS;
@@ -27,7 +27,7 @@ ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
 }
 
 ffi_pl_closure *
-ffi_pl_closure_get_data(SV *closure, ffi_pl_type *type)
+ffi_pl_closure_get_data(SV *closure, SV *type)
 {
   dSP;
   int count;
@@ -37,7 +37,7 @@ ffi_pl_closure_get_data(SV *closure, ffi_pl_type *type)
   SAVETMPS;
   PUSHMARK(SP);
   XPUSHs(closure);
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(type))));
+  XPUSHs(type);
   PUTBACK;
   count = call_pv("FFI::Platypus::Closure::get_data", G_SCALAR);
   SPAGAIN;
