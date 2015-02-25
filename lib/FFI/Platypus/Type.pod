@@ -513,6 +513,14 @@ the closure:
 
  set_closure(sticky closure { $_[0] * 2 }); # OKAY 
 
+Closures are converted to function pointers automatically when they
+are passed into C; however, you can also convert a closure to a
+function pointer in advance, by casting it to an opaque
+pointer. Conversely, opaque pointers can be used instead of closures
+as arguments:
+
+# EXAMPLE: examples/closure-opaque.pl
+
 =head2 Custom Types
 
 =head3 Custom Types in Perl
