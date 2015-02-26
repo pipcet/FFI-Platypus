@@ -57,7 +57,6 @@ new(class, platypus, address, abi, return_type_arg, ...)
     for(i=0,n=0; i<(items-5); i++,n++)
     {
       arg = ST(i+5);
-      SvREFCNT_inc(arg);
       self->argument_types[n] = SvREFCNT_inc(arg);
       tmp = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV(arg)));
 
@@ -168,8 +167,14 @@ attach(self, perl_name, path_name, proto)
 void
 DESTROY(self)
     ffi_pl_function *self
+  PREINIT:
+    int i;
   CODE:
     SvREFCNT_dec(self->platypus_sv);
+    SvREFCNT_dec(self->return_type);
+    for (i=0; i<self->ffi_cif.nargs; i++) {
+      SvREFCNT_dec(self->argument_types[i]);
+    }
     Safefree(self->ffi_cif.arg_types);
     Safefree(self);
 

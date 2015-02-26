@@ -182,7 +182,6 @@ _new_closure(class, return_type_arg, ...)
     {
       arg = ST(2+i);
       self->extra[0].closure.argument_types[i] = SvREFCNT_inc(arg);
-      SvREFCNT_inc(arg);
 
       ffi_pl_type *tmp = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(arg)));
 
@@ -260,9 +259,15 @@ sizeof(self)
 void
 DESTROY(self)
     ffi_pl_type *self
+  PREINIT:
+    int i;
   CODE:
     if(self->platypus_type == FFI_PL_CLOSURE)
     {
+      SvREFCNT_dec(self->extra[0].closure.return_type);
+      for (i=0; i<self->extra[0].closure.ffi_cif.nargs; i++) {
+	SvREFCNT_dec(self->extra[0].closure.argument_types[i]);
+      }
       Safefree(self->extra[0].closure.ffi_cif.arg_types);
     }
     else if(self->platypus_type == FFI_PL_CUSTOM_PERL)
