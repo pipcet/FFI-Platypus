@@ -16,14 +16,13 @@
      * ARGUMENT IN
      */
 
-    delta = 0;
-    for(i=0; i < self->ffi_cif.nargs; i++)
+    for(i=0, perl_arg_index=(EXTRA_ARGS); i < self->ffi_cif.nargs; i++, perl_arg_index++)
     {
       ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
       int platypus_type = type->platypus_type;
       argument_pointers[i] = (void*) &arguments->slot[i];
 
-      arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
+      arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
       if(platypus_type == FFI_PL_NATIVE)
       {
         switch(type->ffi_type->type)
@@ -472,8 +471,6 @@
           i++;
           argument_pointers[i] = &arguments->slot[i];
         }
-
-        delta -= type->extra[0].custom_perl.argument_count;
       }
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
@@ -594,7 +591,7 @@
 
     current_argv = arguments;
 
-    for(i=self->ffi_cif.nargs-1; i >= 0; i--)
+    for(i=self->ffi_cif.nargs-1,perl_arg_index--; i >= 0; i--, perl_arg_index--)
     {
       platypus_type platypus_type;
       ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
@@ -605,7 +602,7 @@
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         if(ptr != NULL)
         {
-          arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
+          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
           if(!SvREADONLY(SvRV(arg)))
           {
             switch(type->ffi_type->type)
@@ -673,7 +670,7 @@
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         int count = type->extra[0].array.element_count;
-        arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
+        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
         if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
         {
           AV *av = (AV*) SvRV(arg);
@@ -780,7 +777,7 @@
       }
       else if(platypus_type == FFI_PL_CLOSURE)
       {
-        arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
+        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
         if(SvROK(arg))
         {
           SvREFCNT_dec(arg);
@@ -796,12 +793,11 @@
           SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
           if(coderef != NULL)
           {
-            arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
-            ffi_pl_custom_perl_cb(coderef, arg, i+delta);
+            arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+            ffi_pl_custom_perl_cb(coderef, arg, i);
           }
         }
         i -= d;
-        delta += d;
       }
 #ifndef HAVE_ALLOCA
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)

@@ -20,10 +20,15 @@ my $string2 = cast opaque => string, $pointer;
 
 is $string2, 'luna park';
 
-attach snprintf => ['buffer_t', string ] => 'int';
+SKIP: {
 
-is snprintf($string2, "this is a very long string"), 26;
-is $string2, "this is \000";
+  eval { attach snprintf => ['buffer_t', string ] => 'int' };
+  skip "test require working snprintf", 2 if $@;
+
+  is snprintf($string2, "this is a very long string"), 26;
+  is $string2, "this is \000";
+
+}
 
 lib find_lib lib => 'test', symbol => 'f0', libpath => 'libtest';
 
