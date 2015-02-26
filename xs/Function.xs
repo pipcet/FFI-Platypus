@@ -80,6 +80,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
           SvREFCNT_inc(arg);
           ffi_argument_types[n+j] = tmp->ffi_type;
         }
+
+        n += self->argument_types[n]->extra[0].custom_perl.argument_count;
       }
     }
     
@@ -115,7 +117,7 @@ call(self, ...)
   PREINIT:
     char *buffer;
     size_t buffer_size;
-    int i, n;
+    int i, n, delta;
     SV *arg;
     ffi_pl_result result;
     ffi_pl_arguments *arguments;

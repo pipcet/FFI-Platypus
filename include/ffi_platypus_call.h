@@ -16,13 +16,14 @@
      * ARGUMENT IN
      */
 
+    delta = 0;
     for(i=0; i < self->ffi_cif.nargs; i++)
     {
       ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
       int platypus_type = type->platypus_type;
       argument_pointers[i] = (void*) &arguments->slot[i];
 
-      arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
+      arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
       if(platypus_type == FFI_PL_NATIVE)
       {
         switch(type->ffi_type->type)
@@ -450,6 +451,8 @@
           i++;
           argument_pointers[i] = &arguments->slot[i];
         }
+
+        delta -= self->argument_types[i]->extra[0].custom_perl.argument_count;
       }
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
@@ -581,7 +584,7 @@
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         if(ptr != NULL)
         {
-          arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
+          arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
           if(!SvREADONLY(SvRV(arg)))
           {
             switch(type->ffi_type->type)
@@ -649,7 +652,7 @@
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         int count = type->extra[0].array.element_count;
-        arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
+        arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
         if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
         {
           AV *av = (AV*) SvRV(arg);
@@ -756,7 +759,7 @@
       }
       else if(platypus_type == FFI_PL_CLOSURE)
       {
-        arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
+        arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
         if(SvROK(arg))
         {
           SvREFCNT_dec(arg);
@@ -764,16 +767,18 @@
       }
       else if(platypus_type == FFI_PL_CUSTOM_PERL)
       {
+        int d = self->argument_types[i]->extra[0].custom_perl.argument_count;
         /* FIXME: need to fill out argument_types for skipping */
-        i -= type->extra[0].custom_perl.argument_count;
         {
           SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
           if(coderef != NULL)
           {
-            arg = i+(EXTRA_ARGS) < items ? ST(i+(EXTRA_ARGS)) : &PL_sv_undef;
-            ffi_pl_custom_perl_cb(coderef, arg, i);
+            arg = i+delta+(EXTRA_ARGS) < items ? ST(i+delta+(EXTRA_ARGS)) : &PL_sv_undef;
+            ffi_pl_custom_perl_cb(coderef, arg, i+delta);
           }
         }
+        i -= d;
+        delta += d;
       }
 #ifndef HAVE_ALLOCA
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
