@@ -10,10 +10,12 @@
 #include "perl_math_int64.h"
 #endif
 
-void
+SV *
 ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
 {
   dSP;
+  SV *sv;
+
   ENTER;
   SAVETMPS;
   PUSHMARK(SP);
@@ -21,9 +23,14 @@ ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
   XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data))));
   XPUSHs(closure_data->type);
   PUTBACK;
-  call_pv("FFI::Platypus::Closure::add_data", G_DISCARD);
+  call_pv("FFI::Platypus::Closure::add_data", G_SCALAR);
+  SPAGAIN;
+  sv = SvREFCNT_inc(POPs);
+  PUTBACK;
   FREETMPS;
   LEAVE;
+
+  return sv;
 }
 
 ffi_pl_closure *

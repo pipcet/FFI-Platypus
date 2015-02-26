@@ -375,8 +375,29 @@
               }
               else
               {
+		SV **svp;
+		SV **hvp;
+                SV *keysv;
+		const char *key;
+		STRLEN len;
+
                 closure->coderef = arg;
-                ffi_pl_closure_add_data(arg, closure);
+		keysv = ffi_pl_closure_add_data(arg, closure);
+		key = SvPV(keysv, len);
+		hvp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "cbdata", 6, 0);
+		if (!hvp)
+		  croak("couldn't create closure type hash");
+		svp = hv_fetch((HV *)SvRV(*hvp), key, len, 0);
+		if (!svp)
+		  croak("couldn't create closure type hash (2)");
+		svp = hv_fetch((HV *)SvRV(*svp), "type", 4, 0);
+		if (!svp)
+		  croak("couldn't create closure type hash (3)");
+		/* No SvREFCNT_inc here! The hash entry will stay
+		   alive as long as the closure exists, and we want to
+		   avoid having a custom DESTROY routine for
+		   closures. */
+		closure->type = *svp;
                 ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
               }
             }

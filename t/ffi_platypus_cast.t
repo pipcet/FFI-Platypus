@@ -44,7 +44,7 @@ subtest 'cast closure to opaque' => sub {
 
   my $closure = $ffi->closure(sub { is $_[0], "testvalue", $testname });
   my $pointer = $ffi->cast('(string)->void' => opaque => $closure);
-  
+
   $ffi->function(string_set_closure => ['opaque'] => 'void')->call($pointer);
   $ffi->function(string_call_closure => ['string'] => 'void')->call("testvalue");
 
