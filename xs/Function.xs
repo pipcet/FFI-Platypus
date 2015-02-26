@@ -41,7 +41,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
     self->address = address;
-    self->return_type = newSVsv(return_type_arg);
+    self->return_type = SvREFCNT_inc(return_type_arg);
     
     if(return_type->platypus_type == FFI_PL_NATIVE 
     || return_type->platypus_type == FFI_PL_CUSTOM_PERL
@@ -58,7 +58,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     {
       arg = ST(i+5);
       SvREFCNT_inc(arg);
-      self->argument_types[n] = newSVsv(arg);
+      self->argument_types[n] = SvREFCNT_inc(arg);
       tmp = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV(arg)));
 
       if(tmp->platypus_type == FFI_PL_NATIVE

@@ -166,7 +166,7 @@ _new_closure(class, return_type_arg, ...)
     
     self->ffi_type = &ffi_type_pointer;
     self->platypus_type = FFI_PL_CLOSURE;
-    self->extra[0].closure.return_type = newSVsv(return_type_arg);
+    self->extra[0].closure.return_type = SvREFCNT_inc(return_type_arg);
     self->extra[0].closure.flags = 0;
     
     if(return_type->platypus_type == FFI_PL_NATIVE)
@@ -181,7 +181,7 @@ _new_closure(class, return_type_arg, ...)
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
-      self->extra[0].closure.argument_types[i] = newSVsv(arg);
+      self->extra[0].closure.argument_types[i] = SvREFCNT_inc(arg);
       SvREFCNT_inc(arg);
 
       ffi_pl_type *tmp = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(arg)));
