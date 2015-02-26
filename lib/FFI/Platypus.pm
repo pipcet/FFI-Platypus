@@ -1031,7 +1031,7 @@ package FFI::Platypus::Function;
 use overload '&{}' => sub {
   my $ffi = shift;
   sub { $ffi->call(@_) };
-};
+}, "fallback" => 1;
 
 package FFI::Platypus::Closure;
 
@@ -1040,7 +1040,7 @@ use Carp qw( croak );
 use overload '&{}' => sub {
   my $self = shift;
   sub { $self->{code}->(@_) };
-};
+}, "fallback" => 1;
 
 # VERSION
 
