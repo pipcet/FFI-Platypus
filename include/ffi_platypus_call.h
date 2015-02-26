@@ -452,7 +452,7 @@
           argument_pointers[i] = &arguments->slot[i];
         }
 
-        delta -= self->argument_types[i]->extra[0].custom_perl.argument_count;
+        delta -= type->extra[0].custom_perl.argument_count;
       }
       else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
@@ -767,7 +767,9 @@
       }
       else if(platypus_type == FFI_PL_CUSTOM_PERL)
       {
-        int d = self->argument_types[i]->extra[0].custom_perl.argument_count;
+        ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+
+        int d = type->extra[0].custom_perl.argument_count;
         /* FIXME: need to fill out argument_types for skipping */
         {
           SV *coderef = type->extra[0].custom_perl.perl_to_native_post;

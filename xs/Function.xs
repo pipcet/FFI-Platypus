@@ -81,7 +81,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
           ffi_argument_types[n+j] = tmp->ffi_type;
         }
 
-        n += self->argument_types[n]->extra[0].custom_perl.argument_count;
+        n += tmp->extra[0].custom_perl.argument_count;
       }
     }
     
