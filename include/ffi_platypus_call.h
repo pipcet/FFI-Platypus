@@ -398,6 +398,7 @@
 		   closures. */
 		closure->type = *svp;
                 ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
+		SvREFCNT_dec(keysv);
               }
             }
           }
