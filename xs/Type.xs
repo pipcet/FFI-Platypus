@@ -335,6 +335,14 @@ new(class, name)
   OUTPUT:
     RETVAL
 
+size_t
+sizeof(self)
+    ffi_type *self
+  CODE:
+    RETVAL = self->size;
+  OUTPUT:
+    RETVAL
+
 SV*
 meta(self)
     ffi_type *self
