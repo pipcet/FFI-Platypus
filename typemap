@@ -18,6 +18,7 @@ T_FFI_PL_TYPE
     hv_store(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), sv, 0);
     $arg = newRV_noinc((SV*)hv);
     sv_bless($arg, stash);
+    $var->hv = hv;
   } while(0);
 
 T_FFI_PL_FUNCTION
