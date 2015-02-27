@@ -75,12 +75,12 @@
             break;
         }
       } else {
-	ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
-	int platypus_type = type->platypus_type;
+	SV *type_sv = self->argument_types[i];
+	ffi_pl_type *type = SV2ffi_pl_type(type_sv);
 	argument_pointers[i] = (void*) &arguments->slot[i];
 
         arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-        if(platypus_type == FFI_PL_STRING)
+        if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
         {
           switch(type->extra[0].string.platypus_string_type)
           {
@@ -102,7 +102,7 @@
               break;
           }
         }
-        else if(platypus_type == FFI_PL_POINTER)
+        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
         {
           void *ptr;
 
@@ -192,7 +192,7 @@
           }
           ffi_pl_arguments_set_pointer(arguments, i, ptr);
         }
-        else if(platypus_type == FFI_PL_RECORD)
+	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
         {
           void *ptr;
           STRLEN size;
@@ -211,7 +211,7 @@
             warn("record argument %d has wrong size (is %d, expected %d)", i, (int)size, expected);
           ffi_pl_arguments_set_pointer(arguments, i, ptr);
         }
-        else if(platypus_type == FFI_PL_ARRAY)
+	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
         {
           void *ptr;
           int count = type->extra[0].array.element_count;
@@ -331,7 +331,7 @@
           }
           ffi_pl_arguments_set_pointer(arguments, i, ptr);
         }
-        else if(platypus_type == FFI_PL_CLOSURE)
+	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
         {
           if(!SvROK(arg))
           {
@@ -410,7 +410,7 @@
             }
           }
         }
-        else if(platypus_type == FFI_PL_CUSTOM_PERL)
+	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
           SV *arg2 = ffi_pl_custom_perl(
             type->extra[0].custom_perl.perl_to_native,
@@ -490,7 +490,7 @@
             argument_pointers[i] = &arguments->slot[i];
           }
         }
-        else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
+	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
         {
           switch(type->ffi_type->type)
           {
@@ -613,14 +613,12 @@
 
   for(i=self->ffi_cif.nargs-1,perl_arg_index--; i >= 0; i--, perl_arg_index--)
   {
-    SV *arg_type = self->argument_types[i];
-    if (sv_derived_from(arg_type, "FFI::Platypus::Type::FFI")) {
+    SV *type_sv = self->argument_types[i];
+    if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI")) {
     } else {
-      platypus_type platypus_type;
       ffi_pl_type *type = SV2ffi_pl_type(self->argument_types[i]);
-      platypus_type = type->platypus_type;
     
-      if(platypus_type == FFI_PL_POINTER)
+      if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         if(ptr != NULL)
@@ -689,7 +687,7 @@
         Safefree(ptr);
 #endif
       }
-      else if(platypus_type == FFI_PL_ARRAY)
+      else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         int count = type->extra[0].array.element_count;
@@ -792,51 +790,52 @@
               }
               break;
 #endif
+	    }
           }
-        }
 #ifndef HAVE_ALLOCA
-        Safefree(ptr);
+          Safefree(ptr);
 #endif
-      }
-      else if(platypus_type == FFI_PL_CLOSURE)
-      {
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-        if(SvROK(arg))
-        {
-          SvREFCNT_dec(arg);
         }
-      }
-      else if(platypus_type == FFI_PL_CUSTOM_PERL)
-      {
-        ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
-
-        int d = type->extra[0].custom_perl.argument_count;
-        /* FIXME: need to fill out argument_types for skipping */
+        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
         {
-          SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
-          if(coderef != NULL)
+          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+          if(SvROK(arg))
           {
-            arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-            ffi_pl_custom_perl_cb(coderef, arg, i);
+            SvREFCNT_dec(arg);
           }
         }
-        i -= d;
-      }
+        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
+        {
+          ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
+
+          int d = type->extra[0].custom_perl.argument_count;
+          /* FIXME: need to fill out argument_types for skipping */
+          {
+            SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
+            if(coderef != NULL)
+            {
+              arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+              ffi_pl_custom_perl_cb(coderef, arg, i);
+            }
+          }
+          i -= d;
+        }
 #ifndef HAVE_ALLOCA
-      else if(platypus_type == FFI_PL_EXOTIC_FLOAT)
-      {
-        void *ptr = argument_pointers[i];
-        Safefree(ptr);
-      }
+        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
+        {
+          void *ptr = argument_pointers[i];
+          Safefree(ptr);
+        }
 #endif
+      }
     }
-  }
 #ifndef HAVE_ALLOCA
-  if(self->return_type->platypus_type != FFI_PL_CUSTOM_PERL)
-    Safefree(arguments);
+#error
+    if(self->return_type->platypus_type != FFI_PL_CUSTOM_PERL)
+      Safefree(arguments);
 #endif
 
-  current_argv = NULL;
+    current_argv = NULL;
 
     /*
      * RETURN VALUE
@@ -924,7 +923,7 @@
       }
     } else {
       ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
-      if(pl_return_type->platypus_type == FFI_PL_STRING)
+      if(sv_derived_from(return_type, "FFI::Platypus::Type::String"))
       {
         if(result.pointer == NULL)
         {
@@ -945,7 +944,7 @@
           }
         }
       }
-      else if(pl_return_type->platypus_type == FFI_PL_POINTER)
+      else if(sv_derived_from(return_type, "FFI::Platypus::Type::Pointer"))
       {
         if(result.pointer == NULL)
         {
@@ -1025,7 +1024,7 @@
           XSRETURN(1);
         }
       }
-      else if(pl_return_type->platypus_type == FFI_PL_RECORD)
+      else if(sv_derived_from(return_type, "FFI::Platypus::Type::Record"))
       {
         if(result.pointer != NULL)
         {
@@ -1047,7 +1046,7 @@
           XSRETURN_EMPTY;
         }
       }
-      else if(pl_return_type->platypus_type == FFI_PL_ARRAY)
+      else if(sv_derived_from(return_type, "FFI::Platypus::Type::Array"))
       {
         if(result.pointer == NULL)
         {
@@ -1161,7 +1160,7 @@
           XSRETURN(1);
         }
       }
-      else if(pl_return_type->platypus_type == FFI_PL_CUSTOM_PERL)
+      else if(sv_derived_from(return_type, "FFI::Platypus::Type::CustomPerl"))
       {
         SV *ret_in=NULL, *ret_out;
         AV *av;
@@ -1272,7 +1271,7 @@
           XSRETURN(1);
         }
     }
-    else if(pl_return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
+    else if(sv_derived_from(return_type, "FFI::Platypus::Type::ExoticFloat"))
     {
       switch(pl_return_type->ffi_type->type)
       {
@@ -1298,7 +1297,7 @@
 #endif
       }
     }
-      }
+    }
 
     warn("return type not supported");
     XSRETURN_EMPTY;
