@@ -114,6 +114,7 @@ typedef union _ffi_pl_type_extra {
 } ffi_pl_type_extra;
 
 typedef struct _ffi_pl_type {
+  void *hv; /* the Perl HV* corresponding to our object. Not reference-counted to avoid a circular reference */
   ffi_type *ffi_type;
   platypus_type platypus_type;
   void *underlying_types;  /* an SV*; either a reference to an array or NULL */
