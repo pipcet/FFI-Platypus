@@ -80,6 +80,7 @@ typedef struct _ffi_pl_type_extra_record {
 } ffi_pl_type_extra_record;
 
 typedef struct _ffi_pl_type_extra_custom_perl {
+  size_t size;
   void *perl_to_native;
   void *native_to_perl;
   void *perl_to_native_post;
@@ -115,6 +116,7 @@ typedef union _ffi_pl_type_extra {
 typedef struct _ffi_pl_type {
   ffi_type *ffi_type;
   platypus_type platypus_type;
+  void *underlying_types;  /* an SV*; either a reference to an array or NULL */
   ffi_pl_type_extra extra[0];
 } ffi_pl_type;
 

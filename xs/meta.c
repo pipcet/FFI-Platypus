@@ -10,8 +10,9 @@ ffi_pl_sizeof(ffi_pl_type *self)
 {
   switch(self->platypus_type)
   {
-    case FFI_PL_NATIVE:
     case FFI_PL_CUSTOM_PERL:
+      return self->extra[0].custom_perl.size;
+    case FFI_PL_NATIVE:
     case FFI_PL_EXOTIC_FLOAT:
       return self->ffi_type->size;
     case FFI_PL_STRING:
@@ -84,6 +85,7 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
     AV *signature;
     AV *argument_types;
     HV *subtype;
+    SV *rettype;
     int i;
     int number_of_arguments;
 
@@ -94,12 +96,14 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
 
     for(i=0; i < number_of_arguments; i++)
     {
-      subtype = ffi_pl_get_type_meta(self->extra[0].closure.argument_types[i]);
+      SV *argtype = self->extra[0].closure.argument_types[i];
+      subtype = ffi_pl_get_type_meta(SvIV((SV*)SvRV(argtype)));
       av_store(argument_types, i, newRV_noinc((SV*)subtype));
     }
     av_store(signature, 0, newRV_noinc((SV*)argument_types));
 
-    subtype = ffi_pl_get_type_meta(self->extra[0].closure.return_type);
+    rettype = self->extra[0].closure.return_type;
+    subtype = ffi_pl_get_type_meta(SvIV((SV*)SvRV(rettype)));
     av_store(signature, 1, newRV_noinc((SV*)subtype));
 
     hv_store(meta, "signature",     9, newRV_noinc((SV*)signature), 0);
@@ -119,6 +123,8 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
 
     if(self->extra[0].custom_perl.native_to_perl != NULL)
       hv_store(meta, "custom_native_to_perl", 18, newRV_inc((SV*)self->extra[0].custom_perl.native_to_perl), 0);
+
+    hv_store(meta, "argument_count", strlen("argument_count"), newSViv(self->extra[0].custom_perl.argument_count + 1), 0);
   }
   else if(self->platypus_type == FFI_PL_RECORD)
   {
@@ -126,8 +132,18 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
     hv_store(meta, "ref",           3, newSViv(self->extra[0].record.stash != NULL ? 1 : 0),0);
   }
 
-  switch(self->ffi_type->type)
-  {
+  ffi_type *ffi_type;
+  ffi_type = self->ffi_type;
+  if (self->ffi_type == NULL) {
+    AV *av = (AV *)SvRV((SV*)self->underlying_types);
+    SV **svp = av_fetch(av, 0, 0);
+    STRLEN len;
+    const char *name = SvPV(*svp, len);
+    ffi_type = ffi_pl_name_to_type(name);
+  }
+
+  switch(ffi_type->type)
+    {
     case FFI_TYPE_VOID:
       hv_store(meta, "element_type", 12, newSVpv("void",0),0);
       break;
@@ -157,7 +173,7 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
       hv_store(meta, "element_type", 12, newSVpv("opaque",0),0);
       break;
   }
-  switch(self->ffi_type->type)
+  switch(ffi_type->type)
   {
     case FFI_TYPE_VOID:
       string = "void";
@@ -200,7 +216,7 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
       break;
 #ifdef FFI_TARGET_HAS_COMPLEX_TYPE
     case FFI_TYPE_COMPLEX:
-      string = self->ffi_type->size == 16 ? "complex_double" : "complex_float";
+      string = ffi_type->size == 16 ? "complex_double" : "complex_float";
       break;
 #endif
     default:

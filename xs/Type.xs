@@ -19,6 +19,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
       self = (ffi_pl_type*) buffer;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_STRING;
+      self->underlying_types = NULL;
       self->extra[0].string.size = array_or_record_or_string_size;
       if(array_or_record_or_string_size == 0)
       {
@@ -50,12 +51,14 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
       {
         self->platypus_type = FFI_PL_NATIVE;
       }
+      self->underlying_types = NULL;
     }
     else if(!strcmp(platypus_type, "pointer"))
     {
       Newx(self, 1, ffi_pl_type);
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_POINTER;
+      self->underlying_types = NULL;
     }
     else if(!strcmp(platypus_type, "array"))
     {
@@ -63,6 +66,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
       self = (ffi_pl_type*) buffer;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_ARRAY;
+      self->underlying_types = NULL;
       self->extra[0].array.element_count = array_or_record_or_string_size;
     }
     else if(!strcmp(platypus_type, "record"))
@@ -71,6 +75,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
       self = (ffi_pl_type*) buffer;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_RECORD;
+      self->underlying_types = NULL;
       self->extra[0].record.size = array_or_record_or_string_size;
       self->extra[0].record.stash = type_classname != NULL ? gv_stashpv(type_classname, GV_ADD) : NULL;
     }
@@ -95,9 +100,10 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     RETVAL
 
 ffi_pl_type *
-_new_custom_perl(class, type, perl_to_native, native_to_perl, perl_to_native_post, argument_count)
+_new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_native_post, argument_count)
     const char *class
-    const char *type
+    SV *types
+    size_t size
     SV *perl_to_native
     SV *native_to_perl
     SV *perl_to_native_post
@@ -108,16 +114,14 @@ _new_custom_perl(class, type, perl_to_native, native_to_perl, perl_to_native_pos
     ffi_type *ffi_type;
     ffi_pl_type_extra_custom_perl *custom;
   CODE:
-    ffi_type = ffi_pl_name_to_type(type);
-    if(ffi_type == NULL)
-      croak("unknown ffi/platypus type: %s/custom", type);
-      
     Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_custom_perl), char);
     self = (ffi_pl_type*) buffer;
     self->platypus_type = FFI_PL_CUSTOM_PERL;
-    self->ffi_type = ffi_type;
-    
+    self->ffi_type = NULL;
+    self->underlying_types = SvREFCNT_inc(types);
+
     custom = &self->extra[0].custom_perl;
+    custom->size = size;
     custom->perl_to_native = SvOK(perl_to_native) ? SvREFCNT_inc(perl_to_native) : NULL;
     custom->perl_to_native_post = SvOK(perl_to_native_post) ? SvREFCNT_inc(perl_to_native_post) : NULL;
     custom->native_to_perl = SvOK(native_to_perl) ? SvREFCNT_inc(native_to_perl) : NULL;
@@ -166,6 +170,7 @@ _new_closure(class, return_type_arg, ...)
     
     self->ffi_type = &ffi_type_pointer;
     self->platypus_type = FFI_PL_CLOSURE;
+    self->underlying_types = NULL;
     self->extra[0].closure.return_type = SvREFCNT_inc(return_type_arg);
     self->extra[0].closure.flags = 0;
     

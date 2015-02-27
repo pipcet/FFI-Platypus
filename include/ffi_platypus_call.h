@@ -412,9 +412,15 @@
           i
         );
 
+        AV *av = (AV *)SvRV((SV*)type->underlying_types);
+        SV **svp = av_fetch(av, 0, 0);
+        STRLEN len;
+        const char *name = SvPV(*svp, len);
+        ffi_type *ffi_type = ffi_pl_name_to_type(name);
+
         if(arg2 != NULL)
         {
-          switch(type->ffi_type->type)
+          switch(ffi_type->type)
           {
             case FFI_TYPE_UINT8:
               ffi_pl_arguments_set_uint8(arguments, i, SvUV(arg2));
@@ -1140,8 +1146,13 @@
     else if(return_type->platypus_type == FFI_PL_CUSTOM_PERL)
     {
       SV *ret_in=NULL, *ret_out;
+      AV *av = (AV *)SvRV((SV*)return_type->underlying_types);
+      SV **svp = av_fetch(av, 0, 0);
+      STRLEN len;
+      const char *name = SvPV(*svp, len);
+      ffi_type *ffi_type = ffi_pl_name_to_type(name);
 
-      switch(return_type->ffi_type->type)
+      switch(ffi_type->type)
       {
         case FFI_TYPE_UINT8:
 #ifdef FFI_PL_PROBE_BIGENDIAN

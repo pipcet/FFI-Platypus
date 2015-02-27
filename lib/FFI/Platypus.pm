@@ -452,9 +452,24 @@ sub custom_type
   my $type_map = $self->_type_map;
   croak "$type is not a native type" unless defined $type_map->{$type} || $type eq 'string';
   croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
-  
+
+  my @types;
+  my $size = 0;
+  if (ref $type eq "ARRAY") {
+    for my $t (@$type) {
+      push @types, $type_map->{$t};
+    }
+  } else {
+    @types = ($type_map->{$type}) x $argument_count;
+  }
+  #@types = map { $self->_type_lookup($_) } @types;
+  for my $type (@types) {
+    $size += $self->_type_lookup($type)->sizeof;
+  }
+
   $self->{types}->{$name} = FFI::Platypus::Type->_new_custom_perl(
-    $type_map->{$type},
+    \@types,
+    $size,
     $cb->{perl_to_native},
     $cb->{native_to_perl},
     $cb->{perl_to_native_post},
@@ -1087,6 +1102,14 @@ package FFI::Platypus::Type;
 use Carp qw( croak );
 
 # VERSION
+
+sub argument_count
+{
+  my($self) = @_;
+  my $meta = $self->meta;
+
+  return $meta->{argument_count} ? $meta->{argument_count} : 1;
+}
 
 sub new
 {

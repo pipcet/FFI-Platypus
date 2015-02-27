@@ -43,11 +43,21 @@ new(class, platypus, address, abi, return_type_arg, ...)
     self->address = address;
     self->return_type = SvREFCNT_inc(return_type_arg);
     
-    if(return_type->platypus_type == FFI_PL_NATIVE 
-    || return_type->platypus_type == FFI_PL_CUSTOM_PERL
+
+    if(return_type->platypus_type == FFI_PL_NATIVE
     || return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
     {
       ffi_return_type = return_type->ffi_type;
+    }
+    else if (return_type->platypus_type == FFI_PL_CUSTOM_PERL)
+    {
+      AV *av = (AV *)SvRV((SV*)return_type->underlying_types);
+      SV **svp = av_fetch(av, 0, 0);
+      STRLEN len;
+      const char *name = SvPV(*svp, len);
+      ffi_type *ffi_type = ffi_pl_name_to_type(name);
+
+      ffi_return_type = ffi_type;
     }
     else
     {
@@ -61,26 +71,30 @@ new(class, platypus, address, abi, return_type_arg, ...)
       tmp = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV(arg)));
 
       if(tmp->platypus_type == FFI_PL_NATIVE
-      || tmp->platypus_type == FFI_PL_CUSTOM_PERL
       || tmp->platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
-        ffi_argument_types[n] = tmp->ffi_type;
+	ffi_argument_types[n] = tmp->ffi_type;
+      }
+      else if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
+      {
+	for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
+	{
+	  AV *av = (AV *)SvRV((SV*)tmp->underlying_types);
+	  SV **svp = av_fetch(av, j, 0);
+	  STRLEN len;
+	  const char *name = SvPV(*svp, len);
+	  ffi_type *ffi_type = ffi_pl_name_to_type(name);
+
+	  self->argument_types[n+j] = arg;
+	  SvREFCNT_inc(arg);
+	  ffi_argument_types[n+j] = ffi_type;
+	}
+
+	n += tmp->extra[0].custom_perl.argument_count;
       }
       else
       {
-        ffi_argument_types[n] = &ffi_type_pointer;
-      }
-      if(tmp->platypus_type == FFI_PL_CUSTOM_PERL
-      && tmp->extra[0].custom_perl.argument_count > 0)
-      {
-        for(j=1; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
-        {
-          self->argument_types[n+j] = arg;
-          SvREFCNT_inc(arg);
-          ffi_argument_types[n+j] = tmp->ffi_type;
-        }
-
-        n += tmp->extra[0].custom_perl.argument_count;
+	ffi_argument_types[n] = &ffi_type_pointer;
       }
     }
     
