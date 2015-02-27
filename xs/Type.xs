@@ -323,3 +323,24 @@ native_to_perl_xs(pointer)
     {
       XSRETURN_EMPTY;
     }
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+
+ffi_type*
+new(name)
+    const char *name
+  CODE:
+    RETVAL = ffi_pl_name_to_type(name);
+  OUTPUT:
+    RETVAL
+
+SV*
+meta(self)
+    ffi_pl_type *self
+  PREINIT:
+    HV *meta;
+  CODE:
+    meta = ffi_pl_ffi_get_type_meta(self);
+    RETVAL = newRV_noinc((SV*)meta);
+  OUTPUT:
+    RETVAL
