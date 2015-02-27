@@ -1128,6 +1128,7 @@ sub new
   
   my $ffi_type;
   my $platypus_type;
+  my $subtype;
   my $size = 0;
   my $classname;
   my $rw = 0;
@@ -1184,17 +1185,25 @@ sub new
   {
     $ffi_type = $type;
     $platypus_type = 'FFI';
-    if ($type ne "longdouble" and
-	$type ne "complex_float" and
-	$type ne "complex_double")
+    if ($type eq "longdouble" or
+	$type eq "complex_float" or
+	$type eq "complex_double")
+    {
+      $platypus_type = 'ExoticFloat';
+      $ffi_type = $type;
+      $subtype = 'ffi';
+    }
+    else
     {
       return FFI::Platypus::Type::FFI->new($type);
     }
   }
 
+  $subtype = lc $platypus_type unless defined $subtype;
+
   $class .= "::$platypus_type";
 
-  $class->_new($ffi_type, lc $platypus_type, $size, $classname, $rw);
+  $class->_new($ffi_type, $subtype, $size, $classname, $rw);
 }
 
 package FFI::Platypus::Type::String;
@@ -1213,6 +1222,9 @@ package FFI::Platypus::Type::CustomPerl;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::Record;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::ExoticFloat;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::FFI;
