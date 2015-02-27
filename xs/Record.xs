@@ -89,7 +89,7 @@ _accessor(perl_name, path_name, typesv, offset)
     else
     {
       ffi_pl_type *type = SV2ffi_pl_type(typesv);
-      if(type->platypus_type == FFI_PL_ARRAY)
+      if(sv_derived_from(typesv, "FFI::Platypus::Type::Array"))
       {
         member->count = type->extra[0].array.element_count;
         switch(type->ffi_type->type)
@@ -133,7 +133,7 @@ _accessor(perl_name, path_name, typesv, offset)
             break;
         }
       }
-      else if(type->platypus_type == FFI_PL_STRING)
+      else if(sv_derived_from(typesv, "FFI::Platypus::Type::String"))
       {
         switch(type->extra[0].string.platypus_string_type)
         {

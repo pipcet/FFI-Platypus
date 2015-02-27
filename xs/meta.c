@@ -6,29 +6,40 @@
 #include "ffi_platypus.h"
 
 size_t
-ffi_pl_sizeof(ffi_pl_type *self)
+ffi_pl_sizeof(SV *selfsv, ffi_pl_type *self)
 {
-  switch(self->platypus_type)
+  if(sv_derived_from(selfsv, "FFI::Platypus::Type::CustomPerl"))
   {
-    case FFI_PL_CUSTOM_PERL:
-      return self->extra[0].custom_perl.size;
-    case FFI_PL_NATIVE:
-    case FFI_PL_EXOTIC_FLOAT:
-      return self->ffi_type->size;
-    case FFI_PL_STRING:
-      if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
-        return self->extra[0].string.size;
-      else
-        return sizeof(void*);
-    case FFI_PL_POINTER:
-    case FFI_PL_CLOSURE:
+    return self->extra[0].custom_perl.size;
+  }
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::FFI")
+        ||sv_derived_from(selfsv, "FFI::Platypus::Type::ExoticFloat"))
+  {
+    return self->ffi_type->size;
+  }
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::String"))
+  {
+    if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
+      return self->extra[0].string.size;
+    else
       return sizeof(void*);
-    case FFI_PL_ARRAY:
-      return self->ffi_type->size * self->extra[0].array.element_count;
-    case FFI_PL_RECORD:
-      return self->extra[0].record.size;
-    default:
-      return 0;
+  }
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Pointer")
+        ||sv_derived_from(selfsv, "FFI::Platypus::Type::Closure"))
+  {
+    return sizeof(void*);
+  }
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Array"))
+  {
+    return self->ffi_type->size * self->extra[0].array.element_count;
+  }
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Record"))
+  {
+    return self->extra[0].record.size;
+  }
+  else
+  {
+    return 0;
   }
 }
 
@@ -130,23 +141,33 @@ ffi_pl_ffi_get_type_meta(ffi_type *ffi_type)
 }
 
 HV *
-ffi_pl_get_type_meta(ffi_pl_type *self)
+ffi_pl_get_type_meta(SV *selfsv)
 {
+  ffi_pl_type *self;
   HV *meta;
   const char *string;
 
   meta = newHV();
 
-  hv_store(meta, "size", 4, newSViv(ffi_pl_sizeof(self)), 0);
+  if(sv_isobject(selfsv) && sv_derived_from(selfsv, "FFI::Platypus::Type")) {
+    HV *hv = (HV*)SvRV(selfsv);
+    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+    if (svp == NULL)
+      Perl_croak(aTHX_ "self is missing the ffi_pl_type hash entry");
+    self = INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+  } else
+    Perl_croak(aTHX_ "self is not of type FFI::Platypus::Type");
 
-  if(self->platypus_type == FFI_PL_NATIVE || self->platypus_type == FFI_PL_EXOTIC_FLOAT)
+  hv_store(meta, "size", 4, newSViv(ffi_pl_sizeof(selfsv, self)), 0);
+
+  if(sv_derived_from(selfsv, "FFI::Platypus::Type::FFI") || sv_derived_from(selfsv, "FFI::Platypus::Type::ExoticFloat"))
   {
     hv_store(meta, "element_size", 12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",          4, newSVpv("scalar",0),0);
-    if(self->platypus_type == FFI_PL_EXOTIC_FLOAT)
+    if(sv_derived_from(selfsv, "FFI::Platypus::Type::ExoticFloat"))
       hv_store(meta, "exotic", 6, newSViv(1), 0);
   }
-  else if(self->platypus_type == FFI_PL_STRING)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::String"))
   {
     hv_store(meta, "element_size",  12, newSViv(sizeof(void*)), 0);
     hv_store(meta, "type",           4, newSVpv("string",0),0);
@@ -166,18 +187,18 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
         break;
     }
   }
-  else if(self->platypus_type == FFI_PL_POINTER)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Pointer"))
   {
     hv_store(meta, "element_size", 12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",          4, newSVpv("pointer",0),0);
   }
-  else if(self->platypus_type == FFI_PL_ARRAY)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Array"))
   {
     hv_store(meta, "element_size",  12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",           4, newSVpv("array",0),0);
     hv_store(meta, "element_count", 13, newSViv(self->extra[0].array.element_count), 0);
   }
-  else if(self->platypus_type == FFI_PL_CLOSURE)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Closure"))
   {
     AV *signature;
     AV *argument_types;
@@ -242,7 +263,7 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
     hv_store(meta, "element_size", 12, newSViv(sizeof(void*)), 0);
     hv_store(meta, "type",          4, newSVpv("closure",0),0);
   }
-  else if(self->platypus_type == FFI_PL_CUSTOM_PERL)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::CustomPerl"))
   {
     hv_store(meta, "type",          4, newSVpv("custom_perl",0),0);
 
@@ -257,7 +278,7 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
 
     hv_store(meta, "argument_count", strlen("argument_count"), newSViv(self->extra[0].custom_perl.argument_count + 1), 0);
   }
-  else if(self->platypus_type == FFI_PL_RECORD)
+  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Record"))
   {
     hv_store(meta, "type",          4, newSVpv("record",0),0);
     hv_store(meta, "ref",           3, newSViv(self->extra[0].record.stash != NULL ? 1 : 0),0);

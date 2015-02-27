@@ -10,8 +10,8 @@ ffi_pl_closure *ffi_pl_closure_get_data(SV *closure, SV *type);
 SV*  ffi_pl_custom_perl(SV*,SV*,int);
 void ffi_pl_custom_perl_cb(SV *, SV*, int);
 HV *ffi_pl_ffi_get_type_meta(ffi_type *);
-HV *ffi_pl_get_type_meta(ffi_pl_type *);
-size_t ffi_pl_sizeof(ffi_pl_type *);
+HV *ffi_pl_get_type_meta(SV *);
+size_t ffi_pl_sizeof(SV *,ffi_pl_type *);
 void ffi_pl_perl_complex_float(SV *sv, float *ptr);
 void ffi_pl_perl_complex_double(SV *sv, double *ptr);
 

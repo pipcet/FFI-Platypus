@@ -31,7 +31,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
       if(!sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         tmp = SV2ffi_pl_type((SV*) arg);
-        if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
+        if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
           extra_arguments += tmp->extra[0].custom_perl.argument_count;
       }
     }
@@ -51,7 +51,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     {
       ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
 
-      if (return_type->platypus_type == FFI_PL_CUSTOM_PERL)
+      if (sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
       {
         SV *ret_in=NULL, *ret_out;
 	AV *av;
@@ -67,7 +67,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
         ffi_return_type = ffi;
       }
-      else if (return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
+      else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::ExoticFloat"))
       {
 	ffi_return_type = return_type->ffi_type;
       }
@@ -89,7 +89,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
         ffi_pl_type *tmp = SV2ffi_pl_type(arg);
 
-        if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
+	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
           for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
           {
@@ -112,7 +112,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
           n += tmp->extra[0].custom_perl.argument_count;
         }
-        else if (tmp->platypus_type == FFI_PL_EXOTIC_FLOAT)
+	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
           ffi_argument_types[n] = tmp->ffi_type;
         }
