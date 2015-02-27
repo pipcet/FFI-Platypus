@@ -1222,6 +1222,29 @@ use parent -norequire, 'FFI::Platypus::Type';
 package FFI::Platypus::Type::CustomPerl;
 use parent -norequire, 'FFI::Platypus::Type';
 
+sub meta {
+  my ($self) = @_;
+  my $meta = $self->SUPER::meta;
+
+  $meta->{type} = "custom_perl";
+
+  if(exists($self->{perl_to_native})) {
+    $meta->{custom_perl_to_native} = $self->{perl_to_native};
+  }
+
+  if(exists($self->{native_to_perl})) {
+    $meta->{custom_native_to_perl} = $self->{native_to_perl};
+  }
+
+  if(exists($self->{perl_to_native})) {
+    $meta->{custom_perl_to_native_post} = $self->{perl_to_native_post};
+  }
+
+  $meta->{argument_count} = $self->{argument_count} + 1;
+
+  return $meta;
+}
+
 package FFI::Platypus::Type::Record;
 use parent -norequire, 'FFI::Platypus::Type';
 
