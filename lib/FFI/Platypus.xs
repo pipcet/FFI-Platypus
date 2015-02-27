@@ -22,7 +22,7 @@ void *cast1(void *value)
   return value;
 }
 
-static ffi_pl_type *SV2ffi_pl_type(SV *sv)
+ffi_pl_type *SV2ffi_pl_type(SV *sv)
 {
   if(sv_isobject(sv) && sv_derived_from(sv, "FFI::Platypus::Type")) {
     HV *hv = (HV*)SvRV(sv);

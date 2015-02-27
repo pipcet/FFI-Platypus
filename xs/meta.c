@@ -194,13 +194,13 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
     for(i=0; i < number_of_arguments; i++)
     {
       SV *argtype = self->extra[0].closure.argument_types[i];
-      subtype = ffi_pl_get_type_meta(SvIV((SV*)SvRV(argtype)));
+      subtype = ffi_pl_get_type_meta(SV2ffi_pl_type(argtype));
       av_store(argument_types, i, newRV_noinc((SV*)subtype));
     }
     av_store(signature, 0, newRV_noinc((SV*)argument_types));
 
     rettype = self->extra[0].closure.return_type;
-    subtype = ffi_pl_get_type_meta(SvIV((SV*)SvRV(rettype)));
+    subtype = ffi_pl_get_type_meta(SV2ffi_pl_type(rettype));
     av_store(signature, 1, newRV_noinc((SV*)subtype));
 
     hv_store(meta, "signature",     9, newRV_noinc((SV*)signature), 0);

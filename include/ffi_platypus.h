@@ -231,6 +231,8 @@ typedef struct _ffi_pl_record_member {
 
 ffi_type *ffi_pl_name_to_type(const char *);
 
+ffi_pl_type *SV2ffi_pl_type(void *sv);
+
 #ifdef __cplusplus
 }
 #endif
