@@ -146,7 +146,7 @@ _new_closure(class, return_type_arg, ...)
     ffi_type **ffi_argument_types;
     ffi_status ffi_status;
   CODE:
-    return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(return_type_arg)));
+    return_type = SV2ffi_pl_type(return_type_arg);
 
     if(return_type->platypus_type != FFI_PL_NATIVE)
     {
@@ -156,7 +156,7 @@ _new_closure(class, return_type_arg, ...)
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
-      tmp = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(arg)));
+      tmp = SV2ffi_pl_type(arg);
       if(tmp->platypus_type != FFI_PL_NATIVE
       && tmp->platypus_type != FFI_PL_STRING)
       {
@@ -188,7 +188,7 @@ _new_closure(class, return_type_arg, ...)
       arg = ST(2+i);
       self->extra[0].closure.argument_types[i] = SvREFCNT_inc(arg);
 
-      ffi_pl_type *tmp = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(arg)));
+      ffi_pl_type *tmp = SV2ffi_pl_type(arg);
 
       if(tmp->platypus_type == FFI_PL_NATIVE)
       {
@@ -225,7 +225,7 @@ _new_closure(class, return_type_arg, ...)
       self->extra[0].closure.flags |= G_NOARGS;
     }
 
-    tmp = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)self->extra[0].closure.return_type)));
+    tmp = SV2ffi_pl_type((SV*)self->extra[0].closure.return_type);
 
     if(tmp->ffi_type->type == FFI_TYPE_VOID
     && tmp->platypus_type == FFI_PL_NATIVE)
@@ -261,12 +261,16 @@ sizeof(self)
   OUTPUT:
     RETVAL
 
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::C
+
 void
-DESTROY(self)
-    ffi_pl_type *self
+DESTROY(self_sv)
+    SV *self_sv
   PREINIT:
     int i;
+    ffi_pl_type *self;
   CODE:
+    self = INT2PTR(ffi_pl_type *, SvIV((SV *)SvRV(self_sv)));
     if(self->platypus_type == FFI_PL_CLOSURE)
     {
       SvREFCNT_dec(self->extra[0].closure.return_type);

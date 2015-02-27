@@ -22,6 +22,18 @@ void *cast1(void *value)
   return value;
 }
 
+static ffi_pl_type *SV2ffi_pl_type(SV *sv)
+{
+  if(sv_isobject(sv) && sv_derived_from(sv, "FFI::Platypus::Type")) {
+    HV *hv = (HV*)SvRV(sv);
+    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+    if (svp == NULL)
+      Perl_croak(aTHX_ "ret is missing the ffi_pl_type hash entry");
+    return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+  } else
+    Perl_croak(aTHX_ "ret is not of type FFI::Platypus::Type");
+}
+
 XS(ffi_pl_sub_call)
 {
   ffi_pl_function *self;

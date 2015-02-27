@@ -18,7 +18,7 @@
 
     for(i=0, perl_arg_index=(EXTRA_ARGS); i < self->ffi_cif.nargs; i++, perl_arg_index++)
     {
-      ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+      ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
       int platypus_type = type->platypus_type;
       argument_pointers[i] = (void*) &arguments->slot[i];
 
@@ -471,7 +471,7 @@
           SvREFCNT_dec(arg2);
         }
 
-        ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+        ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
 
         for(n=0; n < type->extra[0].custom_perl.argument_count; n++)
         {
@@ -601,7 +601,7 @@
     for(i=self->ffi_cif.nargs-1,perl_arg_index--; i >= 0; i--, perl_arg_index--)
     {
       platypus_type platypus_type;
-      ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+      ffi_pl_type *type = SV2ffi_pl_type(self->argument_types[i]);
       platypus_type = type->platypus_type;
     
       if(platypus_type == FFI_PL_POINTER)
@@ -792,7 +792,7 @@
       }
       else if(platypus_type == FFI_PL_CUSTOM_PERL)
       {
-        ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)self->argument_types[i])));
+        ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
 
         int d = type->extra[0].custom_perl.argument_count;
         /* FIXME: need to fill out argument_types for skipping */
@@ -825,7 +825,7 @@
      * RETURN VALUE
      */
 
-    ffi_pl_type *return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)self->return_type)));
+    ffi_pl_type *return_type = SV2ffi_pl_type((SV*)self->return_type);
 
     if(return_type->platypus_type == FFI_PL_NATIVE)
     {

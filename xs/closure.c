@@ -61,13 +61,26 @@ ffi_pl_closure_get_data(SV *closure, SV *type)
   return ret;
 }
 
+/* XXX duplicate */
+static ffi_pl_type *SV2ffi_pl_type(SV *sv)
+{
+  if(sv_isobject(sv) && sv_derived_from(sv, "FFI::Platypus::Type")) {
+    HV *hv = (HV*)SvRV(sv);
+    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+    if (svp == NULL)
+      Perl_croak(aTHX_ "ret is missing the ffi_pl_type hash entry");
+    return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+  } else
+    Perl_croak(aTHX_ "ret is not of type FFI::Platypus::Type");
+}
+
 void
 ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user)
 {
   dSP;
 
   ffi_pl_closure *closure = (ffi_pl_closure*) user;
-  ffi_pl_type *type = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV((SV*)closure->type)));
+  ffi_pl_type *type = SV2ffi_pl_type((SV*)closure->type);
   ffi_pl_type_extra_closure *extra = &type->extra[0].closure;
   int flags = extra->flags;
   int i;
@@ -87,7 +100,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   {
     for(i=0; i< ffi_cif->nargs; i++)
     {
-      ffi_pl_type *arg_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)extra->argument_types[i])));
+      ffi_pl_type *arg_type = SV2ffi_pl_type((SV*)extra->argument_types[i]);
 
       if(arg_type->platypus_type == FFI_PL_NATIVE)
       {
@@ -201,7 +214,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     else
       sv = POPs;
 
-    ffi_pl_type *return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV((SV*)extra->return_type)));
+    ffi_pl_type *return_type = SV2ffi_pl_type(extra->return_type);
     if(return_type->platypus_type == FFI_PL_NATIVE)
     {
       switch(return_type->ffi_type->type)

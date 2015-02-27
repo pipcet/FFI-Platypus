@@ -20,7 +20,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     ffi_abi ffi_abi;
     int extra_arguments;
   CODE:
-    return_type = INT2PTR(ffi_pl_type*, SvIV((SV*)SvRV(return_type_arg)));
+    return_type = SV2ffi_pl_type((SV*)return_type_arg);
   
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
@@ -31,7 +31,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
         croak("non-type parameter passed in as type");
       }
-      tmp = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV(arg)));
+      tmp = SV2ffi_pl_type((SV*) arg);
       if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
         extra_arguments += tmp->extra[0].custom_perl.argument_count;
     }
@@ -68,7 +68,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     {
       arg = ST(i+5);
       self->argument_types[n] = SvREFCNT_inc(arg);
-      tmp = INT2PTR(ffi_pl_type*, SvIV((SV*) SvRV(arg)));
+      tmp = SV2ffi_pl_type((SV*) arg);
 
       if(tmp->platypus_type == FFI_PL_NATIVE
       || tmp->platypus_type == FFI_PL_EXOTIC_FLOAT)
