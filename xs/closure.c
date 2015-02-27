@@ -161,9 +161,10 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
             break;
         }
       } else {
-	ffi_pl_type *arg_type = SV2ffi_pl_type((SV*)extra->argument_types[i]);
-	if(arg_type->platypus_type == FFI_PL_STRING)
+	SV *arg_type_sv = extra->argument_types[i];
+	if(sv_derived_from(arg_type_sv, "FFI::Platypus::Type::String"))
 	{
+	  ffi_pl_type *arg_type = SV2ffi_pl_type(arg_type_sv);
 	  sv = sv_newmortal();
 	  if( *((char**)arguments[i]) != NULL)
 	  {
