@@ -1136,14 +1136,14 @@ sub new
   {
     my $extra = $1;
     $ffi_type = 'pointer';
-    $platypus_type = 'string';
+    $platypus_type = 'String';
     $rw = 1 if $extra =~ /rw$/;
     $size = $1 if $extra =~ /\(([0-9]+)\)$/;
   }
   elsif($type =~ /^record\s*\(([0-9:A-Za-z_]+)\)$/)
   {
     $ffi_type = 'pointer';
-    $platypus_type = 'record';
+    $platypus_type = 'Record';
     if($1 =~ /^([0-9]+)$/)
     {
       $size = $1;
@@ -1172,18 +1172,18 @@ sub new
   }
   elsif($type =~ s/\s+\*$//) {
     $ffi_type = $type;
-    $platypus_type = 'pointer';
+    $platypus_type = 'Pointer';
   }
   elsif($type =~ s/\s+\[([0-9]*)\]$//)
   {
     $ffi_type = $type;
-    $platypus_type = 'array';
+    $platypus_type = 'Array';
     $size = $1 ? $1 : 0;
   }
   else
   {
     $ffi_type = $type;
-    $platypus_type = 'ffi';
+    $platypus_type = 'FFI';
     if ($type ne "longdouble" and
 	$type ne "complex_float" and
 	$type ne "complex_double")
@@ -1191,9 +1191,29 @@ sub new
       return FFI::Platypus::Type::FFI->new($type);
     }
   }
-  
-  $class->_new($ffi_type, $platypus_type, $size, $classname, $rw);
+
+  $class .= "::$platypus_type";
+
+  $class->_new($ffi_type, lc $platypus_type, $size, $classname, $rw);
 }
+
+package FFI::Platypus::Type::String;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Pointer;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Array;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Closure;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::CustomPerl;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Record;
+use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::FFI;
 
