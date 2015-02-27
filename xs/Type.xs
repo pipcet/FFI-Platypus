@@ -327,7 +327,8 @@ native_to_perl_xs(pointer)
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
 
 ffi_type*
-new(name)
+new(class, name)
+    const char *class
     const char *name
   CODE:
     RETVAL = ffi_pl_name_to_type(name);
