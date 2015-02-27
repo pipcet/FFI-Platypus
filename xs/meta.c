@@ -193,15 +193,49 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
 
     for(i=0; i < number_of_arguments; i++)
     {
+      dSP;
+      int count;
       SV *argtype = self->extra[0].closure.argument_types[i];
-      subtype = ffi_pl_get_type_meta(SV2ffi_pl_type(argtype));
-      av_store(argument_types, i, newRV_noinc((SV*)subtype));
+
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      XPUSHs(argtype);
+      PUTBACK;
+
+      count = call_method("meta", G_SCALAR);
+
+      SPAGAIN;
+      if (count == 1)
+	av_store(argument_types, i, SvREFCNT_inc(POPs));
+
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
     }
     av_store(signature, 0, newRV_noinc((SV*)argument_types));
 
-    rettype = self->extra[0].closure.return_type;
-    subtype = ffi_pl_get_type_meta(SV2ffi_pl_type(rettype));
-    av_store(signature, 1, newRV_noinc((SV*)subtype));
+    {
+      dSP;
+      int count;
+
+      rettype = self->extra[0].closure.return_type;
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      XPUSHs(rettype);
+      PUTBACK;
+
+      count = call_method("meta", G_SCALAR);
+
+      SPAGAIN;
+      if (count == 1)
+	av_store(signature, 1, SvREFCNT_inc(POPs));
+
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+    }
 
     hv_store(meta, "signature",     9, newRV_noinc((SV*)signature), 0);
 
