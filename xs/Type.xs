@@ -1,6 +1,6 @@
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type
 
-ffi_pl_type *
+SV *
 _new(class, type, platypus_type, array_or_record_or_string_size, type_classname, rw)
     const char *class
     const char *type
@@ -95,7 +95,23 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
       }
     }
 
-    RETVAL = self;
+    do
+    {
+      HV *hv;
+      SV *sv = newSV(0);
+      HV *stash = gv_stashpv(class, GV_ADD);
+      hv = self->hv;
+      if (!hv)
+      {
+        hv = newHV();
+        self->hv = hv;
+      }
+      sv_setref_pv(sv, "FFI::Platypus::Type::C", (void *) self);
+      hv_store(hv, "ffi_pl_type", strlen("ffi_pl_type"), sv, 0);
+      RETVAL = newRV_inc((SV*)hv);
+      sv_bless(RETVAL, stash);
+    }
+    while(0);
   OUTPUT:
     RETVAL
 
