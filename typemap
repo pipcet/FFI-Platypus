@@ -14,7 +14,7 @@ T_FFI_PL_TYPE
   {
     HV *hv;
     SV *sv = newSV(0);
-    HV *stash = gv_stashpv(\"FFI::Platypus::Type\", GV_ADD);
+    HV *stash = gv_stashpv(class, GV_ADD);
     hv = $var->hv;
     if (!hv)
     {

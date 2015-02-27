@@ -467,7 +467,7 @@ sub custom_type
     $size += $self->_type_lookup($type)->sizeof;
   }
 
-  $self->{types}->{$name} = FFI::Platypus::Type->_new_custom_perl(
+  $self->{types}->{$name} = FFI::Platypus::Type::CustomPerl->_new_custom_perl(
     \@types,
     $size,
     $cb->{perl_to_native},
@@ -1123,6 +1123,7 @@ sub new
     croak "passing closure into a closure not supported" if $1 =~ /(\(|\)|-\>)/;
     my @argument_types = map { $platypus->_type_lookup($_) } map { s/^\s+//; s/\s+$//; $_ } split /,/, $1;
     my $return_type = $platypus->_type_lookup($2);
+    $class .= "::Closure";
     return $class->_new_closure($return_type, @argument_types);
   }
   
