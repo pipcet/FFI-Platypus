@@ -337,7 +337,7 @@ new(class, name)
 
 SV*
 meta(self)
-    ffi_pl_type *self
+    ffi_type *self
   PREINIT:
     HV *meta;
   CODE:
