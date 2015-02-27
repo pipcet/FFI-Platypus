@@ -20,8 +20,6 @@ new(class, platypus, address, abi, return_type_arg, ...)
     ffi_abi ffi_abi;
     int extra_arguments;
   CODE:
-    return_type = SV2ffi_pl_type((SV*)return_type_arg);
-  
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
     for(i=0,extra_arguments=0; i<(items-5); i++)
@@ -31,9 +29,11 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
         croak("non-type parameter passed in as type");
       }
-      tmp = SV2ffi_pl_type((SV*) arg);
-      if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
-        extra_arguments += tmp->extra[0].custom_perl.argument_count;
+      if(!sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
+        tmp = SV2ffi_pl_type((SV*) arg);
+        if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
+          extra_arguments += tmp->extra[0].custom_perl.argument_count;
+      }
     }
   
     Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_type*)*(items-5+extra_arguments)), char);
@@ -43,58 +43,63 @@ new(class, platypus, address, abi, return_type_arg, ...)
     self->address = address;
     self->return_type = SvREFCNT_inc(return_type_arg);
     
-
-    if(return_type->platypus_type == FFI_PL_NATIVE
-    || return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
+    if(sv_isobject(self->return_type) && sv_derived_from(self->return_type, "FFI::Platypus::Type::FFI"))
     {
-      ffi_return_type = return_type->ffi_type;
-    }
-    else if (return_type->platypus_type == FFI_PL_CUSTOM_PERL)
-    {
-      AV *av = (AV *)SvRV((SV*)return_type->underlying_types);
-      SV **svp = av_fetch(av, 0, 0);
-      STRLEN len;
-      const char *name = SvPV(*svp, len);
-      ffi_type *ffi_type = ffi_pl_name_to_type(name);
-
-      ffi_return_type = ffi_type;
+      ffi_return_type = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)self->return_type)));
     }
     else
     {
-      ffi_return_type = &ffi_type_pointer;
+      ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
+
+      if (return_type->platypus_type == FFI_PL_CUSTOM_PERL)
+      {
+        AV *av = (AV *)SvRV((SV*)return_type->underlying_types);
+        SV **svp = av_fetch(av, 0, 0);
+        STRLEN len;
+        const char *name = SvPV(*svp, len);
+        ffi_type *ffi_type = ffi_pl_name_to_type(name);
+
+        ffi_return_type = ffi_type;
+      }
+      else
+      {
+        ffi_return_type = &ffi_type_pointer;
+      }
     }
-    
+
     for(i=0,n=0; i<(items-5); i++,n++)
     {
       arg = ST(i+5);
       self->argument_types[n] = SvREFCNT_inc(arg);
-      tmp = SV2ffi_pl_type((SV*) arg);
 
-      if(tmp->platypus_type == FFI_PL_NATIVE
-      || tmp->platypus_type == FFI_PL_EXOTIC_FLOAT)
-      {
-	ffi_argument_types[n] = tmp->ffi_type;
-      }
-      else if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
-      {
-	for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
-	{
-	  AV *av = (AV *)SvRV((SV*)tmp->underlying_types);
-	  SV **svp = av_fetch(av, j, 0);
-	  STRLEN len;
-	  const char *name = SvPV(*svp, len);
-	  ffi_type *ffi_type = ffi_pl_name_to_type(name);
-
-	  self->argument_types[n+j] = arg;
-	  SvREFCNT_inc(arg);
-	  ffi_argument_types[n+j] = ffi_type;
-	}
-
-	n += tmp->extra[0].custom_perl.argument_count;
+      if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
+        ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
       }
       else
       {
-	ffi_argument_types[n] = &ffi_type_pointer;
+        ffi_pl_type *tmp = SV2ffi_pl_type(arg);
+
+        if(tmp->platypus_type == FFI_PL_CUSTOM_PERL)
+        {
+          for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
+          {
+            AV *av = (AV *)SvRV((SV*)tmp->underlying_types);
+            SV **svp = av_fetch(av, j, 0);
+            STRLEN len;
+            const char *name = SvPV(*svp, len);
+            ffi_type *ffi_type = ffi_pl_name_to_type(name);
+
+            self->argument_types[n+j] = arg;
+            SvREFCNT_inc(arg);
+            ffi_argument_types[n+j] = ffi_type;
+          }
+
+          n += tmp->extra[0].custom_perl.argument_count;
+        }
+        else
+        {
+          ffi_argument_types[n] = &ffi_type_pointer;
+        }
       }
     }
     

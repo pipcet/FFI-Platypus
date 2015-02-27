@@ -138,29 +138,30 @@ _new_closure(class, return_type_arg, ...)
     SV *return_type_arg;
   PREINIT:
     char *buffer;
-    ffi_pl_type *self, *tmp;
+    ffi_pl_type *self;
     int i;
     SV *arg;
-    ffi_pl_type *return_type;
     ffi_type *ffi_return_type;
     ffi_type **ffi_argument_types;
     ffi_status ffi_status;
   CODE:
-    return_type = SV2ffi_pl_type(return_type_arg);
-
-    if(return_type->platypus_type != FFI_PL_NATIVE)
-    {
+    if (!sv_isobject(return_type_arg) ||
+        !sv_derived_from(return_type_arg, "FFI::Platypus::Type::FFI")) {
       croak("Only native types are supported as closure return types");
     }
-    
+
+    ffi_return_type = INT2PTR(ffi_type *, SvIV((SV *) SvRV(return_type_arg)));
+
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
-      tmp = SV2ffi_pl_type(arg);
-      if(tmp->platypus_type != FFI_PL_NATIVE
-      && tmp->platypus_type != FFI_PL_STRING)
-      {
-        croak("Only native types and strings are supported as closure argument types");
+      if (!sv_isobject(arg) ||
+          !sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
+	ffi_pl_type *tmp = SV2ffi_pl_type(arg);
+
+	if (tmp->platypus_type != FFI_PL_STRING) {
+	  croak("Only native types and strings are supported as closure argument types");
+	}
       }
     }
     
@@ -174,29 +175,21 @@ _new_closure(class, return_type_arg, ...)
     self->extra[0].closure.return_type = SvREFCNT_inc(return_type_arg);
     self->extra[0].closure.flags = 0;
     
-    if(return_type->platypus_type == FFI_PL_NATIVE)
-    {
-      ffi_return_type = return_type->ffi_type;
-    }
-    else
-    {
-      ffi_return_type = &ffi_type_pointer;
-    }
-    
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
       self->extra[0].closure.argument_types[i] = SvREFCNT_inc(arg);
 
-      ffi_pl_type *tmp = SV2ffi_pl_type(arg);
-
-      if(tmp->platypus_type == FFI_PL_NATIVE)
+      if (!sv_isobject(arg) ||
+          !sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
       {
-        ffi_argument_types[i] = tmp->ffi_type;
+	ffi_pl_type *tmp = SV2ffi_pl_type(arg);
+
+	ffi_argument_types[i] = &ffi_type_pointer;
       }
       else
       {
-        ffi_argument_types[i] = &ffi_type_pointer;
+	ffi_argument_types[i] = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg)));
       }
     }
     
@@ -225,10 +218,7 @@ _new_closure(class, return_type_arg, ...)
       self->extra[0].closure.flags |= G_NOARGS;
     }
 
-    tmp = SV2ffi_pl_type((SV*)self->extra[0].closure.return_type);
-
-    if(tmp->ffi_type->type == FFI_TYPE_VOID
-    && tmp->platypus_type == FFI_PL_NATIVE)
+    if(ffi_return_type == FFI_TYPE_VOID)
     {
       self->extra[0].closure.flags |= G_DISCARD | G_VOID;
     }

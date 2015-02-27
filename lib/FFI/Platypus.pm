@@ -814,7 +814,7 @@ sub sizeof
 {
   my($self,$name) = @_;
   my $type = $self->{types}->{$name} || $self->_type_lookup($name);
-  FFI::Platypus::Type::sizeof($type);
+  $type->sizeof;
 }
 
 =head2 alignof
@@ -1184,10 +1184,18 @@ sub new
   {
     $ffi_type = $type;
     $platypus_type = 'ffi';
+    return FFI::Platypus::Type::FFI->new($type);
   }
   
   $class->_new($ffi_type, $platypus_type, $size, $classname, $rw);
 }
+
+package FFI::Platypus::Type::FFI;
+
+use parent -norequire, 'FFI::Platypus::Type';
+use Carp qw(croak);
+
+
 
 1;
 
