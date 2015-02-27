@@ -53,13 +53,19 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
       if (return_type->platypus_type == FFI_PL_CUSTOM_PERL)
       {
-        AV *av = (AV *)SvRV((SV*)return_type->underlying_types);
-        SV **svp = av_fetch(av, 0, 0);
-        STRLEN len;
-        const char *name = SvPV(*svp, len);
-        ffi_type *ffi_type = ffi_pl_name_to_type(name);
+        SV *ret_in=NULL, *ret_out;
+	AV *av;
+	SV **svp;
+	STRLEN len;
+	const char *name;
+	ffi_type *ffi;
+	svp = hv_fetch(return_type->hv, "underlying_types", strlen("underlying_types"), 0);
+	av = (AV *)SvRV(*svp);
+	svp = av_fetch(av, 0, 0);
+	name = SvPV(*svp, len);
+	ffi = ffi_pl_name_to_type(name);
 
-        ffi_return_type = ffi_type;
+        ffi_return_type = ffi;
       }
       else if (return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
       {
@@ -87,15 +93,21 @@ new(class, platypus, address, abi, return_type_arg, ...)
         {
           for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
           {
-            AV *av = (AV *)SvRV((SV*)tmp->underlying_types);
-            SV **svp = av_fetch(av, j, 0);
-            STRLEN len;
-            const char *name = SvPV(*svp, len);
-            ffi_type *ffi_type = ffi_pl_name_to_type(name);
+	    SV *ret_in=NULL, *ret_out;
+	    AV *av;
+	    SV **svp;
+	    STRLEN len;
+	    const char *name;
+	    ffi_type *ffi;
+	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
+	    av = (AV *)SvRV(*svp);
+	    svp = av_fetch(av, j, 0);
+	    name = SvPV(*svp, len);
+	    ffi = ffi_pl_name_to_type(name);
 
             self->argument_types[n+j] = arg;
             SvREFCNT_inc(arg);
-            ffi_argument_types[n+j] = ffi_type;
+            ffi_argument_types[n+j] = ffi;
           }
 
           n += tmp->extra[0].custom_perl.argument_count;

@@ -266,10 +266,14 @@ ffi_pl_get_type_meta(ffi_pl_type *self)
   ffi_type *ffi_type;
   ffi_type = self->ffi_type;
   if (self->ffi_type == NULL) {
-    AV *av = (AV *)SvRV((SV*)self->underlying_types);
-    SV **svp = av_fetch(av, 0, 0);
+    AV *av;
+    SV **svp;
     STRLEN len;
-    const char *name = SvPV(*svp, len);
+    const char *name;
+    svp = hv_fetch(self->hv, "underlying_types", strlen("underlying_types"), 0);
+    av = (AV *)SvRV(*svp);
+    svp = av_fetch(av, 0, 0);
+    name = SvPV(*svp, len);
     ffi_type = ffi_pl_name_to_type(name);
   }
 

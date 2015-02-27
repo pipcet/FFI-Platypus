@@ -418,12 +418,17 @@
             i
           );
   
-          AV *av = (AV *)SvRV((SV*)type->underlying_types);
-          SV **svp = av_fetch(av, 0, 0);
-          STRLEN len;
-          const char *name = SvPV(*svp, len);
-          ffi_type *ffi = ffi_pl_name_to_type(name);
-  
+	  AV *av;
+	  SV **svp;
+	  STRLEN len;
+	  const char *name;
+	  ffi_type *ffi;
+	  svp = hv_fetch(type->hv, "underlying_types", strlen("underlying_types"), 0);
+	  av = (AV *)SvRV(*svp);
+	  svp = av_fetch(av, 0, 0);
+	  name = SvPV(*svp, len);
+          ffi = ffi_pl_name_to_type(name);
+
           if(arg2 != NULL)
           {
             switch(ffi->type)
@@ -926,8 +931,8 @@
           XSRETURN_EMPTY;
         }
         else
-	{
-	  if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
+        {
+          if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
           {
             SV *value = sv_newmortal();
             sv_setpvn(value, result.pointer, pl_return_type->extra[0].string.size);
@@ -936,9 +941,9 @@
           }
           else
           {
-	    XSRETURN_PV(result.pointer);
-	  }
-	}
+            XSRETURN_PV(result.pointer);
+          }
+        }
       }
       else if(pl_return_type->platypus_type == FFI_PL_POINTER)
       {
@@ -1159,12 +1164,17 @@
       else if(pl_return_type->platypus_type == FFI_PL_CUSTOM_PERL)
       {
         SV *ret_in=NULL, *ret_out;
-        AV *av = (AV *)SvRV((SV*)pl_return_type->underlying_types);
-        SV **svp = av_fetch(av, 0, 0);
+        AV *av;
+        SV **svp;
         STRLEN len;
-        const char *name = SvPV(*svp, len);
-        ffi_type *ffi = ffi_pl_name_to_type(name);
-  
+        const char *name;
+        ffi_type *ffi;
+        svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
+	av = (AV *)SvRV(*svp);
+	svp = av_fetch(av, 0, 0);
+	name = SvPV(*svp, len);
+	ffi = ffi_pl_name_to_type(name);
+
         switch(ffi->type)
         {
           case FFI_TYPE_UINT8:
