@@ -135,7 +135,6 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
     if(SvOK(native_to_perl))
       hv_store((HV *)self->hv, "native_to_perl", strlen("native_to_perl"), SvREFCNT_inc(native_to_perl), 0);
     hv_store((HV *)self->hv, "argument_count", strlen("argument_count"), newSViv(argument_count-1), 0);
-    custom->argument_count = argument_count-1;
     
     RETVAL = self;
   OUTPUT:

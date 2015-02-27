@@ -265,39 +265,30 @@ ffi_pl_get_type_meta(SV *selfsv)
   }
   else if(sv_derived_from(selfsv, "FFI::Platypus::Type::CustomPerl"))
   {
+    HV *hv = (HV*)SvRV(selfsv);
+    SV **svp;
+
     hv_store(meta, "type",          4, newSVpv("custom_perl",0),0);
 
-    {
-      HV *hv = (HV*)SvRV(selfsv);
-      SV **svp;
-
-      svp = hv_fetch(hv, "perl_to_native", strlen("perl_to_native"), 0);
-      if (svp) {
-	hv_store(meta, "custom_perl_to_native", 18, newRV_inc(*svp), 0);
-      }
+    svp = hv_fetch(hv, "perl_to_native", strlen("perl_to_native"), 0);
+    if (svp) {
+      hv_store(meta, "custom_perl_to_native", 18, newRV_inc(*svp), 0);
     }
 
-    {
-      HV *hv = (HV*)SvRV(selfsv);
-      SV **svp;
-
-      svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
-      if (svp) {
-	hv_store(meta, "custom_perl_to_native", 23, newRV_inc(*svp), 0);
-      }
+    svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
+    if (svp) {
+      hv_store(meta, "custom_perl_to_native", 23, newRV_inc(*svp), 0);
     }
 
-    {
-      HV *hv = (HV*)SvRV(selfsv);
-      SV **svp;
-
-      svp = hv_fetch(hv, "native_to_perl", strlen("native_to_perl"), 0);
-      if (svp) {
-	hv_store(meta, "custom_native_to_perl", 18, newRV_inc(*svp), 0);
-      }
+    svp = hv_fetch(hv, "native_to_perl", strlen("native_to_perl"), 0);
+    if (svp) {
+      hv_store(meta, "custom_native_to_perl", 18, newRV_inc(*svp), 0);
     }
 
-    hv_store(meta, "argument_count", strlen("argument_count"), newSViv(self->extra[0].custom_perl.argument_count + 1), 0);
+    svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+    if (svp) {
+      hv_store(meta, "argument_count", strlen("argument_count"), newSViv(SvIV(*svp) + 1), 0);
+    }
   }
   else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Record"))
   {

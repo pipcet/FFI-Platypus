@@ -31,8 +31,15 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
       if(!sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         tmp = SV2ffi_pl_type((SV*) arg);
-        if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
-          extra_arguments += tmp->extra[0].custom_perl.argument_count;
+        if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl")) {
+	  HV *hv = (HV*)SvRV(arg);
+	  SV **svp;
+
+	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+	  if (svp) {
+	    extra_arguments += SvIV(*svp);
+	  }
+	}
       }
     }
   
@@ -91,26 +98,35 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
 	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-          for(j=0; j-1 < tmp->extra[0].custom_perl.argument_count; j++)
-          {
-	    SV *ret_in=NULL, *ret_out;
-	    AV *av;
-	    SV **svp;
-	    STRLEN len;
-	    const char *name;
-	    ffi_type *ffi;
-	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
-	    av = (AV *)SvRV(*svp);
-	    svp = av_fetch(av, j, 0);
-	    name = SvPV(*svp, len);
-	    ffi = ffi_pl_name_to_type(name);
+	  HV *hv = (HV*)SvRV(arg);
+	  SV **svp;
+	  int d;
 
-            self->argument_types[n+j] = arg;
-            SvREFCNT_inc(arg);
-            ffi_argument_types[n+j] = ffi;
-          }
+	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+	  if (svp) {
+	    d = SvIV(*svp);
 
-          n += tmp->extra[0].custom_perl.argument_count;
+	    for(j=0; j-1 < d; j++)
+	    {
+	      SV *ret_in=NULL, *ret_out;
+	      AV *av;
+	      SV **svp;
+	      STRLEN len;
+	      const char *name;
+	      ffi_type *ffi;
+	      svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
+	      av = (AV *)SvRV(*svp);
+	      svp = av_fetch(av, j, 0);
+	      name = SvPV(*svp, len);
+	      ffi = ffi_pl_name_to_type(name);
+	      
+	      self->argument_types[n+j] = arg;
+	      SvREFCNT_inc(arg);
+	      ffi_argument_types[n+j] = ffi;
+	    }
+	    
+	    n += d;
+	  }
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {

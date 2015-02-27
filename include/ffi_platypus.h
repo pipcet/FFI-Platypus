@@ -70,7 +70,6 @@ typedef struct _ffi_pl_type_extra_record {
 
 typedef struct _ffi_pl_type_extra_custom_perl {
   size_t size;
-  int argument_count;
 } ffi_pl_type_extra_custom_perl;
 
 typedef struct _ffi_pl_type_extra_array {

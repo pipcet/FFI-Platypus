@@ -493,12 +493,15 @@
   
           ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
   
-          for(n=0; n < type->extra[0].custom_perl.argument_count; n++)
-          {
-            i++;
-            argument_pointers[i] = &arguments->slot[i];
-          }
-        }
+	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+	  if (svp) {
+	    for(n=0; n < SvIV(*svp); n++)
+	    {
+	      i++;
+	      argument_pointers[i] = &arguments->slot[i];
+	    }
+	  }
+	}
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
         {
           switch(type->ffi_type->type)
@@ -816,23 +819,25 @@
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
           ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
+	  HV *hv = (HV*)SvRV(type_sv);
+	  SV **svp;
+	  SV *arg2 = NULL;
 
-          int d = type->extra[0].custom_perl.argument_count;
-          /* FIXME: need to fill out argument_types for skipping */
-          {
-	    HV *hv = (HV*)SvRV(type_sv);
-	    SV **svp;
-	    SV *arg2 = NULL;
+	  svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
+	  if (svp) {
+	    SV *perl_to_native_post_sv = *svp;
 
-	    svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
-	    if (svp) {
-	      SV *perl_to_native_post_sv = *svp;
+	    arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+	    ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
+	  }
 
-              arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-	      ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
-	    }
-          }
-          i -= d;
+	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+
+	  if (svp) {
+	    int d = SvIV(*svp);
+
+	    i -= d;
+	  }
         }
 #ifndef HAVE_ALLOCA
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
