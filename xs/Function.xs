@@ -61,6 +61,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
         ffi_return_type = ffi_type;
       }
+      else if (return_type->platypus_type == FFI_PL_EXOTIC_FLOAT)
+      {
+	ffi_return_type = return_type->ffi_type;
+      }
       else
       {
         ffi_return_type = &ffi_type_pointer;
@@ -95,6 +99,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
           }
 
           n += tmp->extra[0].custom_perl.argument_count;
+        }
+        else if (tmp->platypus_type == FFI_PL_EXOTIC_FLOAT)
+        {
+          ffi_argument_types[n] = tmp->ffi_type;
         }
         else
         {

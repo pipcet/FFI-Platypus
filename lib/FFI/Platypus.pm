@@ -1184,7 +1184,12 @@ sub new
   {
     $ffi_type = $type;
     $platypus_type = 'ffi';
-    return FFI::Platypus::Type::FFI->new($type);
+    if ($type ne "longdouble" and
+	$type ne "complex_float" and
+	$type ne "complex_double")
+    {
+      return FFI::Platypus::Type::FFI->new($type);
+    }
   }
   
   $class->_new($ffi_type, $platypus_type, $size, $classname, $rw);
