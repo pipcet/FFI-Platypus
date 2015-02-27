@@ -10,16 +10,27 @@ T_FFI_PL_STRING
   $var != NULL ? sv_setpv((SV*)$arg, $var) : sv_setsv((SV*)$arg, &PL_sv_undef);
 
 T_FFI_PL_TYPE
-  do {
-    HV *hv = newHV();
+  do
+  {
+    HV *hv;
     SV *sv = newSV(0);
     HV *stash = gv_stashpv(\"FFI::Platypus::Type\", GV_ADD);
+    hv = $var->hv;
+    if (hv)
+    {
+      SvREFCNT_inc(hv);
+    }
+    else
+    {
+      hv = newHV();
+      $var->hv = hv;
+    }
     sv_setref_pv(sv, \"FFI::Platypus::Type::C\", (void *) $var);
     hv_store(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), sv, 0);
-    $arg = newRV_noinc((SV*)hv);
+    $arg = newRV_inc((SV*)hv);
     sv_bless($arg, stash);
-    $var->hv = hv;
-  } while(0);
+  }
+  while(0);
 
 T_FFI_PL_FUNCTION
   sv_setref_pv($arg, \"FFI::Platypus::Function\", (void *) $var);

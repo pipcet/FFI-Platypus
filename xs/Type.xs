@@ -17,6 +17,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     {
       Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_string), char);
       self = (ffi_pl_type*) buffer;
+      self->hv = NULL;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_STRING;
       self->underlying_types = NULL;
@@ -33,6 +34,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     else if(!strcmp(platypus_type, "ffi"))
     {
       Newx(self, 1, ffi_pl_type);
+      self->hv = NULL;
       self->ffi_type = NULL;
       if(!strcmp(type, "longdouble"))
       {
@@ -56,6 +58,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     else if(!strcmp(platypus_type, "pointer"))
     {
       Newx(self, 1, ffi_pl_type);
+      self->hv = NULL;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_POINTER;
       self->underlying_types = NULL;
@@ -64,6 +67,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     {
       Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_array), char);
       self = (ffi_pl_type*) buffer;
+      self->hv = NULL;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_ARRAY;
       self->underlying_types = NULL;
@@ -73,6 +77,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     {
       Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_record), char);
       self = (ffi_pl_type*) buffer;
+      self->hv = NULL;
       self->ffi_type = NULL;
       self->platypus_type = FFI_PL_RECORD;
       self->underlying_types = NULL;
@@ -116,6 +121,7 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
   CODE:
     Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_custom_perl), char);
     self = (ffi_pl_type*) buffer;
+    self->hv = NULL;
     self->platypus_type = FFI_PL_CUSTOM_PERL;
     self->ffi_type = NULL;
     self->underlying_types = SvREFCNT_inc(types);
@@ -169,6 +175,7 @@ _new_closure(class, return_type_arg, ...)
     Newx(ffi_argument_types, items-2, ffi_type*);
     self = (ffi_pl_type*) buffer;
     
+    self->hv = NULL;
     self->ffi_type = &ffi_type_pointer;
     self->platypus_type = FFI_PL_CLOSURE;
     self->underlying_types = NULL;
@@ -281,6 +288,9 @@ DESTROY(self_sv)
         SvREFCNT_dec(custom->perl_to_native_post);
       if(custom->native_to_perl != NULL)
         SvREFCNT_dec(custom->native_to_perl);
+    }
+    if (self->hv) {
+      SvREFCNT_dec(self->hv);
     }
     Safefree(self);
 
