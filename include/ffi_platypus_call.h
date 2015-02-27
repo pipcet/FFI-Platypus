@@ -412,14 +412,23 @@
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
-          SV *arg2 = ffi_pl_custom_perl(
-            type->extra[0].custom_perl.perl_to_native,
-            arg,
-            i
-          );
-  
-	  AV *av;
+	  HV *hv = (HV*)SvRV(type_sv);
 	  SV **svp;
+	  SV *arg2 = NULL;
+	  SV *perl_to_native_sv = NULL;
+
+	  svp = hv_fetch(hv, "perl_to_native", strlen("perl_to_native"), 0);
+	  if (svp) {
+	    perl_to_native_sv = *svp;
+	  }
+
+	  arg2 = ffi_pl_custom_perl(
+	    perl_to_native_sv,
+	    arg,
+	    i
+          );
+
+	  AV *av;
 	  STRLEN len;
 	  const char *name;
 	  ffi_type *ffi;
@@ -811,12 +820,17 @@
           int d = type->extra[0].custom_perl.argument_count;
           /* FIXME: need to fill out argument_types for skipping */
           {
-            SV *coderef = type->extra[0].custom_perl.perl_to_native_post;
-            if(coderef != NULL)
-            {
+	    HV *hv = (HV*)SvRV(type_sv);
+	    SV **svp;
+	    SV *arg2 = NULL;
+
+	    svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
+	    if (svp) {
+	      SV *perl_to_native_post_sv = *svp;
+
               arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-              ffi_pl_custom_perl_cb(coderef, arg, i);
-            }
+	      ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
+	    }
           }
           i -= d;
         }
@@ -1244,11 +1258,22 @@
 
 	current_argv = arguments;
 
-	ret_out = ffi_pl_custom_perl(
-          pl_return_type->extra[0].custom_perl.native_to_perl,
-          ret_in != NULL ? ret_in : &PL_sv_undef,
-          -1
-	);
+	{
+	  HV *hv = (HV*)SvRV(return_type);
+	  SV **svp;
+	  SV *arg2 = NULL;
+	  SV *native_to_perl_sv = NULL;
+
+	  svp = hv_fetch(hv, "native_to_perl", strlen("native_to_perl"), 0);
+	  if (svp) {
+	    native_to_perl_sv = *svp;
+	  }
+	  ret_out = ffi_pl_custom_perl(
+            native_to_perl_sv,
+            ret_in != NULL ? ret_in : &PL_sv_undef,
+            -1
+	  );
+	}
 
         current_argv = NULL;
 

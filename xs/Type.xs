@@ -128,9 +128,13 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
 
     custom = &self->extra[0].custom_perl;
     custom->size = size;
-    custom->perl_to_native = SvOK(perl_to_native) ? SvREFCNT_inc(perl_to_native) : NULL;
-    custom->perl_to_native_post = SvOK(perl_to_native_post) ? SvREFCNT_inc(perl_to_native_post) : NULL;
-    custom->native_to_perl = SvOK(native_to_perl) ? SvREFCNT_inc(native_to_perl) : NULL;
+    if(SvOK(perl_to_native))
+      hv_store((HV *)self->hv, "perl_to_native", strlen("perl_to_native"), SvREFCNT_inc(perl_to_native), 0);
+    if(SvOK(perl_to_native_post))
+      hv_store((HV *)self->hv, "perl_to_native_post", strlen("perl_to_native_post"), SvREFCNT_inc(perl_to_native_post), 0);
+    if(SvOK(native_to_perl))
+      hv_store((HV *)self->hv, "native_to_perl", strlen("native_to_perl"), SvREFCNT_inc(native_to_perl), 0);
+    hv_store((HV *)self->hv, "argument_count", strlen("argument_count"), newSViv(argument_count-1), 0);
     custom->argument_count = argument_count-1;
     
     RETVAL = self;

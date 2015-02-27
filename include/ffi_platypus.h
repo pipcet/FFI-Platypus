@@ -57,17 +57,6 @@ int windlclose(void *);
 
 #endif
 
-typedef enum _platypus_type {
-  FFI_PL_NATIVE = 0,
-  FFI_PL_STRING,
-  FFI_PL_POINTER,
-  FFI_PL_ARRAY,
-  FFI_PL_CLOSURE,
-  FFI_PL_CUSTOM_PERL,
-  FFI_PL_RECORD,
-  FFI_PL_EXOTIC_FLOAT
-} platypus_type;
-
 typedef enum _platypus_string_type {
   FFI_PL_STRING_RO = 0,
   FFI_PL_STRING_RW,
@@ -81,9 +70,6 @@ typedef struct _ffi_pl_type_extra_record {
 
 typedef struct _ffi_pl_type_extra_custom_perl {
   size_t size;
-  void *perl_to_native;
-  void *native_to_perl;
-  void *perl_to_native_post;
   int argument_count;
 } ffi_pl_type_extra_custom_perl;
 
@@ -130,7 +116,7 @@ typedef struct _ffi_pl_function {
 typedef struct _ffi_pl_closure {
   ffi_closure *ffi_closure;
   void *function_pointer; /* C function pointer */
-  void *coderef;          /* Perl HV* pointing to FFI::Platypus::Closure object */
+  void *coderef;          /* Perl SV* pointing to FFI::Platypus::Closure object */
   void *type;             /* Perl SV* */
 } ffi_pl_closure;
 
