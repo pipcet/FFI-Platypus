@@ -1240,7 +1240,11 @@ sub meta {
     $meta->{custom_perl_to_native_post} = $self->{perl_to_native_post};
   }
 
-  $meta->{argument_count} = $self->{argument_count} + 1;
+  if(exists($self->{argument_count})) {
+    $meta->{argument_count} = $self->{argument_count} + 1;
+  } else {
+    $meta->{argument_count} = 1;
+  }
 
   return $meta;
 }
@@ -1252,7 +1256,6 @@ package FFI::Platypus::Type::ExoticFloat;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::FFI;
-
 use parent -norequire, 'FFI::Platypus::Type';
 use Carp qw(croak);
 

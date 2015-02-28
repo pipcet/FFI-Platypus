@@ -100,33 +100,34 @@ new(class, platypus, address, abi, return_type_arg, ...)
         {
 	  HV *hv = (HV*)SvRV(arg);
 	  SV **svp;
-	  int d;
+	  int d=0;
 
 	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
 	  if (svp) {
 	    d = SvIV(*svp);
-
-	    for(j=0; j-1 < d; j++)
-	    {
-	      SV *ret_in=NULL, *ret_out;
-	      AV *av;
-	      SV **svp;
-	      STRLEN len;
-	      const char *name;
-	      ffi_type *ffi;
-	      svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
-	      av = (AV *)SvRV(*svp);
-	      svp = av_fetch(av, j, 0);
-	      name = SvPV(*svp, len);
-	      ffi = ffi_pl_name_to_type(name);
-	      
-	      self->argument_types[n+j] = arg;
-	      SvREFCNT_inc(arg);
-	      ffi_argument_types[n+j] = ffi;
-	    }
-	    
-	    n += d;
 	  }
+
+	  for(j=0; j-1 < d; j++)
+	  {
+	    SV *ret_in=NULL, *ret_out;
+	    AV *av;
+	    SV **svp;
+	    STRLEN len;
+	    const char *name;
+	    ffi_type *ffi;
+
+	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
+	    av = (AV *)SvRV(*svp);
+	    svp = av_fetch(av, j, 0);
+	    name = SvPV(*svp, len);
+	    ffi = ffi_pl_name_to_type(name);
+	    
+	    self->argument_types[n+j] = arg;
+	    SvREFCNT_inc(arg);
+	    ffi_argument_types[n+j] = ffi;
+	  }
+
+	  n += d;
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
