@@ -435,60 +435,71 @@
 	  svp = hv_fetch(type->hv, "underlying_types", strlen("underlying_types"), 0);
 	  av = (AV *)SvRV(*svp);
 	  svp = av_fetch(av, 0, 0);
-	  ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
-
-          if(arg2 != NULL)
-          {
-            switch(ffi->type)
+	  if(sv_derived_from(*svp, "FFI::Platypus::Type::String")) {
+	    if(arg2 != NULL) {
+	      ffi_pl_arguments_set_pointer(arguments, i, SvPV_nolen(arg2));
+	    }
+	  }
+	  else if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+	  {
+	    ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+            if(arg2 != NULL)
             {
-              case FFI_TYPE_UINT8:
-                ffi_pl_arguments_set_uint8(arguments, i, SvUV(arg2));
-                break;
-              case FFI_TYPE_SINT8:
-                ffi_pl_arguments_set_sint8(arguments, i, SvIV(arg2));
-                break;
-              case FFI_TYPE_UINT16:
-                ffi_pl_arguments_set_uint16(arguments, i, SvUV(arg2));
-                break;
-              case FFI_TYPE_SINT16:
-                ffi_pl_arguments_set_sint16(arguments, i, SvIV(arg2));
-                break;
-              case FFI_TYPE_UINT32:
-                ffi_pl_arguments_set_uint32(arguments, i, SvUV(arg2));
-                break;
-              case FFI_TYPE_SINT32:
-                ffi_pl_arguments_set_sint32(arguments, i, SvIV(arg2));
-                break;
+              switch(ffi->type)
+              {
+                case FFI_TYPE_UINT8:
+                  ffi_pl_arguments_set_uint8(arguments, i, SvUV(arg2));
+                  break;
+                case FFI_TYPE_SINT8:
+                  ffi_pl_arguments_set_sint8(arguments, i, SvIV(arg2));
+                  break;
+                case FFI_TYPE_UINT16:
+                  ffi_pl_arguments_set_uint16(arguments, i, SvUV(arg2));
+                  break;
+                case FFI_TYPE_SINT16:
+                  ffi_pl_arguments_set_sint16(arguments, i, SvIV(arg2));
+                  break;
+                case FFI_TYPE_UINT32:
+                  ffi_pl_arguments_set_uint32(arguments, i, SvUV(arg2));
+                  break;
+                case FFI_TYPE_SINT32:
+                  ffi_pl_arguments_set_sint32(arguments, i, SvIV(arg2));
+                  break;
 #ifdef HAVE_IV_IS_64
-              case FFI_TYPE_UINT64:
-                ffi_pl_arguments_set_uint64(arguments, i, SvUV(arg2));
-                break;
-              case FFI_TYPE_SINT64:
-                ffi_pl_arguments_set_sint64(arguments, i, SvIV(arg2));
-                break;
+                case FFI_TYPE_UINT64:
+                  ffi_pl_arguments_set_uint64(arguments, i, SvUV(arg2));
+                  break;
+                case FFI_TYPE_SINT64:
+                  ffi_pl_arguments_set_sint64(arguments, i, SvIV(arg2));
+                  break;
 #else
-              case FFI_TYPE_UINT64:
-                ffi_pl_arguments_set_uint64(arguments, i, SvU64(arg2));
-                break;
-              case FFI_TYPE_SINT64:
-                ffi_pl_arguments_set_sint64(arguments, i, SvI64(arg2));
-                break;
+                case FFI_TYPE_UINT64:
+                  ffi_pl_arguments_set_uint64(arguments, i, SvU64(arg2));
+                  break;
+                case FFI_TYPE_SINT64:
+                  ffi_pl_arguments_set_sint64(arguments, i, SvI64(arg2));
+                  break;
 #endif
-              case FFI_TYPE_FLOAT:
-                ffi_pl_arguments_set_float(arguments, i, SvNV(arg2));
-                break;
-              case FFI_TYPE_DOUBLE:
-                ffi_pl_arguments_set_double(arguments, i, SvNV(arg2));
-                break;
-              case FFI_TYPE_POINTER:
-                ffi_pl_arguments_set_pointer(arguments, i, SvOK(arg2) ? INT2PTR(void*, SvIV(arg2)) : NULL);
-                break;
-              default:
-                warn("argument type not supported (%d)", i);
-                break;
+                case FFI_TYPE_FLOAT:
+                  ffi_pl_arguments_set_float(arguments, i, SvNV(arg2));
+                  break;
+                case FFI_TYPE_DOUBLE:
+                  ffi_pl_arguments_set_double(arguments, i, SvNV(arg2));
+                  break;
+                case FFI_TYPE_POINTER:
+                  ffi_pl_arguments_set_pointer(arguments, i, SvOK(arg2) ? INT2PTR(void*, SvIV(arg2)) : NULL);
+                  break;
+                default:
+                  warn("argument type not supported (%d)", i);
+                  break;
+              }
+              SvREFCNT_dec(arg2);
             }
-            SvREFCNT_dec(arg2);
-          }
+  	  }
+	  else {
+	    ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	  }
+
   
           ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
   
@@ -1189,7 +1200,11 @@
         svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
 	av = (AV *)SvRV(*svp);
 	svp = av_fetch(av, 0, 0);
-	ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+	  ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	else {
+	  ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	}
 
         switch(ffi->type)
         {

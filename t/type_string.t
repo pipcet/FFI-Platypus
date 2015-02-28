@@ -61,3 +61,10 @@ my $closure_fixed = closure { $save = $_[0] };
 set_closure_fixed($closure_fixed);
 call_closure("zero one  two  three");
 is $save, "zero ", "save=zero ";
+
+subtest 'custom type input' => sub {
+  plan tests => 1;
+  custom_type type1 => { native_type => 'string', perl_to_native => sub { $_[0] x 3 } };
+  attach_cast custom1 => 'type1' => 'string';
+  is custom1("x"), "xxx";
+}

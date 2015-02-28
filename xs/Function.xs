@@ -70,7 +70,11 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	svp = hv_fetch(return_type->hv, "underlying_types", strlen("underlying_types"), 0);
 	av = (AV *)SvRV(*svp);
 	svp = av_fetch(av, 0, 0);
-	ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+	  ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	else {
+	  ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	}
 
         ffi_return_type = ffi;
       }
@@ -119,7 +123,11 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
 	    av = (AV *)SvRV(*svp);
 	    svp = av_fetch(av, j, 0);
-	    ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	    if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+	      ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+	    else {
+	      ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	    }
 	    
 	    self->argument_types[n+j] = arg;
 	    SvREFCNT_inc(arg);
