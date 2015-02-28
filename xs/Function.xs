@@ -100,44 +100,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
       else
       {
-        ffi_pl_type *tmp = SV2ffi_pl_type(arg);
-
 	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  HV *hv = (HV*)SvRV(arg);
-	  SV **svp;
-	  int d=0;
-
-	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
-	  if (svp) {
-	    d = SvIV(*svp);
-	  }
-
-	  for(j=0; j-1 < d; j++)
-	  {
-	    SV *ret_in=NULL, *ret_out;
-	    AV *av;
-	    SV **svp;
-	    STRLEN len;
-	    const char *name;
-	    ffi_type *ffi;
-
-	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
-	    av = (AV *)SvRV(*svp);
-	    svp = av_fetch(av, j, 0);
-	    if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI")) {
-	      ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
-	    } else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array")) {
-	      ffi = &ffi_type_pointer;
-	    } else {
-	      ffi = SV2ffi_pl_type(*svp)->ffi_type;
-	    }
-	    
-	    self->argument_types[n+j] = arg;
-	    SvREFCNT_inc(arg);
-	    ffi_argument_types[n+j] = ffi;
-	  }
-
+	  int d = ffi_pl_prepare_customperl(self->argument_types, ffi_argument_types, n, arg) - 1;
+	  
 	  n += d;
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
