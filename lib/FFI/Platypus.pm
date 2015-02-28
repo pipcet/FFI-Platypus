@@ -462,9 +462,9 @@ sub custom_type
   } else {
     @types = ($type_map->{$type}) x $argument_count;
   }
-  #@types = map { $self->_type_lookup($_) } @types;
+  @types = map { $self->_type_lookup($_) } @types;
   for my $type (@types) {
-    $size += $self->_type_lookup($type)->sizeof;
+    $size += $type->sizeof;
   }
 
   $self->{types}->{$name} = FFI::Platypus::Type::CustomPerl->_new_custom_perl(

@@ -66,11 +66,11 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	STRLEN len;
 	const char *name;
 	ffi_type *ffi;
+
 	svp = hv_fetch(return_type->hv, "underlying_types", strlen("underlying_types"), 0);
 	av = (AV *)SvRV(*svp);
 	svp = av_fetch(av, 0, 0);
-	name = SvPV(*svp, len);
-	ffi = ffi_pl_name_to_type(name);
+	ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
 
         ffi_return_type = ffi;
       }
@@ -119,8 +119,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	    svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
 	    av = (AV *)SvRV(*svp);
 	    svp = av_fetch(av, j, 0);
-	    name = SvPV(*svp, len);
-	    ffi = ffi_pl_name_to_type(name);
+	    ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
 	    
 	    self->argument_types[n+j] = arg;
 	    SvREFCNT_inc(arg);

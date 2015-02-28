@@ -269,20 +269,21 @@ ffi_pl_get_type_meta(SV *selfsv)
     hv_store(meta, "ref",           3, newSViv(self->extra[0].record.stash != NULL ? 1 : 0),0);
   }
 
-  ffi_type *ffi_type;
-  ffi_type = self->ffi_type;
-  if (self->ffi_type == NULL) {
+  /* GCC gets confused when the same name is used for a variable and a
+     type. This is a workaround. */
+  ffi_type *ffi;
+  ffi = self->ffi_type;
+  if (ffi == NULL) {
     AV *av;
     SV **svp;
-    STRLEN len;
-    const char *name;
     svp = hv_fetch(self->hv, "underlying_types", strlen("underlying_types"), 0);
     av = (AV *)SvRV(*svp);
     svp = av_fetch(av, 0, 0);
-    name = SvPV(*svp, len);
-    ffi_type = ffi_pl_name_to_type(name);
+    ffi = INT2PTR(ffi_type*, SvIV((SV*)SvRV(*svp)));
   }
 
+  ffi_type *ffi_type;
+  ffi_type = ffi;
   switch(ffi_type->type)
     {
     case FFI_TYPE_VOID:
