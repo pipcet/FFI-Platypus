@@ -49,7 +49,25 @@
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
+	  /* XXX avoid all this complexity and simply call the type
+	   * handler with the existing stack. */
+	  HV *hv = (HV*)SvRV(type_sv);
+	  int in_argument_count;
 	  int count;
+	  SV **svp;
+	  svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
+	  if (svp && SvIV(*svp) != 1) {
+	    in_argument_count = SvIV(*svp);
+	    arg = (SV*)newAV();
+	    for(n=0; n<in_argument_count; n++) {
+	      av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
+	      perl_arg_index++;
+	    }
+	    arg = newRV_noinc(arg);
+	  } else {
+	    perl_arg_index++;
+	  }
+
 	  count = ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers);
   
 	  for(n=0; n < count - 1; n++)
@@ -57,6 +75,8 @@
 	    i++;
 	    argument_pointers[i] = &arguments->slot[i];
 	  }
+
+	  perl_arg_index--;
 	}
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
         {

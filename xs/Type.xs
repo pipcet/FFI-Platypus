@@ -106,14 +106,15 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     RETVAL
 
 ffi_pl_type *
-_new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_native_post, argument_count)
+_new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_native_post, in_argument_count, out_argument_count)
     const char *class
     SV *types
     size_t size
     SV *perl_to_native
     SV *native_to_perl
     SV *perl_to_native_post
-    int argument_count
+    int in_argument_count
+    int out_argument_count
   PREINIT:
     char *buffer;
     ffi_pl_type *self;
@@ -134,8 +135,9 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
       hv_store((HV *)self->hv, "perl_to_native_post", strlen("perl_to_native_post"), SvREFCNT_inc(perl_to_native_post), 0);
     if(SvOK(native_to_perl))
       hv_store((HV *)self->hv, "native_to_perl", strlen("native_to_perl"), SvREFCNT_inc(native_to_perl), 0);
-    if(argument_count != 1)
-      hv_store((HV *)self->hv, "argument_count", strlen("argument_count"), newSViv(argument_count-1), 0);
+    if(out_argument_count != 1)
+      hv_store((HV *)self->hv, "argument_count", strlen("argument_count"), newSViv(out_argument_count-1), 0);
+    hv_store((HV *)self->hv, "in_argument_count", strlen("in_argument_count"), newSViv(in_argument_count), 0);
     
     RETVAL = self;
   OUTPUT:

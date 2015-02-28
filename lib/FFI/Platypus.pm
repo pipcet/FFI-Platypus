@@ -501,10 +501,11 @@ sub custom_type
   my $type = $cb->{native_type};
   $type ||= 'opaque';
   
-  my $argument_count = $cb->{argument_count} || 1;
+  my $out_argument_count = $cb->{out_argument_count} || $cb->{argument_count} || 1;
+  my $in_argument_count = $cb->{in_argument_count} || 1;
   
   croak "argument_count must be >= 1"
-    unless $argument_count >= 1;
+    unless $out_argument_count >= 1;
   
   croak "Usage: \$ffi->custom_type(\$name, { ... })"
     unless defined $name && ref($cb) eq 'HASH';
@@ -522,7 +523,7 @@ sub custom_type
       push @types, $type_map->{$t} // $t;
     }
   } else {
-    @types = ($type_map->{$type} // $type) x $argument_count;
+    @types = ($type_map->{$type} // $type) x $out_argument_count;
   }
   @types = map { $self->_type_lookup($_) } @types;
   for my $type (@types) {
@@ -535,7 +536,8 @@ sub custom_type
     $cb->{perl_to_native},
     $cb->{native_to_perl},
     $cb->{perl_to_native_post},
-    $argument_count,
+    $in_argument_count,
+    $out_argument_count,
   );
   
   $self;
