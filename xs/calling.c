@@ -541,6 +541,8 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
   return 1;
 }
 
+/* I think it's safe to move this to the Type->new code, since we
+ * currently do not have placeholder types for future types. */
 int ffi_pl_customperl_count_native_arguments(SV *arg)
 {
   HV *hv = (HV*)SvRV(arg);
@@ -548,6 +550,11 @@ int ffi_pl_customperl_count_native_arguments(SV *arg)
   int extra_arguments = 0;
   int n=1;
   int i;
+
+  svp = hv_fetch(hv, "native_argument_count", strlen("native_argument_count"), 0);
+  if (svp) {
+    return SvIV(*svp);
+  }
 
   svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
   if (svp) {
@@ -569,6 +576,8 @@ int ffi_pl_customperl_count_native_arguments(SV *arg)
       extra_arguments += ffi_pl_customperl_count_native_arguments(*svp)-1;
     }
   }
+
+  hv_store(hv, "native_argument_count", strlen("native_argument_count"), newSViv(extra_arguments+1), 0);
 
   return extra_arguments+1;
 }
