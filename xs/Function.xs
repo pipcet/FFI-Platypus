@@ -37,7 +37,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
     }
   
-    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(SV *)*(items-5)), char);
+    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_getter)*(items-5)), char);
     self = (ffi_pl_function*)buffer;
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
@@ -87,7 +87,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
     for(i=0,n=0; i<(items-5); i++,n++)
     {
       arg = ST(i+5);
-      self->argument_types[i] = SvREFCNT_inc(arg);
+      self->argument_getters[i].sv = SvREFCNT_inc(arg);
+      self->argument_getters[i].perl_args = 1;
+      self->argument_getters[i].native_args = 1;
+      self->argument_getters[i].perl_to_native = ffi_pl_arguments_set_any;
 
       if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
@@ -96,8 +99,16 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
 	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_types, i, ffi_argument_types, n, arg) - 1;
-	  
+	  int d = ffi_pl_prepare_customperl(self->argument_getters, i, ffi_argument_types, n, arg) - 1;
+	  SV **svp;
+
+	  svp = hv_fetch((HV*)SvRV(arg), "in_argument_count", strlen("in_argument_count"), 0);
+	  if(svp) {
+	    self->argument_getters[i].perl_args = SvIV(*svp);
+	  }
+
+	  self->argument_getters[i].native_args = d+1;
+
 	  n += d;
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
@@ -202,7 +213,7 @@ DESTROY(self)
     SvREFCNT_dec(self->platypus_sv);
     SvREFCNT_dec(self->return_type);
     for (i=0; i<self->nargs_perl; i++) {
-      SvREFCNT_dec(self->argument_types[i]);
+      SvREFCNT_dec(self->argument_getters[i].sv);
     }
     Safefree(self->ffi_cif.arg_types);
     Safefree(self);

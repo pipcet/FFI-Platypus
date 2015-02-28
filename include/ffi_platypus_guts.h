@@ -8,12 +8,15 @@ void ffi_pl_closure_call(ffi_cif *, void *, void **, void *);
 SV *ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data);
 ffi_pl_closure *ffi_pl_closure_get_data(SV *closure, SV *type);
 SV*  ffi_pl_custom_perl(SV*,SV*,int);
+SV*  ffi_pl_custom_array_perl(SV*,SV*,int);
 void ffi_pl_custom_perl_cb(SV *, SV*, int);
 HV *ffi_pl_ffi_get_type_meta(ffi_type *);
 HV *ffi_pl_get_type_meta(SV *);
 size_t ffi_pl_sizeof(SV *,ffi_pl_type *);
 void ffi_pl_perl_complex_float(SV *sv, float *ptr);
 void ffi_pl_perl_complex_double(SV *sv, double *ptr);
+
+int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers);
 
 #define ffi_pl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \

@@ -63,13 +63,18 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    av = (AV*)SvRV(in_arg);
+    if (SvTYPE(in_arg) == SVt_PVAV) {
+      av = (AV*)in_arg;
 
-    for(j=0; j<av_len(av)+1; j++) {
-      SV **svp;
-      svp = av_fetch(av, j, 0);
-      XPUSHs(*svp);
+      for(j=0; j<av_len(av)+1; j++) {
+	SV **svp;
+	svp = av_fetch(av, j, 0);
+	XPUSHs(*svp);
+      }
+    } else {
+      XPUSHs(in_arg);
     }
+
 
     XPUSHs(sv_2mortal(newSViv(i)));
     PUTBACK;

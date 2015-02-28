@@ -101,13 +101,22 @@ typedef struct _ffi_pl_type {
   ffi_pl_type_extra extra[0];
 } ffi_pl_type;
 
+typedef struct _ffi_pl_arguments ffi_pl_arguments;
+
+typedef struct _ffi_pl_getter {
+  void *sv; /* type object */
+  int perl_args;
+  int native_args;
+  int (*perl_to_native)(ffi_pl_arguments *, int, void *, void *, void **);
+} ffi_pl_getter;
+
 typedef struct _ffi_pl_function {
   void *address;
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
   void *return_type;       /* really SV* */
-  void *argument_types[0]; /* really SV* */
+  ffi_pl_getter argument_getters[0];
 } ffi_pl_function;
 
 typedef struct _ffi_pl_closure {

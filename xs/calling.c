@@ -241,7 +241,7 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
 	  perl_j++;
 	}
 	perl_j--;
-	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, newRV_noinc(av), argument_pointers);
+	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, (SV*)av, argument_pointers);
       } else {
 	svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
 	arg3 = *svp;
@@ -368,7 +368,7 @@ int ffi_pl_customperl_count_native_arguments(SV *arg)
   return extra_arguments+1;
 }
 
-int ffi_pl_prepare_customperl(SV **argument_types, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
 {
   HV *hv = (HV*)SvRV(arg_type);
   SV **svp;
@@ -408,7 +408,7 @@ int ffi_pl_prepare_customperl(SV **argument_types, int i, ffi_type **ffi_argumen
     }
     else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
     {
-      int d2 = ffi_pl_prepare_customperl(argument_types, i+perl_j, ffi_argument_types, n+j, *svp);
+      int d2 = ffi_pl_prepare_customperl(getters, i+perl_j, ffi_argument_types, n+j, *svp);
 
       d += d2-1;
       j += d2-1;
