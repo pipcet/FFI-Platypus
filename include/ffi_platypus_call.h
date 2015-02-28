@@ -1,3 +1,4 @@
+#undef HAVE_ALLOCA
     /* buffer contains the memory required for the arguments structure */
     buffer_size = sizeof(ffi_pl_argument) * self->ffi_cif.nargs +
                   sizeof(void*) * self->ffi_cif.nargs +
@@ -55,112 +56,11 @@
         }
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
         {
-          void *ptr;
-
-          if(SvROK(arg)) /* TODO: and a scalar ref */
-          {
-            SV *arg2 = SvRV(arg);
-            if(SvTYPE(arg2) < SVt_PVAV)
-            {
-              switch(type->ffi_type->type)
-              {
-                case FFI_TYPE_UINT8:
-                  Newx_or_alloca(ptr, 1, uint8_t);
-                  *((uint8_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
-                  break;
-                case FFI_TYPE_SINT8:
-                  Newx_or_alloca(ptr, 1, int8_t);
-                  *((int8_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
-                  break;
-                case FFI_TYPE_UINT16:
-                  Newx_or_alloca(ptr, 1, uint16_t);
-                  *((uint16_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
-                  break;
-                case FFI_TYPE_SINT16:
-                  Newx_or_alloca(ptr, 1, int16_t);
-                  *((int16_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
-                  break;
-                case FFI_TYPE_UINT32:
-                  Newx_or_alloca(ptr, 1, uint32_t);
-                  *((uint32_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
-                  break;
-                case FFI_TYPE_SINT32:
-                  Newx_or_alloca(ptr, 1, int32_t);
-                  *((int32_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
-                  break;
-                case FFI_TYPE_UINT64:
-                  Newx_or_alloca(ptr, 1, uint64_t);
-#ifdef HAVE_IV_IS_64
-                  *((uint64_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
-#else
-                  *((uint64_t*)ptr) = SvOK(arg2) ? SvU64(arg2) : 0;
-#endif
-                  break;
-                case FFI_TYPE_SINT64:
-                  Newx_or_alloca(ptr, 1, int64_t);
-#ifdef HAVE_IV_IS_64
-                  *((int64_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
-#else
-                  *((int64_t*)ptr) = SvOK(arg2) ? SvI64(arg2) : 0;
-#endif
-                  break;
-                case FFI_TYPE_FLOAT:
-                  Newx_or_alloca(ptr, 1, float);
-                  *((float*)ptr) = SvOK(arg2) ? SvNV(arg2) : 0.0;
-                  break;
-                case FFI_TYPE_DOUBLE:
-                  Newx_or_alloca(ptr, 1, double);
-                  *((double*)ptr) = SvOK(arg2) ? SvNV(arg2) : 0.0;
-                  break;
-                case FFI_TYPE_POINTER:
-                  Newx_or_alloca(ptr, 1, void*);
-                  {
-                    SV *tmp = SvRV(arg);
-                    *((void**)ptr) = SvOK(tmp) ? INT2PTR(void *, SvIV(tmp)) : NULL;
-                  }
-                  break;
-#ifdef FFI_PL_PROBE_LONGDOUBLE
-                case FFI_TYPE_LONGDOUBLE:
-                  Newx_or_alloca(ptr, 1, long double);
-                  ffi_pl_perl_to_long_double(arg2, (long double*)ptr);
-                  break;
-#endif
-                default:
-                  warn("argument type not supported (%d)", i);
-                  *((void**)ptr) = NULL;
-                  break;
-              }
-            }
-            else
-            {
-              warn("argument type not a reference to scalar (%d)", i);
-              ptr = NULL;
-            }
-          }
-          else
-          {
-            ptr = NULL;
-          }
-          ffi_pl_arguments_set_pointer(arguments, i, ptr);
+	  ffi_pl_arguments_set_ref(arguments, i, type_sv, arg);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
         {
-          void *ptr;
-          STRLEN size;
-          int expected;
-          expected = type->extra[0].record.size;
-          if(SvROK(arg))
-          {
-            SV *arg2 = SvRV(arg);
-            ptr = SvOK(arg2) ? SvPV(arg2, size) : NULL;
-          }
-          else
-          {
-            ptr = SvOK(arg) ? SvPV(arg, size) : NULL;
-          }
-          if(ptr != NULL && expected != 0 && size != expected)
-            warn("record argument %d has wrong size (is %d, expected %d)", i, (int)size, expected);
-          ffi_pl_arguments_set_pointer(arguments, i, ptr);
+	  ffi_pl_arguments_set_record(arguments, i, type_sv, arg);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
         {
@@ -603,8 +503,7 @@
       }
     }
 #ifndef HAVE_ALLOCA
-#error
-    if(self->return_type->platypus_type != FFI_PL_CUSTOM_PERL)
+    if(!sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
       Safefree(arguments);
 #endif
 

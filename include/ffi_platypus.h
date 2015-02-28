@@ -25,9 +25,6 @@
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -207,11 +204,7 @@ typedef struct _ffi_pl_record_member {
 
 #define ffi_pl_arguments_pointers(arguments) ((void**)&arguments->slot[arguments->count])
 
-#ifdef HAVE_ALLOCA
-#define Newx_or_alloca(ptr, count, type) ptr = alloca(sizeof(type)*count)
-#else
 #define Newx_or_alloca(ptr, count, type) Newx(ptr, count, type)
-#endif
 
 ffi_type *ffi_pl_name_to_type(const char *);
 
