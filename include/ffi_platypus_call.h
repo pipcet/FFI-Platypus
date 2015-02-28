@@ -17,12 +17,12 @@
      * ARGUMENT IN
      */
 
-    for(i=0, perl_arg_index=(EXTRA_ARGS); i < self->ffi_cif.nargs; i++, perl_arg_index++)
+    for(i=0, perl_arg_index=0; i < self->ffi_cif.nargs; i++, perl_arg_index++)
     {
-      SV *arg_type = self->argument_types[i];
-      SV *type_sv = self->argument_types[i];
+      SV *arg_type = self->argument_types[perl_arg_index];
+      SV *type_sv = self->argument_types[perl_arg_index];
       argument_pointers[i] = (void*) &arguments->slot[i];
-      arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+      arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
 
       if (sv_derived_from(arg_type, "FFI::Platypus::Type::FFI"))
       {
@@ -141,17 +141,17 @@
 
   for(i=self->ffi_cif.nargs-1,perl_arg_index--; i >= 0; i--, perl_arg_index--)
   {
-    SV *type_sv = self->argument_types[i];
+    SV *type_sv = self->argument_types[perl_arg_index];
     if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI")) {
     } else {
-      ffi_pl_type *type = SV2ffi_pl_type(self->argument_types[i]);
+      ffi_pl_type *type = SV2ffi_pl_type(self->argument_types[perl_arg_index]);
     
       if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         if(ptr != NULL)
         {
-          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+          arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
           if(!SvREADONLY(SvRV(arg)))
           {
             switch(type->ffi_type->type)
@@ -219,7 +219,7 @@
       {
         void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
         int count = type->extra[0].array.element_count;
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+        arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
         if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
         {
           AV *av = (AV*) SvRV(arg);
@@ -326,7 +326,7 @@
         }
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
         {
-          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+          arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
           if(SvROK(arg))
           {
             SvREFCNT_dec(arg);
@@ -334,26 +334,21 @@
         }
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
-          ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[i]);
+          ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_types[perl_arg_index]);
 	  HV *hv = (HV*)SvRV(type_sv);
 	  SV **svp;
 	  SV *arg2 = NULL;
+	  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
 
 	  svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
 	  if (svp) {
 	    SV *perl_to_native_post_sv = *svp;
 
-	    arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+	    arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
 	    ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
 	  }
 
-	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
-
-	  if (svp) {
-	    int d = SvIV(*svp);
-
-	    i -= d;
-	  }
+	  i -= native_count - 1;
         }
 #ifndef HAVE_ALLOCA
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))

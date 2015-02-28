@@ -32,18 +32,12 @@ new(class, platypus, address, abi, return_type_arg, ...)
       if(!sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         tmp = SV2ffi_pl_type((SV*) arg);
         if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl")) {
-	  HV *hv = (HV*)SvRV(arg);
-	  SV **svp;
-
-	  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
-	  if (svp) {
-	    extra_arguments += SvIV(*svp);
-	  }
+	  extra_arguments += ffi_pl_customperl_count_native_arguments(arg) - 1;
 	}
       }
     }
   
-    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_type*)*(items-5+extra_arguments)), char);
+    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(SV *)*(items-5)), char);
     self = (ffi_pl_function*)buffer;
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
@@ -93,7 +87,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     for(i=0,n=0; i<(items-5); i++,n++)
     {
       arg = ST(i+5);
-      self->argument_types[n] = SvREFCNT_inc(arg);
+      self->argument_types[i] = SvREFCNT_inc(arg);
 
       if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
@@ -102,7 +96,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
 	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_types, ffi_argument_types, n, arg) - 1;
+	  int d = ffi_pl_prepare_customperl(self->argument_types, i, ffi_argument_types, n, arg) - 1;
 	  
 	  n += d;
         }
@@ -116,6 +110,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
         }
       }
     }
+
+    self->nargs_perl = i;
     
     ffi_status = ffi_prep_cif(
       &self->ffi_cif,            /* ffi_cif     | */
@@ -205,7 +201,7 @@ DESTROY(self)
   CODE:
     SvREFCNT_dec(self->platypus_sv);
     SvREFCNT_dec(self->return_type);
-    for (i=0; i<self->ffi_cif.nargs; i++) {
+    for (i=0; i<self->nargs_perl; i++) {
       SvREFCNT_dec(self->argument_types[i]);
     }
     Safefree(self->ffi_cif.arg_types);

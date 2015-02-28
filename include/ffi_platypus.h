@@ -105,6 +105,7 @@ typedef struct _ffi_pl_function {
   void *address;
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
+  int nargs_perl;
   void *return_type;       /* really SV* */
   void *argument_types[0]; /* really SV* */
 } ffi_pl_function;
