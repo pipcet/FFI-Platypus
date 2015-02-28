@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 19;
 use FFI::CheckLib;
 use FFI::Platypus::Declare
   'string', 'int', 'void',
@@ -67,4 +67,11 @@ subtest 'custom type input' => sub {
   custom_type type1 => { native_type => 'string', perl_to_native => sub { $_[0] x 3 } };
   attach_cast custom1 => 'type1' => 'string';
   is custom1("x"), "xxx";
-}
+};
+
+subtest 'strings as char arrays' => sub {
+  plan tests => 1;
+  custom_type type2 => { native_type => 'uint8[3]', perl_to_native => sub { return [ map { ord $_ } split('', $_[0]) ] } };
+  attach_cast custom2 => 'type2' => 'uint8[3]';
+  like join(":", map { chr($_) } @{custom2("abc")}), qr{^a:b:c$};
+};
