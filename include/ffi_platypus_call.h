@@ -115,242 +115,40 @@
 
   current_argv = arguments;
 
-  for(i=self->ffi_cif.nargs-1,perl_arg_index--,perl_type_index--; i >= 0; i--, perl_arg_index--, perl_type_index--)
+  for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
   {
     SV *type_sv = self->argument_getters[perl_type_index].sv;
-    if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI")) {
-    } else {
-      ffi_pl_type *type = SV2ffi_pl_type(self->argument_getters[perl_type_index].sv);
-    
-      if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
-      {
-        void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
-        if(ptr != NULL)
-        {
-          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-          if(!SvREADONLY(SvRV(arg)))
-          {
-            switch(type->ffi_type->type)
-            {
-              case FFI_TYPE_UINT8:
-                sv_setuv(SvRV(arg), *((uint8_t*)ptr));
-                break;
-              case FFI_TYPE_SINT8:
-                sv_setiv(SvRV(arg), *((int8_t*)ptr));
-                break;
-              case FFI_TYPE_UINT16:
-                sv_setuv(SvRV(arg), *((uint16_t*)ptr));
-                break;
-              case FFI_TYPE_SINT16:
-                sv_setiv(SvRV(arg), *((int16_t*)ptr));
-                break;
-              case FFI_TYPE_UINT32:
-                sv_setuv(SvRV(arg), *((uint32_t*)ptr));
-                break;
-              case FFI_TYPE_SINT32:
-                sv_setiv(SvRV(arg), *((int32_t*)ptr));
-                break;
-              case FFI_TYPE_UINT64:
-#ifdef HAVE_IV_IS_64
-                sv_setuv(SvRV(arg), *((uint64_t*)ptr));
-#else
-                sv_setu64(SvRV(arg), *((uint64_t*)ptr));
-#endif
-                break;
-              case FFI_TYPE_SINT64:
-#ifdef HAVE_IV_IS_64
-                sv_setiv(SvRV(arg), *((int64_t*)ptr));
-#else
-                sv_seti64(SvRV(arg), *((int64_t*)ptr));
-#endif
-                break;
-              case FFI_TYPE_FLOAT:
-                sv_setnv(SvRV(arg), *((float*)ptr));
-                break;
-              case FFI_TYPE_POINTER:
-                if( *((void**)ptr) == NULL)
-                  sv_setsv(SvRV(arg), &PL_sv_undef);
-                else
-                  sv_setiv(SvRV(arg), PTR2IV(*((void**)ptr)));
-                break;
-              case FFI_TYPE_DOUBLE:
-                sv_setnv(SvRV(arg), *((double*)ptr));
-                break;
-#ifdef FFI_PL_PROBE_LONGDOUBLE
-              case FFI_TYPE_LONGDOUBLE:
-                {
-                  SV *arg2 = SvRV(arg);
-                  ffi_pl_long_double_to_perl(arg2,(long double*)ptr);
-                }
-                break;
-#endif
-            }
-          }
-        }
-#ifndef HAVE_ALLOCA
-        Safefree(ptr);
-#endif
-      }
-      else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
-      {
-        void *ptr = ffi_pl_arguments_get_pointer(arguments, i);
-        int count = type->extra[0].array.element_count;
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-        if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
-        {
-          AV *av = (AV*) SvRV(arg);
-          if(count == 0)
-            count = av_len(av)+1;
-          switch(type->ffi_type->type)
-          {
-            case FFI_TYPE_UINT8:
-              for(n=0; n<count; n++)
-              {
-                sv_setuv(*av_fetch(av, n, 1), ((uint8_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_SINT8:
-              for(n=0; n<count; n++)
-              {
-                sv_setiv(*av_fetch(av, n, 1), ((int8_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_UINT16:
-              for(n=0; n<count; n++)
-              {
-                sv_setuv(*av_fetch(av, n, 1), ((uint16_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_SINT16:
-              for(n=0; n<count; n++)
-              {
-                sv_setiv(*av_fetch(av, n, 1), ((int16_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_UINT32:
-              for(n=0; n<count; n++)
-              {
-                sv_setuv(*av_fetch(av, n, 1), ((uint32_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_SINT32:
-              for(n=0; n<count; n++)
-              {
-                sv_setiv(*av_fetch(av, n, 1), ((int32_t*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_UINT64:
-              for(n=0; n<count; n++)
-              {
-#ifdef HAVE_IV_IS_64
-                sv_setuv(*av_fetch(av, n, 1), ((uint64_t*)ptr)[n]);
-#else
-                sv_setu64(*av_fetch(av, n, 1), ((uint64_t*)ptr)[n]);
-#endif
-              }
-              break;
-            case FFI_TYPE_SINT64:
-              for(n=0; n<count; n++)
-              {
-#ifdef HAVE_IV_IS_64
-                sv_setiv(*av_fetch(av, n, 1), ((int64_t*)ptr)[n]);
-#else
-                sv_seti64(*av_fetch(av, n, 1), ((int64_t*)ptr)[n]);
-#endif
-              }
-              break;
-            case FFI_TYPE_FLOAT:
-              for(n=0; n<count; n++)
-              {
-                sv_setnv(*av_fetch(av, n, 1), ((float*)ptr)[n]);
-              }
-              break;
-            case FFI_TYPE_POINTER:
-              for(n=0; n<count; n++)
-              {
-                if( ((void**)ptr)[n] == NULL)
-                {
-                  av_store(av, n, &PL_sv_undef);
-                }
-                else
-                {
-                  sv_setnv(*av_fetch(av,n,1), PTR2IV( ((void**)ptr)[n]) );
-                }
-              }
-              break;
-            case FFI_TYPE_DOUBLE:
-              for(n=0; n<count; n++)
-              {
-                sv_setnv(*av_fetch(av, n, 1), ((double*)ptr)[n]);
-              }
-              break;
-#ifdef FFI_PL_PROBE_LONGDOUBLE
-            case FFI_TYPE_LONGDOUBLE:
-              for(n=0; n<count; n++)
-              {
-                SV *sv;
-                sv = *av_fetch(av, n, 1);
-                ffi_pl_long_double_to_perl(sv, &((long double*)ptr)[n]);
-              }
-              break;
-#endif
-	    }
-          }
-#ifndef HAVE_ALLOCA
-          Safefree(ptr);
-#endif
-        }
-        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
-        {
-          arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-          if(SvROK(arg))
-          {
-            SvREFCNT_dec(arg);
-          }
-        }
-        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
-        {
-          ffi_pl_type *type = SV2ffi_pl_type((SV*)self->argument_getters[perl_type_index].sv);
-	  HV *hv = (HV*)SvRV(type_sv);
-	  SV **svp;
-	  SV *arg2 = NULL;
-	  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
-	  i -= native_count - 1;
-	  svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
-	  if (svp && SvIV(*svp) != 1) {
-	    int in_argument_count = SvIV(*svp);
-	    for(n=0; n<in_argument_count; n++) {
-	      perl_arg_index--;
-	    }
-	  } else {
-	    perl_arg_index--;
-	  }
+    int perl_args = self->argument_getters[perl_type_index].perl_args;
+    int native_args = self->argument_getters[perl_type_index].native_args;
+    int count;
 
-	  perl_arg_index++;
-	  svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
-	  if (svp) {
-	    SV *perl_to_native_post_sv = *svp;
-
-	    arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-	    ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
-	  }
-
-        }
-#ifndef HAVE_ALLOCA
-        else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
-        {
-          void *ptr = argument_pointers[i];
-          Safefree(ptr);
-        }
-#endif
+    if(perl_args == 1)
+    {
+      arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+      perl_arg_index--;
+    }
+    else
+    {
+      /* this is not a valid AV. We only use it to keep track of a
+	 number of SV *s, which we know are alive during the lifetime
+	 of the AV. Thus, no refcounting. */
+      arg = (SV*)newAV();
+      for(n=0; n<perl_args; n++) {
+	av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
+	perl_arg_index--;
       }
     }
+    count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers);
+
+    i -= count;
+  }
+
 #ifndef HAVE_ALLOCA
-    if(!sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
-      Safefree(arguments);
+  if(!sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
+    Safefree(arguments);
 #endif
 
-    current_argv = NULL;
+  current_argv = NULL;
 
     /*
      * RETURN VALUE

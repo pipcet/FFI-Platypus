@@ -108,6 +108,7 @@ typedef struct _ffi_pl_getter {
   int perl_args;
   int native_args;
   int (*perl_to_native)(ffi_pl_arguments *, int, void *, void *, void **);
+  int (*perl_to_native_post)(ffi_pl_arguments *, int, void *, void *, void **);
 } ffi_pl_getter;
 
 typedef struct _ffi_pl_function {

@@ -91,6 +91,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
       self->argument_getters[i].perl_to_native = ffi_pl_arguments_set_any;
+      self->argument_getters[i].perl_to_native_post = ffi_pl_arguments_set_any_post;
 
       if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
         ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));

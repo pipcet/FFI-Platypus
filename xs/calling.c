@@ -747,6 +747,262 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
   }
 }
 
+int
+ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
+  if(ptr != NULL)
+  {
+    if(!SvREADONLY(SvRV(arg)))
+    {
+      switch(type->ffi_type->type)
+      {
+      case FFI_TYPE_UINT8:
+	sv_setuv(SvRV(arg), *((uint8_t*)ptr));
+	break;
+      case FFI_TYPE_SINT8:
+	sv_setiv(SvRV(arg), *((int8_t*)ptr));
+	break;
+      case FFI_TYPE_UINT16:
+	sv_setuv(SvRV(arg), *((uint16_t*)ptr));
+	break;
+      case FFI_TYPE_SINT16:
+	sv_setiv(SvRV(arg), *((int16_t*)ptr));
+	break;
+      case FFI_TYPE_UINT32:
+	sv_setuv(SvRV(arg), *((uint32_t*)ptr));
+	break;
+      case FFI_TYPE_SINT32:
+	sv_setiv(SvRV(arg), *((int32_t*)ptr));
+	break;
+      case FFI_TYPE_UINT64:
+#ifdef HAVE_IV_IS_64
+	sv_setuv(SvRV(arg), *((uint64_t*)ptr));
+#else
+	sv_setu64(SvRV(arg), *((uint64_t*)ptr));
+#endif
+	break;
+      case FFI_TYPE_SINT64:
+#ifdef HAVE_IV_IS_64
+	sv_setiv(SvRV(arg), *((int64_t*)ptr));
+#else
+	sv_seti64(SvRV(arg), *((int64_t*)ptr));
+#endif
+	break;
+      case FFI_TYPE_FLOAT:
+	sv_setnv(SvRV(arg), *((float*)ptr));
+	break;
+      case FFI_TYPE_POINTER:
+	if( *((void**)ptr) == NULL)
+	  sv_setsv(SvRV(arg), &PL_sv_undef);
+	else
+	  sv_setiv(SvRV(arg), PTR2IV(*((void**)ptr)));
+	break;
+      case FFI_TYPE_DOUBLE:
+	sv_setnv(SvRV(arg), *((double*)ptr));
+	break;
+#ifdef FFI_PL_PROBE_LONGDOUBLE
+      case FFI_TYPE_LONGDOUBLE:
+      {
+	SV *arg2 = SvRV(arg);
+	ffi_pl_long_double_to_perl(arg2,(long double*)ptr);
+      }
+      break;
+#endif
+      }
+    }
+  }
+#ifndef HAVE_ALLOCA
+  Safefree(ptr);
+#endif
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
+  int count = type->extra[0].array.element_count;
+  int n;
+
+  if(SvROK(arg) && SvTYPE(SvRV(arg)) == SVt_PVAV)
+  {
+    AV *av = (AV*) SvRV(arg);
+    if(count == 0)
+      count = av_len(av)+1;
+    switch(type->ffi_type->type)
+    {
+    case FFI_TYPE_UINT8:
+      for(n=0; n<count; n++)
+      {
+	sv_setuv(*av_fetch(av, n, 1), ((uint8_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_SINT8:
+      for(n=0; n<count; n++)
+      {
+	sv_setiv(*av_fetch(av, n, 1), ((int8_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_UINT16:
+      for(n=0; n<count; n++)
+      {
+	sv_setuv(*av_fetch(av, n, 1), ((uint16_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_SINT16:
+      for(n=0; n<count; n++)
+      {
+	sv_setiv(*av_fetch(av, n, 1), ((int16_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_UINT32:
+      for(n=0; n<count; n++)
+      {
+	sv_setuv(*av_fetch(av, n, 1), ((uint32_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_SINT32:
+      for(n=0; n<count; n++)
+      {
+	sv_setiv(*av_fetch(av, n, 1), ((int32_t*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_UINT64:
+      for(n=0; n<count; n++)
+      {
+#ifdef HAVE_IV_IS_64
+	sv_setuv(*av_fetch(av, n, 1), ((uint64_t*)ptr)[n]);
+#else
+	sv_setu64(*av_fetch(av, n, 1), ((uint64_t*)ptr)[n]);
+#endif
+      }
+      break;
+    case FFI_TYPE_SINT64:
+      for(n=0; n<count; n++)
+      {
+#ifdef HAVE_IV_IS_64
+	sv_setiv(*av_fetch(av, n, 1), ((int64_t*)ptr)[n]);
+#else
+	sv_seti64(*av_fetch(av, n, 1), ((int64_t*)ptr)[n]);
+#endif
+      }
+      break;
+    case FFI_TYPE_FLOAT:
+      for(n=0; n<count; n++)
+      {
+	sv_setnv(*av_fetch(av, n, 1), ((float*)ptr)[n]);
+      }
+      break;
+    case FFI_TYPE_POINTER:
+      for(n=0; n<count; n++)
+      {
+	if( ((void**)ptr)[n] == NULL)
+	{
+	  av_store(av, n, &PL_sv_undef);
+	}
+	else
+	{
+	  sv_setnv(*av_fetch(av,n,1), PTR2IV( ((void**)ptr)[n]) );
+	}
+      }
+      break;
+    case FFI_TYPE_DOUBLE:
+      for(n=0; n<count; n++)
+      {
+	sv_setnv(*av_fetch(av, n, 1), ((double*)ptr)[n]);
+      }
+      break;
+#ifdef FFI_PL_PROBE_LONGDOUBLE
+    case FFI_TYPE_LONGDOUBLE:
+      for(n=0; n<count; n++)
+      {
+	SV *sv;
+	sv = *av_fetch(av, n, 1);
+	ffi_pl_long_double_to_perl(sv, &((long double*)ptr)[n]);
+      }
+      break;
+#endif
+    }
+  }
+#ifndef HAVE_ALLOCA
+  Safefree(ptr);
+#endif
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  if(SvROK(arg))
+  {
+    SvREFCNT_dec(arg);
+  }
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  HV *hv = (HV*)SvRV(type_sv);
+  SV **svp;
+  SV *arg2 = NULL;
+  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
+  int n;
+
+  i -= native_count;
+
+  svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
+  if (svp) {
+    SV *perl_to_native_post_sv = *svp;
+
+    ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
+  }
+
+  return native_count;
+}
+
+int
+ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  void *ptr = argument_pointers[i-1];
+  Safefree(ptr);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  if (sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
+  {
+    return ffi_pl_arguments_set_ref_post(arguments, i, type_sv, arg, argument_pointers);
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
+  {
+    return ffi_pl_arguments_set_array_post(arguments, i, type_sv, arg, argument_pointers);
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
+  {
+    return ffi_pl_arguments_set_custom_perl_post(arguments, i, type_sv, arg, argument_pointers);
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
+  {
+    return ffi_pl_arguments_set_closure_post(arguments, i, type_sv, arg, argument_pointers);
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
+  {
+    return ffi_pl_arguments_set_exoticfloat_post(arguments, i, type_sv, arg, argument_pointers);
+  }
+
+  return 1;
+}
 /* Local Variables: */
 /* c-basic-offset: 2 */
 /* c-file-style: "linux" */
