@@ -31,10 +31,21 @@ ffi_pl_custom_perl(SV *subref, SV *in_arg, int i)
 
     SPAGAIN;
 
-    if(count >= 1)
+    if(count == 1)
       out_arg = SvREFCNT_inc(POPs);
-    else
+    else if(count == 0)
       out_arg = NULL;
+    else
+    {
+      int i;
+
+      out_arg = (SV*)newAV();
+
+      av_unshift((AV*)out_arg, count);
+      for(i=0; i<count; i++) {
+	av_store((AV*)out_arg, count-i-1, SvREFCNT_inc(POPs));
+      }
+    }
 
     PUTBACK;
     FREETMPS;
