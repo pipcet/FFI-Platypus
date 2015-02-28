@@ -57,11 +57,19 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
 
     int count;
     SV *out_arg;
+    AV *av;
 
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs(in_arg);
+    av = (AV*)SvRV(in_arg);
+
+    for(i=0; i<av_len(av)+1; i++) {
+      SV **svp;
+      svp = av_fetch(av, i, 0);
+      XPUSHs(*svp);
+    }
+
     XPUSHs(sv_2mortal(newSViv(i)));
     PUTBACK;
 
@@ -72,10 +80,13 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
     if(count == 0)
       out_arg = NULL;
     else {
+      int i;
+
       out_arg = newRV_noinc((SV*)newAV());
 
-      while(count--) {
-	av_push((AV*)SvRV(out_arg), SvREFCNT_inc(POPs));
+      av_unshift((AV*)SvRV(out_arg), count);
+      for(i=0; i<count; i++) {
+	av_store((AV*)SvRV(out_arg), count-i-1, SvREFCNT_inc(POPs));
       }
     }
 

@@ -52,21 +52,19 @@
 	  /* XXX avoid all this complexity and simply call the type
 	   * handler with the existing stack. */
 	  HV *hv = (HV*)SvRV(type_sv);
-	  int in_argument_count;
+	  int in_argument_count = 1;
 	  int count;
 	  SV **svp;
 	  svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
 	  if (svp && SvIV(*svp) != 1) {
 	    in_argument_count = SvIV(*svp);
-	    arg = (SV*)newAV();
-	    for(n=0; n<in_argument_count; n++) {
-	      av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
-	      perl_arg_index++;
-	    }
-	    arg = newRV_noinc(arg);
-	  } else {
+	  }
+	  arg = (SV*)newAV();
+	  for(n=0; n<in_argument_count; n++) {
+	    av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
 	    perl_arg_index++;
 	  }
+	  arg = newRV_noinc(arg);
 
 	  count = ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers);
   
@@ -362,6 +360,7 @@
 	  SV **svp;
 	  SV *arg2 = NULL;
 	  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
+	  i -= native_count - 1;
 	  svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
 	  if (svp && SvIV(*svp) != 1) {
 	    int in_argument_count = SvIV(*svp);
@@ -381,7 +380,6 @@
 	    ffi_pl_custom_perl_cb(perl_to_native_post_sv, arg, i);
 	  }
 
-	  i -= native_count - 1;
         }
 #ifndef HAVE_ALLOCA
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))

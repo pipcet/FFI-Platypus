@@ -214,20 +214,39 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
   );
 
   if(arg2 != NULL && SvROK(arg2) && SvTYPE(SvRV(arg2)) == SVt_PVAV) {
-    int j;
+    int j, perl_j;
     AV *type_av;
     svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
     type_av = (AV *)SvRV(*svp);
 
-    for(j=0; j<av_len((AV*)SvRV(arg2))+1; j++) {
+    for(j=0,perl_j=0; j<av_len((AV*)SvRV(arg2))+1; j++,perl_j++) {
       STRLEN len;
       const char *name;
       ffi_type *ffi;
       SV *arg3;
-      svp = av_fetch((AV*)SvRV(arg2), j, 0);
-      arg3 = *svp;
+      SV *type2_sv;
       svp = av_fetch(type_av, j, 0);
-      i += ffi_pl_arguments_set_any(arguments, i, *svp, arg3, argument_pointers);
+      type2_sv = *svp;
+      if(sv_derived_from(type2_sv, "FFI::Platypus::Type::CustomPerl")) {
+	AV *av = newAV();
+	HV *hv = (HV*)SvRV(type2_sv);
+	int in_argument_count = 1;
+	svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
+	if (svp && SvIV(*svp) != 1) {
+	  in_argument_count = SvIV(*svp);
+	}
+	for(n=0; n<in_argument_count; n++) {
+	  svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
+	  av_push(av, *svp);
+	  perl_j++;
+	}
+	perl_j--;
+	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, newRV_noinc(av), argument_pointers);
+      } else {
+	svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
+	arg3 = *svp;
+	i += ffi_pl_arguments_set_any(arguments, i, type2_sv, arg3, argument_pointers);
+      }
     }
 
     svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
@@ -266,7 +285,7 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
     else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
     {
       int j,jmax;
-
+      /* XXX fix me here */
       jmax = ffi_pl_arguments_set_customperl(arguments, i, *svp, arg, argument_pointers);
     }
     else

@@ -57,6 +57,8 @@ sub perl_to_native
   push @stack, [ $pointer, $size ];
   arguments_set_pointer $_[1], $pointer;
   arguments_set_size_t($_[1]+1, $size);
+
+  return ($pointer, $size);
 }
 
 sub perl_to_native_post
