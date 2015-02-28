@@ -502,7 +502,8 @@ sub custom_type
   $type ||= 'opaque';
   
   my $out_argument_count = $cb->{out_argument_count} || $cb->{argument_count} || 1;
-  my $in_argument_count = $cb->{in_argument_count} || 1;
+  my $in_argument_count = $cb->{in_argument_count};
+  $in_argument_count = 1 unless defined($in_argument_count);
   
   croak "argument_count must be >= 1"
     unless $out_argument_count >= 1;

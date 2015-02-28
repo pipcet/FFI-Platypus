@@ -362,7 +362,17 @@
 	  SV **svp;
 	  SV *arg2 = NULL;
 	  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
+	  svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
+	  if (svp && SvIV(*svp) != 1) {
+	    int in_argument_count = SvIV(*svp);
+	    for(n=0; n<in_argument_count; n++) {
+	      perl_arg_index--;
+	    }
+	  } else {
+	    perl_arg_index--;
+	  }
 
+	  perl_arg_index++;
 	  svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);
 	  if (svp) {
 	    SV *perl_to_native_post_sv = *svp;
