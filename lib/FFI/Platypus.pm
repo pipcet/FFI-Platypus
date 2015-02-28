@@ -465,17 +465,12 @@ sub constant_type
   for my $type (@types) {
     $size += $type->sizeof;
   }
-  use Data::Dumper;
-
-  warn Dumper(\@types);
 
   $self->{types}->{$name} = FFI::Platypus::Type::Constant->_new_constant(
     \@types,
     $size,
     $value,
   );
-
-  warn Dumper($self->{types}->{$name});
 
   $self;
 }
