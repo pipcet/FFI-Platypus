@@ -25,32 +25,32 @@
 
       if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
       {
-	ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg);
+	ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg, argument_pointers);
       } else {
         if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
         {
-	  ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg);
+	  ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg, argument_pointers);
         }
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
         {
-	  ffi_pl_arguments_set_ref(arguments, i, type_sv, arg);
+	  ffi_pl_arguments_set_ref(arguments, i, type_sv, arg, argument_pointers);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
         {
-	  ffi_pl_arguments_set_record(arguments, i, type_sv, arg);
+	  ffi_pl_arguments_set_record(arguments, i, type_sv, arg, argument_pointers);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
         {
-	  ffi_pl_arguments_set_array(arguments, i, type_sv, arg);
+	  ffi_pl_arguments_set_array(arguments, i, type_sv, arg, argument_pointers);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
         {
-	  ffi_pl_arguments_set_closure(arguments, i, type_sv, arg);
+	  ffi_pl_arguments_set_closure(arguments, i, type_sv, arg, argument_pointers);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
 	  int count;
-	  count = ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg);
+	  count = ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers);
   
 	  for(n=0; n < count - 1; n++)
 	  {
