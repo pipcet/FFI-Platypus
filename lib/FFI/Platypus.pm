@@ -418,6 +418,68 @@ sub type
   $self;
 }
 
+=head2 constant_type
+
+ $ffi->custom_type($alias => {
+   native_type         => $native_type,
+   value               => $value,
+ });
+
+Define a constant type, that always inserts the same value.
+
+=cut
+
+sub constant_type
+{
+  my($self, $name, $cb) = @_;
+
+  my $type = $cb->{native_type};
+  $type ||= 'opaque';
+
+  my $argument_count = $cb->{argument_count} || 1;
+
+  croak "argument_count must be >= 1"
+    unless $argument_count >= 1;
+
+  croak "Usage: \$ffi->constant_type(\$name, { ... })"
+    unless defined $name && ref($cb) eq 'HASH';
+
+  croak "must define a value"
+    unless defined $cb->{value};
+
+  my $value = $cb->{value};
+
+  my $type_map = $self->_type_map;
+  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
+
+  my @types;
+  my $size = 0;
+  if (ref $type eq "ARRAY") {
+    for my $t (@$type) {
+      push @types, $type_map->{$t} // $t;
+    }
+  } else {
+    @types = ($type_map->{$type} // $type) x $argument_count;
+  }
+  @types = map { $self->_type_lookup($_) } @types;
+  for my $type (@types) {
+    $size += $type->sizeof;
+  }
+  use Data::Dumper;
+
+  warn Dumper(\@types);
+
+  $self->{types}->{$name} = FFI::Platypus::Type::Constant->_new_constant(
+    \@types,
+    $size,
+    $value,
+  );
+
+  warn Dumper($self->{types}->{$name});
+
+  $self;
+}
+
 =head2 custom_type
 
  $ffi->custom_type($alias => {
@@ -425,6 +487,7 @@ sub type
    native_to_perl      => $coderef,
    perl_to_native      => $coderef,
    perl_to_native_post => $coderef,
+   argument_count      => $argument_count,
  });
 
 Define a custom type.  See L<FFI::Platypus::Type#Custom-Types> for details.
@@ -1216,6 +1279,9 @@ package FFI::Platypus::Type::Array;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::Closure;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Constant;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::CustomPerl;

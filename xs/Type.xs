@@ -143,6 +143,30 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
 
 
 ffi_pl_type *
+_new_constant(class, types, size, value)
+    const char *class
+    SV *types
+    size_t size
+    SV *value
+  PREINIT:
+    ffi_pl_type *self;
+    ffi_type *ffi_type;
+    ffi_pl_type_extra_custom_perl *custom;
+  CODE:
+    Newx(self, 1, ffi_pl_type);
+    self->hv = newHV();
+    self->ffi_type = NULL;
+    hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
+
+    if(SvOK(value))
+      hv_store((HV *)self->hv, "value", strlen("value"), SvREFCNT_inc(value), 0);
+
+    RETVAL = self;
+  OUTPUT:
+    RETVAL
+
+
+ffi_pl_type *
 _new_closure(class, return_type_arg, ...)
     const char *class;
     SV *return_type_arg;

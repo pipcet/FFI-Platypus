@@ -227,29 +227,7 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
       svp = av_fetch((AV*)SvRV(arg2), j, 0);
       arg3 = *svp;
       svp = av_fetch(type_av, j, 0);
-      if(sv_derived_from(*svp, "FFI::Platypus::Type::String")) {
-	if(arg3 != NULL) {
-	  ffi_pl_arguments_set_pointer(arguments, i, SvPV_nolen(arg3));
-	  i++;
-	}
-      }
-      else if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
-      {
-	if(arg3 != NULL)
-	{
-	  i += ffi_pl_arguments_set_ffi(arguments, i, *svp, arg3, argument_pointers);
-	  //SvREFCNT_dec(arg3);
-	}
-      }
-      else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array"))
-      {
-	if(arg3 != NULL)
-	  i += ffi_pl_arguments_set_array(arguments, i, *svp, arg3, argument_pointers);
-      }
-      else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
-      {
-	i += ffi_pl_arguments_set_customperl(arguments, i, *svp, arg3, argument_pointers);
-      }
+      i += ffi_pl_arguments_set_any(arguments, i, *svp, arg3, argument_pointers);
     }
 
     svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
@@ -303,6 +281,31 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
   }
 
   return 1;
+}
+
+int
+ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+{
+  HV *hv = (HV*)SvRV(type_sv);
+  SV **svp;
+  SV *arg2 = NULL;
+  SV *value = NULL;
+  int n;
+  int orig_i = i;
+
+  svp = hv_fetch(hv, "value", strlen("value"), 0);
+  if (svp) {
+    value = *svp;
+  }
+
+  int j=0;
+  AV *type_av;
+  svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
+  type_av = (AV *)SvRV(*svp);
+  svp = av_fetch(type_av, j, 0);
+  i += ffi_pl_arguments_set_any(arguments, i, *svp, value, argument_pointers);
+
+  return i - orig_i;
 }
 
 /* I think it's safe to move this to the Type->new code, since we

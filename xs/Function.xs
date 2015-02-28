@@ -145,7 +145,7 @@ call(self, ...)
   PREINIT:
     char *buffer;
     size_t buffer_size;
-    int i, n, perl_arg_index;
+    int i, n, perl_arg_index, perl_type_index;
     SV *arg;
     ffi_pl_result result;
     ffi_pl_arguments *arguments;
