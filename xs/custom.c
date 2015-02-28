@@ -56,6 +56,7 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
     dSP;
 
     int count;
+    int j;
     SV *out_arg;
     AV *av;
 
@@ -64,9 +65,9 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
     PUSHMARK(SP);
     av = (AV*)SvRV(in_arg);
 
-    for(i=0; i<av_len(av)+1; i++) {
+    for(j=0; j<av_len(av)+1; j++) {
       SV **svp;
-      svp = av_fetch(av, i, 0);
+      svp = av_fetch(av, j, 0);
       XPUSHs(*svp);
     }
 
