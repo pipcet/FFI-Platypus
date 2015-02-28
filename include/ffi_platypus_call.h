@@ -19,14 +19,13 @@
 
     for(i=0, perl_arg_index=0; i < self->ffi_cif.nargs; i++, perl_arg_index++)
     {
-      SV *arg_type = self->argument_types[perl_arg_index];
       SV *type_sv = self->argument_types[perl_arg_index];
       argument_pointers[i] = (void*) &arguments->slot[i];
       arg = perl_arg_index+EXTRA_ARGS < items ? ST(perl_arg_index+EXTRA_ARGS) : &PL_sv_undef;
 
-      if (sv_derived_from(arg_type, "FFI::Platypus::Type::FFI"))
+      if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
       {
-	ffi_pl_arguments_set_ffi(arguments, i, arg_type, arg);
+	ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg);
       } else {
         if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
         {
