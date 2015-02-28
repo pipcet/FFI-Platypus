@@ -18,6 +18,7 @@ void ffi_pl_perl_complex_double(SV *sv, double *ptr);
 
 int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers);
 int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers);
+int ffi_pl_any_native_to_perl(ffi_pl_result *, SV *);
 
 #define ffi_pl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \

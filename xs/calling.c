@@ -7,6 +7,7 @@
 #include "ffi_platypus.h"
 #include "ffi_platypus_guts.h"
 
+extern ffi_pl_arguments *current_argv;
 
 int
 ffi_pl_arguments_set_ffi(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers)
@@ -1002,6 +1003,476 @@ ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   }
 
   return 1;
+}
+
+SV *
+ffi_pl_any_native_to_perl(ffi_pl_result *result, SV *return_type)
+{
+  if (sv_derived_from(return_type, "FFI::Platypus::Type::FFI"))
+  {
+    ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(return_type)));
+    int type = ffi->type;
+    if(type == FFI_TYPE_VOID || (type == FFI_TYPE_POINTER && result->pointer == NULL))
+    {
+      return NULL;
+    }
+    else
+    {
+      switch(ffi->type)
+      {
+      case FFI_TYPE_UINT8:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+	return sv_2mortal(newSVuv(result->uint8_array[3]));
+#else
+	return sv_2mortal(newSVuv(result->uint8));
+#endif
+	break;
+      case FFI_TYPE_SINT8:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+	return sv_2mortal(newSViv(result->sint8_array[3]));
+#else
+	return sv_2mortal(newSViv(result->sint8));
+#endif
+	break;
+      case FFI_TYPE_UINT16:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+	return sv_2mortal(newSVuv(result->uint16_array[1]));
+#else
+	return sv_2mortal(newSVuv(result->uint16));
+#endif
+	break;
+      case FFI_TYPE_SINT16:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+	return sv_2mortal(newSViv(result->sint16_array[1]));
+#else
+	return sv_2mortal(newSViv(result->sint16));
+#endif
+	break;
+      case FFI_TYPE_UINT32:
+	return sv_2mortal(newSVuv(result->uint32));
+	break;
+      case FFI_TYPE_SINT32:
+	return sv_2mortal(newSViv(result->sint32));
+	break;
+      case FFI_TYPE_UINT64:
+#ifdef HAVE_IV_IS_64
+	return sv_2mortal(newSVuv(result->uint64));
+#else
+	{
+	  SV *ret = sv_newmortal();
+	  sv_setu64(ret, result->uint64);
+	  return ret;
+	}
+#endif
+	break;
+      case FFI_TYPE_SINT64:
+#ifdef HAVE_IV_IS_64
+	return sv_2mortal(newSViv(result->sint64));
+#else
+	{
+	  SV *ret = sv_newmortal();
+	  sv_seti64(ST(0), result->uint64);
+	  return ret;
+	}
+#endif
+	break;
+      case FFI_TYPE_FLOAT:
+	return sv_2mortal(newSVnv(result->xfloat));
+	break;
+      case FFI_TYPE_DOUBLE:
+	return sv_2mortal(newSVnv(result->xdouble));
+	break;
+      case FFI_TYPE_POINTER:
+	return sv_2mortal(newSViv(PTR2IV(result->pointer)));
+	break;
+      }
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::String"))
+  {
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+
+    if(result->pointer == NULL)
+    {
+      return NULL;
+    }
+    else
+    {
+      if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
+      {
+	SV *value = sv_newmortal();
+	sv_setpvn(value, result->pointer, pl_return_type->extra[0].string.size);
+	return value;
+      }
+      else
+      {
+	return newSVpv(result->pointer, 0);
+      }
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::Pointer"))
+  {
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    if(result->pointer == NULL)
+    {
+      return NULL;
+    }
+    else
+    {
+      SV *value;
+      switch(pl_return_type->ffi_type->type)
+      {
+      case FFI_TYPE_UINT8:
+	value = sv_newmortal();
+	sv_setuv(value, *((uint8_t*) result->pointer));
+	break;
+      case FFI_TYPE_SINT8:
+	value = sv_newmortal();
+	sv_setiv(value, *((int8_t*) result->pointer));
+	break;
+      case FFI_TYPE_UINT16:
+	value = sv_newmortal();
+	sv_setuv(value, *((uint16_t*) result->pointer));
+	break;
+      case FFI_TYPE_SINT16:
+	value = sv_newmortal();
+	sv_setiv(value, *((int16_t*) result->pointer));
+	break;
+      case FFI_TYPE_UINT32:
+	value = sv_newmortal();
+	sv_setuv(value, *((uint32_t*) result->pointer));
+	break;
+      case FFI_TYPE_SINT32:
+	value = sv_newmortal();
+	sv_setiv(value, *((int32_t*) result->pointer));
+	break;
+      case FFI_TYPE_UINT64:
+	value = sv_newmortal();
+#ifdef HAVE_IV_IS_64
+	sv_setuv(value, *((uint64_t*) result->pointer));
+#else
+	sv_seti64(value, *((int64_t*) result->pointer));
+#endif
+	break;
+      case FFI_TYPE_SINT64:
+	value = sv_newmortal();
+#ifdef HAVE_IV_IS_64
+	sv_setiv(value, *((int64_t*) result->pointer));
+#else
+	sv_seti64(value, *((int64_t*) result->pointer));
+#endif
+	break;
+      case FFI_TYPE_FLOAT:
+	value = sv_newmortal();
+	sv_setnv(value, *((float*) result->pointer));
+	break;
+      case FFI_TYPE_DOUBLE:
+	value = sv_newmortal();
+	sv_setnv(value, *((double*) result->pointer));
+	break;
+      case FFI_TYPE_POINTER:
+	value = sv_newmortal();
+	if( *((void**)result->pointer) == NULL )
+	  value = &PL_sv_undef;
+	else
+	  sv_setiv(value, PTR2IV(*((void**)result->pointer)));
+	break;
+#ifdef FFI_PL_PROBE_LONGDOUBLE
+      case FFI_TYPE_LONGDOUBLE:
+	value = sv_newmortal();
+	ffi_pl_long_double_to_perl(value, (long double*)result->pointer);
+	break;
+#endif
+      default:
+	warn("return type not supported");
+	return NULL;
+      }
+      return sv_2mortal(newRV_inc(value));
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::Record"))
+  {
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    if(result->pointer != NULL)
+    {
+      SV *value = sv_newmortal();
+      sv_setpvn(value, result->pointer, pl_return_type->extra[0].record.size);
+      if(pl_return_type->extra[0].record.stash)
+      {
+	SV *ref = newRV_inc(value);
+	sv_bless(ref, pl_return_type->extra[0].record.stash);
+	return ref;
+      }
+      else
+      {
+	return value;
+      }
+    }
+    else
+    {
+      return NULL;
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::Array"))
+  {
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    if(result->pointer == NULL)
+    {
+      return NULL;
+    }
+    else
+    {
+      int count = pl_return_type->extra[0].array.element_count;
+      AV *av;
+      SV **sv;
+      int i;
+      Newx(sv, count, SV*);
+      switch(pl_return_type->ffi_type->type)
+      {
+      case FFI_TYPE_UINT8:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSVuv( ((uint8_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_SINT8:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSViv( ((int8_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_UINT16:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSVuv( ((uint16_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_SINT16:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSViv( ((int16_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_UINT32:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSVuv( ((uint32_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_SINT32:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSViv( ((int32_t*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_UINT64:
+	for(i=0; i<count; i++)
+	{
+#ifdef HAVE_IV_IS_64
+	  sv[i] = newSVuv( ((uint64_t*)result->pointer)[i] );
+#else
+	  sv[i] = newSVu64( ((uint64_t*)result->pointer)[i] );
+#endif
+	}
+	break;
+      case FFI_TYPE_SINT64:
+	for(i=0; i<count; i++)
+	{
+#ifdef HAVE_IV_IS_64
+	  sv[i] = newSViv( ((int64_t*)result->pointer)[i] );
+#else
+	  sv[i] = newSVi64( ((int64_t*)result->pointer)[i] );
+#endif
+	}
+	break;
+      case FFI_TYPE_FLOAT:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSVnv( ((float*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_DOUBLE:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSVnv( ((double*)result->pointer)[i] );
+	}
+	break;
+      case FFI_TYPE_POINTER:
+	for(i=0; i<count; i++)
+	{
+	  if( ((void**)result->pointer)[i] == NULL)
+	  {
+	    sv[i] = &PL_sv_undef;
+	  }
+	  else
+	  {
+	    sv[i] = newSViv( PTR2IV( ((void**)result->pointer)[i] ));
+	  }
+	}
+	break;
+#ifdef FFI_PL_PROBE_LONGDOUBLE
+      case FFI_TYPE_LONGDOUBLE:
+	for(i=0; i<count; i++)
+	{
+	  sv[i] = newSV(0);
+	  ffi_pl_long_double_to_perl(sv[i], &((long double*)result->pointer)[i]);
+	}
+	break;
+#endif
+      default:
+	warn("return type not supported");
+	return NULL;
+      }
+      av = av_make(count, sv);
+      Safefree(sv);
+      return sv_2mortal(newRV_inc((SV*)av));
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::CustomPerl"))
+  {
+    SV *ret_in=NULL, *ret_out;
+    AV *av;
+    SV **svp;
+    STRLEN len;
+    const char *name;
+    ffi_type *ffi;
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+
+    svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
+    av = (AV *)SvRV(*svp);
+    svp = av_fetch(av, 0, 0);
+    if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+      ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+    else {
+      ffi = SV2ffi_pl_type(*svp)->ffi_type;
+    }
+
+    switch(ffi->type)
+    {
+    case FFI_TYPE_UINT8:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+      ret_in = newSVuv(result->uint8_array[3]);
+#else
+      ret_in = newSVuv(result->uint8);
+#endif
+      break;
+    case FFI_TYPE_SINT8:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+      ret_in = newSViv(result->sint8_array[3]);
+#else
+      ret_in = newSViv(result->sint8);
+#endif
+      break;
+    case FFI_TYPE_UINT16:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+      ret_in = newSVuv(result->uint16_array[1]);
+#else
+      ret_in = newSVuv(result->uint16);
+#endif
+      break;
+    case FFI_TYPE_SINT16:
+#ifdef FFI_PL_PROBE_BIGENDIAN
+      ret_in = newSViv(result->sint16_array[1]);
+#else
+      ret_in = newSViv(result->sint16);
+#endif
+      break;
+    case FFI_TYPE_UINT32:
+      ret_in = newSVuv(result->uint32);
+      break;
+    case FFI_TYPE_SINT32:
+      ret_in = newSViv(result->sint32);
+      break;
+    case FFI_TYPE_UINT64:
+#ifdef HAVE_IV_IS_64
+      ret_in = newSVuv(result->uint64);
+#else
+      ret_in = newSVu64(result->uint64);
+#endif
+      break;
+    case FFI_TYPE_SINT64:
+#ifdef HAVE_IV_IS_64
+      ret_in = newSViv(result->sint64);
+#else
+      ret_in = newSVi64(result->sint64);
+#endif
+      break;
+    case FFI_TYPE_FLOAT:
+      ret_in = newSVnv(result->xfloat);
+      break;
+    case FFI_TYPE_DOUBLE:
+      ret_in = newSVnv(result->xdouble);
+      break;
+    case FFI_TYPE_POINTER:
+      if(result->pointer != NULL)
+	ret_in = newSViv(PTR2IV(result->pointer));
+      break;
+    default:
+      warn("return type not supported");
+      return NULL;
+    }
+
+    {
+      HV *hv = (HV*)SvRV(return_type);
+      SV **svp;
+      SV *arg2 = NULL;
+      SV *native_to_perl_sv = NULL;
+
+      svp = hv_fetch(hv, "native_to_perl", strlen("native_to_perl"), 0);
+      if (svp) {
+	native_to_perl_sv = *svp;
+      }
+      ret_out = ffi_pl_custom_perl(
+	native_to_perl_sv,
+	ret_in != NULL ? ret_in : &PL_sv_undef,
+	-1
+	);
+    }
+
+    current_argv = NULL;
+
+    if(ret_in != NULL)
+    {
+      SvREFCNT_dec(ret_in);
+    }
+
+    if(ret_out == NULL)
+    {
+      return NULL;
+    }
+    else
+    {
+      return sv_2mortal(ret_out);
+    }
+  }
+  else if (sv_derived_from(return_type, "FFI::Platypus::Type::ExoticFloat"))
+  {
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    switch(pl_return_type->ffi_type->type)
+    {
+#ifdef FFI_PL_PROBE_LONGDOUBLE
+      case FFI_TYPE_LONGDOUBLE:
+      {
+	if(have_math_longdouble)
+	{
+	  SV *sv;
+	  long double *ptr;
+	  Newx(ptr, 1, long double);
+	  *ptr = result->longdouble;
+	  sv = sv_newmortal();
+	  sv_setref_pv(sv, "Math::LongDouble", (void*)ptr);
+	  return sv;
+	}
+	else
+	{
+	  return sv_2mortal(newSVnv((double) result->longdouble));
+	}
+      }
+#endif
+    }
+  }
+
+  return NULL;
 }
 /* Local Variables: */
 /* c-basic-offset: 2 */

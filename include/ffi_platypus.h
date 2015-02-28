@@ -111,12 +111,15 @@ typedef struct _ffi_pl_getter {
   int (*perl_to_native_post)(ffi_pl_arguments *, int, void *, void *, void **);
 } ffi_pl_getter;
 
+typedef union _ffi_pl_result ffi_pl_result;
+
 typedef struct _ffi_pl_function {
   void *address;
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
   void *return_type;       /* really SV* */
+  void *(*native_to_perl)(ffi_pl_result *, void *);
   ffi_pl_getter argument_getters[0];
 } ffi_pl_function;
 

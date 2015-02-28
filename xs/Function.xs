@@ -43,6 +43,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     
     self->address = address;
     self->return_type = SvREFCNT_inc(return_type_arg);
+    self->native_to_perl = ffi_pl_any_native_to_perl;
     
     if(sv_isobject(self->return_type) && sv_derived_from(self->return_type, "FFI::Platypus::Type::FFI"))
     {
