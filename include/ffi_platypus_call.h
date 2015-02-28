@@ -20,39 +20,17 @@
     for(i=0, perl_arg_index=(EXTRA_ARGS); i < self->ffi_cif.nargs; i++, perl_arg_index++)
     {
       SV *arg_type = self->argument_types[i];
+      SV *type_sv = self->argument_types[i];
+      argument_pointers[i] = (void*) &arguments->slot[i];
+      arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+
       if (sv_derived_from(arg_type, "FFI::Platypus::Type::FFI"))
       {
-	argument_pointers[i] = (void*) &arguments->slot[i];
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-
 	ffi_pl_arguments_set_ffi(arguments, i, arg_type, arg);
       } else {
-	SV *type_sv = self->argument_types[i];
-	ffi_pl_type *type = SV2ffi_pl_type(type_sv);
-	argument_pointers[i] = (void*) &arguments->slot[i];
-
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
         if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
         {
-          switch(type->extra[0].string.platypus_string_type)
-          {
-            case FFI_PL_STRING_RW:
-            case FFI_PL_STRING_RO:
-              ffi_pl_arguments_set_string(arguments, i, SvOK(arg) ? SvPV_nolen(arg) : NULL);
-              break;
-            case FFI_PL_STRING_FIXED:
-              {
-                int expected;
-                STRLEN size;
-                void *ptr;
-                expected = type->extra[0].string.size;
-                ptr = SvOK(arg) ? SvPV(arg, size) : NULL;
-                if(ptr != NULL && expected != 0 && size != expected)
-                  warn("fixed string argument %d has wrong size (is %d, expected %d)", i, (int)size, expected);
-                ffi_pl_arguments_set_pointer(arguments, i, ptr);
-              }
-              break;
-          }
+	  ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg);
         }
         else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
         {
@@ -68,82 +46,7 @@
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
         {
-          if(!SvROK(arg))
-          {
-            ffi_pl_arguments_set_pointer(arguments, i, SvOK(arg) ? INT2PTR(void*, SvIV(arg)) : NULL);
-          }
-          else
-          {
-            ffi_pl_closure *closure;
-            ffi_status ffi_status;
-  
-            SvREFCNT_inc(arg);
-  
-            closure = ffi_pl_closure_get_data(arg, self->argument_types[i]);
-            if(closure != NULL)
-            {
-              ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
-            }
-            else
-            {
-              Newx(closure, 1, ffi_pl_closure);
-              closure->ffi_closure = ffi_closure_alloc(sizeof(ffi_closure), &closure->function_pointer);
-              if(closure->ffi_closure == NULL)
-              {
-                Safefree(closure);
-                ffi_pl_arguments_set_pointer(arguments, i, NULL);
-                warn("unable to allocate memory for closure");
-              }
-              else
-              {
-                closure->type = self->argument_types[i];
-
-                ffi_status = ffi_prep_closure_loc(
-                  closure->ffi_closure,
-                  &type->extra[0].closure.ffi_cif,
-                  ffi_pl_closure_call,
-                  closure,
-                  closure->function_pointer
-                );
-
-                if(ffi_status != FFI_OK)
-                {
-                  ffi_closure_free(closure->ffi_closure);
-                  Safefree(closure);
-                  ffi_pl_arguments_set_pointer(arguments, i, NULL);
-                  warn("unable to create closure");
-                }
-                else
-                {
-  		SV **svp;
-  		SV **hvp;
-                  SV *keysv;
-  		const char *key;
-  		STRLEN len;
-
-                  closure->coderef = arg;
-  		keysv = ffi_pl_closure_add_data(arg, closure);
-  		key = SvPV(keysv, len);
-  		hvp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "cbdata", 6, 0);
-  		if (!hvp)
-  		  croak("couldn't create closure type hash");
-  		svp = hv_fetch((HV *)SvRV(*hvp), key, len, 0);
-  		if (!svp)
-  		  croak("couldn't create closure type hash (2)");
-  		svp = hv_fetch((HV *)SvRV(*svp), "type", 4, 0);
-  		if (!svp)
-  		  croak("couldn't create closure type hash (3)");
-  		/* No SvREFCNT_inc here! The hash entry will stay
-  		   alive as long as the closure exists, and we want to
-  		   avoid having a custom DESTROY routine for
-  		   closures. */
-  		closure->type = *svp;
-                  ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
-  		SvREFCNT_dec(keysv);
-                }
-              }
-            }
-          }
+	  ffi_pl_arguments_set_closure(arguments, i, type_sv, arg);
         }
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
         {
@@ -158,48 +61,7 @@
 	}
 	else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
         {
-          switch(type->ffi_type->type)
-          {
-#ifdef FFI_PL_PROBE_LONGDOUBLE
-            case FFI_TYPE_LONGDOUBLE:
-              {
-                long double *ptr;
-                Newx_or_alloca(ptr, 1, long double);
-                argument_pointers[i] = ptr;
-                ffi_pl_perl_to_long_double(arg, ptr);
-              }
-              break;
-#endif
-#ifdef FFI_PL_PROBE_COMPLEX
-            case FFI_TYPE_COMPLEX:
-              switch(type->ffi_type->size)
-              {
-                case  8:
-                  {
-                    float *ptr;
-                    Newx_or_alloca(ptr, 2, float complex);
-                    argument_pointers[i] = ptr;
-                    ffi_pl_perl_complex_float(arg, ptr);
-                  }
-                  break;
-                case 16:
-                  {
-                    double *ptr;
-                    Newx_or_alloca(ptr, 2, double);
-                    argument_pointers[i] = ptr;
-                    ffi_pl_perl_complex_double(arg, ptr);
-                  }
-                  break;
-                default :
-                  warn("argument type not supported (%d)", i);
-                  break;
-              }
-              break;
-#endif
-            default:
-              warn("argument type not supported (%d)", i);
-              break;
-          }
+	  ffi_pl_arguments_set_exoticfloat(arguments, i, type_sv, arg, argument_pointers);
         }
       else
       {
