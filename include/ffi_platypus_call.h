@@ -147,6 +147,7 @@
 
       i -= count;
     } else {
+      perl_arg_index--;
       i--;
     }
 
