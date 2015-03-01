@@ -188,14 +188,14 @@ _new_struct_type(class, types)
 
     hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
 
-    perl_n = av_len(SvRV(types)) + 1;
+    perl_n = av_len((AV*)SvRV(types)) + 1;
 
     ffi_n = 0;
     for(i=0; i<perl_n; i++)
     {
       SV *type;
       SV **svp;
-      svp = av_fetch((AV *)SvRV(types), i);
+      svp = av_fetch((AV *)SvRV(types), i, 0);
       type = *svp;
 
       if(sv_derived_from(type, "FFI::Platypus::Type::CustomPerl"))
@@ -215,7 +215,7 @@ _new_struct_type(class, types)
     for(i=0, j=0; i<perl_n; i++,j++)
     {
       SV **svp;
-      svp = av_fetch((AV *)SvRV(types), i);
+      svp = av_fetch((AV *)SvRV(types), i, 0);
 
       if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
       {
@@ -233,7 +233,6 @@ _new_struct_type(class, types)
       {
 	int d2 = ffi_pl_prepare_customperl(NULL, 0, ffi_children, j, *svp);
 
-	d += d2-1;
 	j += d2-1;
       }
       else
@@ -244,7 +243,7 @@ _new_struct_type(class, types)
       }
     }
 
-    ffi_children[n_ffi] = NULL;
+    ffi_children[ffi_n] = NULL;
 
     ffi->size = ffi->alignment = 0;
     ffi->type = FFI_TYPE_STRUCT;
