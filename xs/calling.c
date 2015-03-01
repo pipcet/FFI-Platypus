@@ -726,7 +726,12 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
     {
       return ffi_pl_arguments_set_exoticfloat(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Constant"))
+    {
+      return ffi_pl_arguments_set_constant(arguments, i, type_sv, arg, argument_pointers, freeme);
+    }
   }
+  croak("unknown type type");
 }
 
 int
