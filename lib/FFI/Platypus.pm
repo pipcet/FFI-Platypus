@@ -539,6 +539,34 @@ sub custom_type
   $self;
 }
 
+
+=head2 struct_type
+
+ $ffi->custom_type($alias => {
+   children            => $children,
+ });
+
+Define a custom type.  See L<FFI::Platypus::Type#Custom-Types> for details.
+
+=cut
+
+sub struct_type
+{
+  my($self, $name, @children) = @_;
+
+  my $type_map = $self->_type_map;
+  croak "$type is not a native type" unless defined $type_map->{$type} || $type eq 'string';
+  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
+
+  @children = map { $self->_type_lookup($_) } @children;
+
+  $self->{types}->{$name} = FFI::Platypus::Type->_new_struct_type(
+    \@children
+  );
+
+  $self;
+}
+
 =head2 load_custom_type
 
  $ffi->load_custom_type($name => $alias, @type_args);
@@ -1310,6 +1338,9 @@ sub meta {
 }
 
 package FFI::Platypus::Type::Record;
+use parent -norequire, 'FFI::Platypus::Type';
+
+package FFI::Platypus::Type::Struct;
 use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::ExoticFloat;

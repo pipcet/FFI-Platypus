@@ -169,6 +169,95 @@ _new_constant(class, types, size, value)
 
 
 ffi_pl_type *
+_new_struct_type(class, types)
+    const char *class
+    SV *types
+  PREINIT:
+    ffi_pl_type *self;
+    SV *ffi_sv;
+    SV *ffi_children_sv;
+    ffi_type *ffi;
+    ffi_type **ffi_children;
+    ffi_pl_type_extra_custom_perl *custom;
+    int perl_n;
+    int ffi_n;
+    int i,j;
+  CODE:
+    Newx(self, 1, ffi_pl_type);
+    self->hv = newHV();
+
+    hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
+
+    perl_n = av_len(SvRV(types)) + 1;
+
+    ffi_n = 0;
+    for(i=0; i<perl_n; i++)
+    {
+      SV *type;
+      SV **svp;
+      svp = av_fetch((AV *)SvRV(types), i);
+      type = *svp;
+
+      if(sv_derived_from(type, "FFI::Platypus::Type::CustomPerl"))
+	ffi_n += ffi_pl_customperl_count_native_arguments(type);
+      else
+	ffi_n++;
+    }
+
+    ffi_sv = newSV(sizeof(*ffi));
+    hv_store((HV *)self->hv, "ffi_type", strlen("ffi_type"), ffi_sv, 0);
+    ffi = SvPV_nolen(ffi_sv);
+
+    ffi_children_sv =  newSV((ffi_n+1)*sizeof *ffi_children);
+    hv_store((HV *)self->hv, "ffi_children", strlen("ffi_children"), ffi_children_sv, 0);
+    ffi_children = SvPV_nolen(ffi_children_sv);
+
+    for(i=0, j=0; i<perl_n; i++,j++)
+    {
+      SV **svp;
+      svp = av_fetch((AV *)SvRV(types), i);
+
+      if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+      {
+	ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+
+	ffi_children[j] = ffi;
+      }
+      else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array"))
+      {
+	ffi = &ffi_type_pointer;
+
+	ffi_children[j] = ffi;
+      }
+      else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
+      {
+	int d2 = ffi_pl_prepare_customperl(NULL, 0, ffi_children, j, *svp);
+
+	d += d2-1;
+	j += d2-1;
+      }
+      else
+      {
+	ffi = SV2ffi_pl_type(*svp)->ffi_type;
+
+	ffi_children[j] = ffi;
+      }
+    }
+
+    ffi_children[n_ffi] = NULL;
+
+    ffi->size = ffi->alignment = 0;
+    ffi->type = FFI_TYPE_STRUCT;
+    ffi->elements = ffi_children;
+
+    self->ffi_type = ffi;
+
+    RETVAL = self;
+  OUTPUT:
+    RETVAL
+
+
+ffi_pl_type *
 _new_closure(class, return_type_arg, ...)
     const char *class;
     SV *return_type_arg;
