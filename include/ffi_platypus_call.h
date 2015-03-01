@@ -117,33 +117,40 @@
 
   for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
   {
-    SV *type_sv = self->argument_getters[perl_type_index].sv;
-    int perl_args = self->argument_getters[perl_type_index].perl_args;
-    int native_args = self->argument_getters[perl_type_index].native_args;
-    int count;
+    if(self->argument_getters[perl_type_index].perl_to_native_post)
+    {
+      SV *type_sv = self->argument_getters[perl_type_index].sv;
+      int perl_args = self->argument_getters[perl_type_index].perl_args;
+      int native_args = self->argument_getters[perl_type_index].native_args;
+      int count;
 
-    if(perl_args == 1)
-    {
-      arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-      perl_arg_index--;
-    }
-    else
-    {
-      /* this is not a valid AV. We only use it to keep track of a
-         number of SV *s, which we know are alive during the lifetime
-         of the AV. Thus, no refcounting. */
-      arg = (SV*)newAV();
-      for(n=0; n<perl_args; n++)
+      if(perl_args == 1)
       {
-	/* XXX isn't this reversed for the perl_args > 1 case? We're
-	   not testing that one yet ... */
-        av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
-        perl_arg_index--;
+	arg = perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef;
+	perl_arg_index--;
       }
-    }
-    count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers, &freeme);
+      else
+      {
+	arg = (SV*)newAV();
+	for(n=0; n<perl_args; n++)
+	{
+	  /* XXX isn't this reversed for the perl_args > 1 case? We're
+	     not testing that one yet ... */
+	  av_push((AV *)arg, perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef);
+	  perl_arg_index--;
+	}
+      }
+      count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers, &freeme);
 
-    i -= count;
+      if(!freeme)
+	freeme = newRV_noinc(newAV());
+      av_push((AV*)SvRV(freeme), arg);
+
+      i -= count;
+    } else {
+      i--;
+    }
+
   }
 
 #ifndef HAVE_ALLOCA
