@@ -27,23 +27,23 @@
       argument_pointers[i] = (void*) &arguments->slot[i];
       if(perl_args == 1)
       {
-	arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
-	perl_arg_index++;
+        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+        perl_arg_index++;
       }
       else
       {
-	arg = (SV*)newAV();
-	for(n=0; n<perl_args; n++) {
-	  av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
-	  perl_arg_index++;
-	}
+        arg = (SV*)newAV();
+        for(n=0; n<perl_args; n++) {
+          av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
+          perl_arg_index++;
+        }
       }
 
       count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, argument_pointers);
 
       for(n=0; n<count-1; n++) {
-	i++;
-	argument_pointers[i] = &arguments->slot[i];
+        i++;
+        argument_pointers[i] = &arguments->slot[i];
       }
     }
 
@@ -130,12 +130,13 @@
     else
     {
       /* this is not a valid AV. We only use it to keep track of a
-	 number of SV *s, which we know are alive during the lifetime
-	 of the AV. Thus, no refcounting. */
+         number of SV *s, which we know are alive during the lifetime
+         of the AV. Thus, no refcounting. */
       arg = (SV*)newAV();
-      for(n=0; n<perl_args; n++) {
-	av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
-	perl_arg_index--;
+      for(n=0; n<perl_args; n++)
+      {
+        av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
+        perl_arg_index--;
       }
     }
     count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers);
@@ -181,7 +182,9 @@
     }
     
     XSRETURN(n);
-  } else {
+  }
+  else
+  {
     ST(0) = perl_return;
     XSRETURN(1);
   }
