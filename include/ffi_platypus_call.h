@@ -2,8 +2,9 @@
     buffer_size = sizeof(ffi_pl_argument) * self->ffi_cif.nargs +
                   sizeof(void*) * self->ffi_cif.nargs +
                   sizeof(ffi_pl_arguments);
-#ifdef HAVE_ALLOCA
-    buffer = alloca(buffer_size);
+#ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
+    char buffer2[buffer_size] __attribute__((aligned));
+    buffer = buffer2;
 #else
     Newx(buffer, buffer_size, char);
 #endif
@@ -779,7 +780,7 @@
       }
 #endif
     }
-#ifndef HAVE_ALLOCA
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     if(self->return_type->platypus_type != FFI_PL_CUSTOM_PERL)
       Safefree(arguments);
 #endif
@@ -1171,7 +1172,7 @@
             ret_in = newSViv(PTR2IV(result.pointer));
           break;
         default:
-#ifndef HAVE_ALLOCA
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
           Safefree(arguments);
 #endif
           warn("return type not supported");
@@ -1188,7 +1189,7 @@
 
       current_argv = NULL;
 
-#ifndef HAVE_ALLOCA
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
       Safefree(arguments);
 #endif
 
