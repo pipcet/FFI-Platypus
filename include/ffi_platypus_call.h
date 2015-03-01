@@ -142,9 +142,7 @@
       }
       count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers, &freeme);
 
-      if(!freeme)
-	freeme = newRV_noinc(newAV());
-      av_push((AV*)SvRV(freeme), arg);
+      SvREFCNT_dec(arg);
 
       i -= count;
     } else {
