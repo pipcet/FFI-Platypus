@@ -15,6 +15,7 @@ T_FFI_PL_TYPE
     HV *hv;
     SV *sv = newSV(0);
     HV *stash = gv_stashpv(class, GV_ADD);
+    SV *tmp;
     hv = $var->hv;
     if (!hv)
     {
@@ -23,8 +24,8 @@ T_FFI_PL_TYPE
     }
     sv_setref_pv(sv, \"FFI::Platypus::Type::C\", (void *) $var);
     hv_store(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), sv, 0);
-    $arg = newRV_inc((SV*)hv);
-    sv_bless($arg, stash);
+    tmp = newRV_noinc((SV*)hv);
+    $arg = sv_2mortal(sv_bless(tmp, stash));
   }
   while(0);
 

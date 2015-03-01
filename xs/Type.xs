@@ -316,9 +316,6 @@ DESTROY(self_sv)
         SvREFCNT_dec(custom->native_to_perl);
     }
 */
-    if (self->hv) {
-      SvREFCNT_dec(self->hv);
-    }
     Safefree(self);
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::StringPointer
