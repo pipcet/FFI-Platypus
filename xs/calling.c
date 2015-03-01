@@ -10,7 +10,7 @@
 extern ffi_pl_arguments *current_argv;
 
 int
-ffi_pl_arguments_set_ffi(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_ffi(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg_type)));
 
@@ -67,7 +67,7 @@ ffi_pl_arguments_set_ffi(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *a
 }
 
 int
-ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   void *ptr;
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
@@ -194,7 +194,7 @@ ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *
 }
 
 int
-ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
@@ -244,18 +244,24 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
 	}
 	for(n=0; n<in_argument_count; n++) {
 	  svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
-	  av_push(av, *svp);
+	  av_push(av, SvREFCNT_inc(*svp));
 	  perl_j++;
 	}
 	perl_j--;
-	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, (SV*)av, argument_pointers);
+	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, (SV*)av, argument_pointers, freeme);
       } else {
 	svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
 	arg3 = *svp;
-	i += ffi_pl_arguments_set_any(arguments, i, type2_sv, arg3, argument_pointers);
+	i += ffi_pl_arguments_set_any(arguments, i, type2_sv, arg3, argument_pointers, freeme);
       }
     }
 
+    if (!*freeme)
+    {
+      *freeme = newRV_noinc(newAV());
+    }
+
+    av_push((AV*)SvRV(*freeme), arg2);
     svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
     if (svp) {
       i += SvIV(*svp) + 1 - j;
@@ -270,8 +276,6 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
     croak("invalid argument returned from Perl handler");
   }
 
-  SvREFCNT_dec(arg2);
-
   svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
   if (svp) {
     return SvIV(*svp) + 1;
@@ -281,7 +285,7 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
 }
 
 int
-ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
@@ -300,7 +304,7 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
   type_av = (AV *)SvRV(*svp);
   svp = av_fetch(type_av, j, 0);
-  i += ffi_pl_arguments_set_any(arguments, i, *svp, value, argument_pointers);
+  i += ffi_pl_arguments_set_any(arguments, i, *svp, value, argument_pointers, freeme);
 
   return i - orig_i;
 }
@@ -403,7 +407,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
 }
 
 int
-ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   void *ptr;
@@ -427,7 +431,7 @@ ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV 
 }
 
 int
-ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
 
@@ -455,7 +459,7 @@ ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv
 }
 
 int
-ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   void *ptr;
@@ -550,7 +554,7 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 }
 
 int
-ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
 
@@ -637,7 +641,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 }
 
 int
-ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
 
@@ -688,45 +692,45 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
 }
 
 int
-ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
   {
-    return ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg, argument_pointers, freeme);
   } else {
     if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
     {
-      return ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
     {
-      return ffi_pl_arguments_set_ref(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_ref(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
     {
-      return ffi_pl_arguments_set_record(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_record(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
     {
-      return ffi_pl_arguments_set_array(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_array(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
     {
-      return ffi_pl_arguments_set_closure(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_closure(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
     {
-      return ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
     else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
     {
-      return ffi_pl_arguments_set_exoticfloat(arguments, i, type_sv, arg, argument_pointers);
+      return ffi_pl_arguments_set_exoticfloat(arguments, i, type_sv, arg, argument_pointers, freeme);
     }
   }
 }
 
 int
-ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
@@ -799,7 +803,7 @@ ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 }
 
 int
-ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
@@ -914,7 +918,7 @@ ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv,
 }
 
 int
-ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   if(SvROK(arg))
   {
@@ -925,7 +929,7 @@ ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_s
 }
 
 int
-ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   HV *hv = (HV*)SvRV(type_sv);
@@ -947,7 +951,7 @@ ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *ty
 }
 
 int
-ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   void *ptr = argument_pointers[i-1];
   Safefree(ptr);
@@ -956,27 +960,27 @@ ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *ty
 }
 
 int
-ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers)
+ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
   if (sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
   {
-    return ffi_pl_arguments_set_ref_post(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_ref_post(arguments, i, type_sv, arg, argument_pointers, freeme);
   }
   else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
   {
-    return ffi_pl_arguments_set_array_post(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_array_post(arguments, i, type_sv, arg, argument_pointers, freeme);
   }
   else if (sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
   {
-    return ffi_pl_arguments_set_custom_perl_post(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_custom_perl_post(arguments, i, type_sv, arg, argument_pointers, freeme);
   }
   else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
   {
-    return ffi_pl_arguments_set_closure_post(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_closure_post(arguments, i, type_sv, arg, argument_pointers, freeme);
   }
   else if (sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
   {
-    return ffi_pl_arguments_set_exoticfloat_post(arguments, i, type_sv, arg, argument_pointers);
+    return ffi_pl_arguments_set_exoticfloat_post(arguments, i, type_sv, arg, argument_pointers, freeme);
   }
 
   return 1;

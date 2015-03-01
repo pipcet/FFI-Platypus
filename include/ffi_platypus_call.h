@@ -39,7 +39,7 @@
         }
       }
 
-      count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, argument_pointers);
+      count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, argument_pointers, &freeme);
 
       for(n=0; n<count-1; n++) {
         i++;
@@ -139,7 +139,7 @@
         perl_arg_index--;
       }
     }
-    count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers);
+    count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers, &freeme);
 
     i -= count;
   }
@@ -157,6 +157,11 @@
    */
 
   SV *perl_return = self->native_to_perl(&result, self->return_type);
+
+  if(freeme)
+  {
+    SvREFCNT_dec(freeme);
+  }
 
 #ifndef HAVE_ALLOCA
   if(sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))

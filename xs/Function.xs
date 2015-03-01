@@ -163,6 +163,7 @@ call(self, ...)
     ffi_pl_result result;
     ffi_pl_arguments *arguments;
     void **argument_pointers;
+    SV *freeme = NULL;
   CODE:
 #define EXTRA_ARGS 1
 #include "ffi_platypus_call.h"

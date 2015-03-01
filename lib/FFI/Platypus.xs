@@ -46,6 +46,7 @@ XS(ffi_pl_sub_call)
   ffi_pl_result result;
   ffi_pl_arguments *arguments;
   void **argument_pointers;
+  SV *freeme = NULL; /* scratch space for custom perl handlers */
   
   dVAR; dXSARGS;
   
