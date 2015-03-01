@@ -555,7 +555,7 @@ sub struct_type
   my($self, $name, @children) = @_;
 
   my $type_map = $self->_type_map;
-  croak "$type is not a native type" unless defined $type_map->{$type} || $type eq 'string';
+
   croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
 
   @children = map { $self->_type_lookup($_) } @children;
