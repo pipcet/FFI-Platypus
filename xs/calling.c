@@ -10,6 +10,103 @@
 extern ffi_pl_arguments *current_argv;
 
 int
+ffi_pl_arguments_set_ffi_uint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_uint8(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_sint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_uint8(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_uint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_uint16(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_sint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_sint16(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_uint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_uint32(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_sint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_sint32(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_uint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+#ifdef HAVE_IV_IS_64
+  ffi_pl_arguments_set_uint64(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+#else
+  ffi_pl_arguments_set_uint64(arguments, i, SvOK(arg) ? SvU64(arg) : 0);
+#endif
+  ffi_pl_arguments_set_uint64(arguments, i, SvOK(arg) ? SvUV(arg) : 0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_sint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+#ifdef HAVE_IV_IS_64
+  ffi_pl_arguments_set_sint64(arguments, i, SvOK(arg) ? SvIV(arg) : 0);
+#else
+  ffi_pl_arguments_set_sint64(arguments, i, SvOK(arg) ? SvI64(arg) : 0);
+#endif
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_float(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_float(arguments, i, SvOK(arg) ? SvNV(arg) : 0.0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_double(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_double(arguments, i, SvOK(arg) ? SvNV(arg) : 0.0);
+
+  return 1;
+}
+
+int
+ffi_pl_arguments_set_ffi_pointer(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
+{
+  ffi_pl_arguments_set_pointer(arguments, i, SvOK(arg) ? INT2PTR(void*, SvIV(arg)) : NULL);
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_ffi(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme)
 {
   ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg_type)));
@@ -695,6 +792,84 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
   }
 
   return 1;
+}
+
+int (*ffi_pl_arguments_perl_to_native(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
+{
+  if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
+  {
+    ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(type_sv)));
+
+    switch(ffi->type)
+    {
+    case FFI_TYPE_UINT8:
+      return ffi_pl_arguments_set_ffi_uint8;
+    case FFI_TYPE_SINT8:
+      return ffi_pl_arguments_set_ffi_sint8;
+    case FFI_TYPE_UINT16:
+      return ffi_pl_arguments_set_ffi_uint16;
+    case FFI_TYPE_SINT16:
+      return ffi_pl_arguments_set_ffi_sint16;
+    case FFI_TYPE_UINT32:
+      return ffi_pl_arguments_set_ffi_uint32;
+    case FFI_TYPE_SINT32:
+      return ffi_pl_arguments_set_ffi_sint32;
+#ifdef HAVE_IV_IS_64
+    case FFI_TYPE_UINT64:
+      return ffi_pl_arguments_set_ffi_uint64;
+    case FFI_TYPE_SINT64:
+      return ffi_pl_arguments_set_ffi_sint64;
+#else
+    case FFI_TYPE_UINT64:
+      return ffi_pl_arguments_set_ffi_uint64;
+    case FFI_TYPE_SINT64:
+      return ffi_pl_arguments_set_ffi_sint64;
+#endif
+    case FFI_TYPE_FLOAT:
+      return ffi_pl_arguments_set_ffi_float;
+    case FFI_TYPE_DOUBLE:
+      return ffi_pl_arguments_set_ffi_double;
+    case FFI_TYPE_POINTER:
+      return ffi_pl_arguments_set_ffi_pointer;
+    default:
+      croak("argument type not supported (%d)", ffi->type);
+      break;
+    }
+  } else {
+    if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
+    {
+      return ffi_pl_arguments_set_perl_string;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
+    {
+      return ffi_pl_arguments_set_ref;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
+    {
+      return ffi_pl_arguments_set_record;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
+    {
+      return ffi_pl_arguments_set_array;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
+    {
+      return ffi_pl_arguments_set_closure;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
+    {
+      return ffi_pl_arguments_set_customperl;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
+    {
+      return ffi_pl_arguments_set_exoticfloat;
+    }
+    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Constant"))
+    {
+      return ffi_pl_arguments_set_constant;
+    }
+  }
+  croak("unknown type type");
 }
 
 int
