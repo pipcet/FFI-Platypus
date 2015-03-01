@@ -289,14 +289,13 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 {
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
-  SV *arg2 = NULL;
   SV *value = NULL;
   int n;
   int orig_i = i;
 
   svp = hv_fetch(hv, "value", strlen("value"), 0);
   if (svp) {
-    value = *svp;
+    value = SvREFCNT_inc(*svp);
   }
 
   int j=0;
@@ -305,6 +304,13 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   type_av = (AV *)SvRV(*svp);
   svp = av_fetch(type_av, j, 0);
   i += ffi_pl_arguments_set_any(arguments, i, *svp, value, argument_pointers, freeme);
+
+  if (!*freeme)
+  {
+    *freeme = newRV_noinc(newAV());
+  }
+
+  av_push((AV*)SvRV(*freeme), value);
 
   return i - orig_i;
 }
