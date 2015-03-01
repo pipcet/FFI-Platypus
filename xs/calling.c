@@ -3,7 +3,6 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#undef HAVE_ALLOCA
 #include "ffi_platypus.h"
 #include "ffi_platypus_guts.h"
 
@@ -575,31 +574,31 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
       switch(type->ffi_type->type)
       {
       case FFI_TYPE_UINT8:
-	Newx_or_alloca(ptr, 1, uint8_t);
+	Newx(ptr, 1, uint8_t);
 	*((uint8_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
 	break;
       case FFI_TYPE_SINT8:
-	Newx_or_alloca(ptr, 1, int8_t);
+	Newx(ptr, 1, int8_t);
 	*((int8_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
 	break;
       case FFI_TYPE_UINT16:
-	Newx_or_alloca(ptr, 1, uint16_t);
+	Newx(ptr, 1, uint16_t);
 	*((uint16_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
 	break;
       case FFI_TYPE_SINT16:
-	Newx_or_alloca(ptr, 1, int16_t);
+	Newx(ptr, 1, int16_t);
 	*((int16_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
 	break;
       case FFI_TYPE_UINT32:
-	Newx_or_alloca(ptr, 1, uint32_t);
+	Newx(ptr, 1, uint32_t);
 	*((uint32_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
 	break;
       case FFI_TYPE_SINT32:
-	Newx_or_alloca(ptr, 1, int32_t);
+	Newx(ptr, 1, int32_t);
 	*((int32_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
 	break;
       case FFI_TYPE_UINT64:
-	Newx_or_alloca(ptr, 1, uint64_t);
+	Newx(ptr, 1, uint64_t);
 #ifdef HAVE_IV_IS_64
 	*((uint64_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
 #else
@@ -607,7 +606,7 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 #endif
 	break;
       case FFI_TYPE_SINT64:
-	Newx_or_alloca(ptr, 1, int64_t);
+	Newx(ptr, 1, int64_t);
 #ifdef HAVE_IV_IS_64
 	*((int64_t*)ptr) = SvOK(arg2) ? SvIV(arg2) : 0;
 #else
@@ -615,15 +614,15 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 #endif
 	break;
       case FFI_TYPE_FLOAT:
-	Newx_or_alloca(ptr, 1, float);
+	Newx(ptr, 1, float);
 	*((float*)ptr) = SvOK(arg2) ? SvNV(arg2) : 0.0;
 	break;
       case FFI_TYPE_DOUBLE:
-	Newx_or_alloca(ptr, 1, double);
+	Newx(ptr, 1, double);
 	*((double*)ptr) = SvOK(arg2) ? SvNV(arg2) : 0.0;
 	break;
       case FFI_TYPE_POINTER:
-	Newx_or_alloca(ptr, 1, void*);
+	Newx(ptr, 1, void*);
 	{
 	  SV *tmp = SvRV(arg);
 	  *((void**)ptr) = SvOK(tmp) ? INT2PTR(void *, SvIV(tmp)) : NULL;
@@ -631,7 +630,7 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 	break;
 #ifdef FFI_PL_PROBE_LONGDOUBLE
       case FFI_TYPE_LONGDOUBLE:
-	Newx_or_alloca(ptr, 1, long double);
+	Newx(ptr, 1, long double);
 	ffi_pl_perl_to_long_double(arg2, (long double*)ptr);
 	break;
 #endif
@@ -754,7 +753,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
   case FFI_TYPE_LONGDOUBLE:
   {
     long double *ptr;
-    Newx_or_alloca(ptr, 1, long double);
+    Newx(ptr, 1, long double);
     argument_pointers[i] = ptr;
     ffi_pl_perl_to_long_double(arg, ptr);
   }
@@ -767,7 +766,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
     case  8:
     {
       float *ptr;
-      Newx_or_alloca(ptr, 2, float);
+      Newx(ptr, 2, float);
       argument_pointers[i] = ptr;
       ffi_pl_perl_complex_float(arg, ptr);
     }
@@ -775,7 +774,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
     case 16:
     {
       double *ptr;
-      Newx_or_alloca(ptr, 2, double);
+      Newx(ptr, 2, double);
       argument_pointers[i] = ptr;
       ffi_pl_perl_complex_double(arg, ptr);
     }
@@ -981,9 +980,7 @@ ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
       }
     }
   }
-#ifndef HAVE_ALLOCA
   Safefree(ptr);
-#endif
 
   return 1;
 }
@@ -1096,9 +1093,7 @@ ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv,
 #endif
     }
   }
-#ifndef HAVE_ALLOCA
   Safefree(ptr);
-#endif
 
   return 1;
 }
