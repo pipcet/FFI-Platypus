@@ -794,45 +794,35 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
 
 int (*ffi_pl_arguments_perl_to_native(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
+  dSP;
+
+  int count;
+  void *out_arg;
+
+  ENTER;
+  SAVETMPS;
+  PUSHMARK(SP);
+  XPUSHs(type_sv);
+  PUTBACK;
+
+  count = call_method("perl_to_native_pointer", G_SCALAR);
+
+  SPAGAIN;
+
+  if(count == 1)
+    out_arg = INT2PTR(void *, SvRV(POPs));
+  else
+    out_arg = NULL;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+
+  return out_arg;
   if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
   {
     ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(type_sv)));
 
-    switch(ffi->type)
-    {
-    case FFI_TYPE_UINT8:
-      return ffi_pl_arguments_set_ffi_uint8;
-    case FFI_TYPE_SINT8:
-      return ffi_pl_arguments_set_ffi_sint8;
-    case FFI_TYPE_UINT16:
-      return ffi_pl_arguments_set_ffi_uint16;
-    case FFI_TYPE_SINT16:
-      return ffi_pl_arguments_set_ffi_sint16;
-    case FFI_TYPE_UINT32:
-      return ffi_pl_arguments_set_ffi_uint32;
-    case FFI_TYPE_SINT32:
-      return ffi_pl_arguments_set_ffi_sint32;
-#ifdef HAVE_IV_IS_64
-    case FFI_TYPE_UINT64:
-      return ffi_pl_arguments_set_ffi_uint64;
-    case FFI_TYPE_SINT64:
-      return ffi_pl_arguments_set_ffi_sint64;
-#else
-    case FFI_TYPE_UINT64:
-      return ffi_pl_arguments_set_ffi_uint64;
-    case FFI_TYPE_SINT64:
-      return ffi_pl_arguments_set_ffi_sint64;
-#endif
-    case FFI_TYPE_FLOAT:
-      return ffi_pl_arguments_set_ffi_float;
-    case FFI_TYPE_DOUBLE:
-      return ffi_pl_arguments_set_ffi_double;
-    case FFI_TYPE_POINTER:
-      return ffi_pl_arguments_set_ffi_pointer;
-    default:
-      croak("argument type not supported (%d)", ffi->type);
-      break;
-    }
   } else {
     if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
     {
@@ -1168,6 +1158,31 @@ ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 
 int (*ffi_pl_arguments_perl_to_native_post(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
+  dSP;
+
+  int count;
+  void *out_arg;
+
+  ENTER;
+  SAVETMPS;
+  PUSHMARK(SP);
+  XPUSHs(type_sv);
+  PUTBACK;
+
+  count = call_method("perl_to_native_post_pointer", G_SCALAR);
+
+  SPAGAIN;
+
+  if(count == 1)
+    out_arg = INT2PTR(void *, SvRV(POPs));
+  else
+    out_arg = NULL;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+
+  return out_arg;
   if (sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
   {
     return ffi_pl_arguments_set_ref_post;
@@ -1695,74 +1710,31 @@ ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
 
 SV *(*ffi_pl_arguments_native_to_perl(SV *type_sv))(ffi_pl_result *result, SV *return_type)
 {
-  if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
-  {
-    ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(type_sv)));
+  dSP;
 
-    switch(ffi->type)
-    {
-    case FFI_TYPE_VOID:
-      return ffi_pl_native_to_perl_void;
-    case FFI_TYPE_UINT8:
-      return ffi_pl_native_to_perl_ffi_uint8;
-    case FFI_TYPE_SINT8:
-      return ffi_pl_native_to_perl_ffi_sint8;
-    case FFI_TYPE_UINT16:
-      return ffi_pl_native_to_perl_ffi_uint16;
-    case FFI_TYPE_SINT16:
-      return ffi_pl_native_to_perl_ffi_sint16;
-    case FFI_TYPE_UINT32:
-      return ffi_pl_native_to_perl_ffi_uint32;
-    case FFI_TYPE_SINT32:
-      return ffi_pl_native_to_perl_ffi_sint32;
-#ifdef HAVE_IV_IS_64
-    case FFI_TYPE_UINT64:
-      return ffi_pl_native_to_perl_ffi_uint64;
-    case FFI_TYPE_SINT64:
-      return ffi_pl_native_to_perl_ffi_sint64;
-#else
-    case FFI_TYPE_UINT64:
-      return ffi_pl_native_to_perl_ffi_uint64;
-    case FFI_TYPE_SINT64:
-      return ffi_pl_native_to_perl_ffi_sint64;
-#endif
-    case FFI_TYPE_FLOAT:
-      return ffi_pl_native_to_perl_ffi_float;
-    case FFI_TYPE_DOUBLE:
-      return ffi_pl_native_to_perl_ffi_double;
-    case FFI_TYPE_POINTER:
-      return ffi_pl_native_to_perl_ffi_pointer;
-    default:
-      croak("argument type not supported (%d)", ffi->type);
-      break;
-    }
-  } else {
-    if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
-    {
-      return ffi_pl_native_to_perl_string;
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
-    {
-      return ffi_pl_native_to_perl_pointer;
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
-    {
-      return ffi_pl_native_to_perl_record;
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
-    {
-      return ffi_pl_native_to_perl_array;
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
-    {
-      return ffi_pl_native_to_perl_customperl;
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
-    {
-      return ffi_pl_native_to_perl_exoticfloat;
-    }
-  }
-  croak("unknown type type");
+  int count;
+  void *out_arg;
+
+  ENTER;
+  SAVETMPS;
+  PUSHMARK(SP);
+  XPUSHs(type_sv);
+  PUTBACK;
+
+  count = call_method("native_to_perl_pointer", G_SCALAR);
+
+  SPAGAIN;
+
+  if(count == 1)
+    out_arg = INT2PTR(void *, SvRV(POPs));
+  else
+    out_arg = NULL;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+
+  return out_arg;
 }
 
 /* Local Variables: */

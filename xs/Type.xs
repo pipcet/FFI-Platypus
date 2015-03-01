@@ -371,6 +371,336 @@ sizeof(selfsv)
   OUTPUT:
     RETVAL
 
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Array
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_array;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_array_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_array;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Closure
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_closure;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_closure_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Constant
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_constant;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::CustomPerl
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_customperl;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_custom_perl_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_customperl;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::ExoticFloat
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_exoticfloat;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_exoticfloat_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_exoticfloat;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Pointer
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_ref;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_ref_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_pointer;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Record
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_record;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_record;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::String
+
+void *
+perl_to_native_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_arguments_set_perl_string;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = ffi_pl_native_to_perl_string;
+  OUTPUT:
+    RETVAL
+
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+
+void *
+perl_to_native_pointer(ffi)
+    ffi_type *ffi
+  CODE:
+    switch(ffi->type)
+    {
+    case FFI_TYPE_UINT8:
+      RETVAL = ffi_pl_arguments_set_ffi_uint8;
+      break;
+    case FFI_TYPE_SINT8:
+      RETVAL = ffi_pl_arguments_set_ffi_sint8;
+      break;
+    case FFI_TYPE_UINT16:
+      RETVAL = ffi_pl_arguments_set_ffi_uint16;
+      break;
+    case FFI_TYPE_SINT16:
+      RETVAL = ffi_pl_arguments_set_ffi_sint16;
+      break;
+    case FFI_TYPE_UINT32:
+      RETVAL = ffi_pl_arguments_set_ffi_uint32;
+      break;
+    case FFI_TYPE_SINT32:
+      RETVAL = ffi_pl_arguments_set_ffi_sint32;
+      break;
+#ifdef HAVE_IV_IS_64
+    case FFI_TYPE_UINT64:
+      RETVAL = ffi_pl_arguments_set_ffi_uint64;
+      break;
+    case FFI_TYPE_SINT64:
+      RETVAL = ffi_pl_arguments_set_ffi_sint64;
+      break;
+#else
+    case FFI_TYPE_UINT64:
+      RETVAL = ffi_pl_arguments_set_ffi_uint64;
+      break;
+    case FFI_TYPE_SINT64:
+      RETVAL = ffi_pl_arguments_set_ffi_sint64;
+      break;
+#endif
+    case FFI_TYPE_FLOAT:
+      RETVAL = ffi_pl_arguments_set_ffi_float;
+      break;
+    case FFI_TYPE_DOUBLE:
+      RETVAL = ffi_pl_arguments_set_ffi_double;
+      break;
+    case FFI_TYPE_POINTER:
+      RETVAL = ffi_pl_arguments_set_ffi_pointer;
+      break;
+    default:
+      croak("argument type not supported (%d)", ffi->type);
+      break;
+    }
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(ffi)
+    ffi_type *ffi
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(ffi)
+    ffi_type *ffi
+  CODE:
+    switch(ffi->type) {
+    case FFI_TYPE_VOID:
+      RETVAL = ffi_pl_native_to_perl_void;
+      break;
+    case FFI_TYPE_UINT8:
+      RETVAL = ffi_pl_native_to_perl_ffi_uint8;
+      break;
+    case FFI_TYPE_SINT8:
+      RETVAL = ffi_pl_native_to_perl_ffi_sint8;
+      break;
+    case FFI_TYPE_UINT16:
+      RETVAL = ffi_pl_native_to_perl_ffi_uint16;
+      break;
+    case FFI_TYPE_SINT16:
+      RETVAL = ffi_pl_native_to_perl_ffi_sint16;
+      break;
+    case FFI_TYPE_UINT32:
+      RETVAL = ffi_pl_native_to_perl_ffi_uint32;
+      break;
+    case FFI_TYPE_SINT32:
+      RETVAL = ffi_pl_native_to_perl_ffi_sint32;
+      break;
+#ifdef HAVE_IV_IS_64
+    case FFI_TYPE_UINT64:
+      RETVAL = ffi_pl_native_to_perl_ffi_uint64;
+      break;
+    case FFI_TYPE_SINT64:
+      RETVAL = ffi_pl_native_to_perl_ffi_sint64;
+      break;
+#else
+    case FFI_TYPE_UINT64:
+      RETVAL = ffi_pl_native_to_perl_ffi_uint64;
+      break;
+    case FFI_TYPE_SINT64:
+      RETVAL = ffi_pl_native_to_perl_ffi_sint64;
+      break;
+#endif
+    case FFI_TYPE_FLOAT:
+      RETVAL = ffi_pl_native_to_perl_ffi_float;
+      break;
+    case FFI_TYPE_DOUBLE:
+      RETVAL = ffi_pl_native_to_perl_ffi_double;
+      break;
+    case FFI_TYPE_POINTER:
+      RETVAL = ffi_pl_native_to_perl_ffi_pointer;
+      break;
+    default:
+      croak("argument type not supported (%d)", ffi->type);
+      break;
+    }
+  OUTPUT:
+    RETVAL
+
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::C
 
 void

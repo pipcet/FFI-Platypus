@@ -68,6 +68,58 @@ SV *(*ffi_pl_arguments_native_to_perl(SV *type_sv))(ffi_pl_result *result, SV *r
     sv_setnv(sv, *(ptr));                                        \
   }
 
+extern ffi_pl_arguments *current_argv;
+
+int ffi_pl_arguments_set_ffi_uint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_sint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_uint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_sint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_uint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_sint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_uint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_sint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_float(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_double(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ffi_pointer(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, void **argument_pointers, SV **freeme);
+
+int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+
+int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+
+SV *ffi_pl_native_to_perl_void(ffi_pl_result *result, SV *return_type);
+
+SV *ffi_pl_native_to_perl_ffi_uint8(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_sint8(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_uint16(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_sint16(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_uint32(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_sint32(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_uint64(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_sint64(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_float(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_double(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_ffi_pointer(ffi_pl_result *result, SV *return_type);
+
+SV *ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type);
+
 #ifdef __cplusplus
 }
 #endif
