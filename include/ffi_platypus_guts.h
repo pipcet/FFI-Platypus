@@ -20,6 +20,11 @@ int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
 SV *ffi_pl_any_native_to_perl(ffi_pl_result *, SV *);
 
+int (*ffi_pl_arguments_perl_to_native(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int (*ffi_pl_arguments_perl_to_native_post(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme);
+int (*ffi_pl_arguments_native_to_perl(SV *type_sv))(ffi_pl_result *result, SV *return_type);
+
+
 #define ffi_pl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \
   {                                                                   \
