@@ -132,11 +132,12 @@
       else
       {
 	arg = (SV*)newAV();
+	av_unshift((AV *)arg, perl_args);
 	for(n=0; n<perl_args; n++)
 	{
 	  /* XXX isn't this reversed for the perl_args > 1 case? We're
 	     not testing that one yet ... */
-	  av_push((AV *)arg, perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef);
+	  av_store((AV *)arg, n, perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef);
 	  perl_arg_index--;
 	}
       }
