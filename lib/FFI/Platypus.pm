@@ -581,14 +581,11 @@ sub load_custom_type
   $self;
 }
 
-use Scalar::Util qw(weaken isweak);
-
 sub _type_lookup
 {
   my($self, $name) = @_;
   $self->type($name) unless defined $self->{types}->{$name};
   my $ret = $self->{types}->{$name};
-  weaken($self->{types}->{$name}) unless isweak($self->{types}->{$name});
   return $ret;
 }
 
