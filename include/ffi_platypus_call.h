@@ -146,8 +146,8 @@
 #ifndef HAVE_ALLOCA
   if(!sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
     Safefree(arguments);
-  else
 #endif
+  if(!sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
     current_argv = NULL;
 
  
@@ -161,6 +161,8 @@
   if(sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
     Safefree(arguments);
 #endif
+  if(sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
+    current_argv = NULL;
 
   if(perl_return == NULL)
   {
