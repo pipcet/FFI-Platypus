@@ -135,6 +135,8 @@
       arg = (SV*)newAV();
       for(n=0; n<perl_args; n++)
       {
+	/* XXX isn't this reversed for the perl_args > 1 case? We're
+	   not testing that one yet ... */
         av_push((AV *)arg, perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef);
         perl_arg_index--;
       }
