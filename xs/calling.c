@@ -1172,6 +1172,38 @@ ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   return 1;
 }
 
+int (*ffi_pl_arguments_perl_to_native_post(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
+{
+  if (sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
+  {
+    return ffi_pl_arguments_set_any_post;
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
+  {
+    return ffi_pl_arguments_set_array_post;
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
+  {
+    return ffi_pl_arguments_set_custom_perl_post;
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
+  {
+    return ffi_pl_arguments_set_closure_post;
+  }
+  else if (sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
+  {
+    return ffi_pl_arguments_set_exoticfloat_post;
+  }
+
+  return NULL;
+}
+
+
+SV *(*ffi_pl_arguments_native_to_perl(SV *type_sv))(ffi_pl_result *result, SV *return_type)
+{
+  return ffi_pl_any_native_to_perl;
+}
+
 SV *
 ffi_pl_any_native_to_perl(ffi_pl_result *result, SV *return_type)
 {
