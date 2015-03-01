@@ -217,16 +217,22 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
   if(arg2 != NULL && SvROK(arg2) && SvTYPE(SvRV(arg2)) == SVt_PVAV) {
     int j, perl_j;
     AV *type_av;
+    int type_len, arg2_len;
     svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
     type_av = (AV *)SvRV(*svp);
+    type_len = av_len(type_av) + 1;
 
-    for(j=0,perl_j=0; j<av_len((AV*)SvRV(arg2))+1; j++,perl_j++) {
+    arg2_len = av_len((AV*)SvRV(arg2)) + 1;
+
+    for(j=0,perl_j=0; j<arg2_len; j++,perl_j++) {
       STRLEN len;
       const char *name;
       ffi_type *ffi;
       SV *arg3;
       SV *type2_sv;
-      svp = av_fetch(type_av, j, 0);
+      /* when not enough return types are present, we assume the last
+       * type repeats indefinitely for the remaining arguments. */
+      svp = av_fetch(type_av, j<type_len ? j : type_len - 1, 0);
       type2_sv = *svp;
       if(sv_derived_from(type2_sv, "FFI::Platypus::Type::CustomPerl")) {
 	AV *av = newAV();
@@ -258,42 +264,13 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
     }
 
     return i - orig_i;
-  } else {
-    AV *av;
-    STRLEN len;
-    const char *name;
-    ffi_type *ffi;
-    svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
-    av = (AV *)SvRV(*svp);
-    svp = av_fetch(av, 0, 0);
-    if(sv_derived_from(*svp, "FFI::Platypus::Type::String")) {
-      if(arg2 != NULL) {
-	ffi_pl_arguments_set_pointer(arguments, i, SvPV_nolen(arg2));
-      }
-    }
-    else if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
-    {
-      if(arg2 != NULL)
-      {
-	ffi_pl_arguments_set_ffi(arguments, i, *svp, arg2, argument_pointers);
-	SvREFCNT_dec(arg2);
-      }
-    }
-    else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array"))
-    {
-      ffi_pl_arguments_set_array(arguments, i, *svp, arg2, argument_pointers);
-    }
-    else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
-    {
-      int j,jmax;
-      /* XXX fix me here */
-      jmax = ffi_pl_arguments_set_customperl(arguments, i, *svp, arg, argument_pointers);
-    }
-    else
-    {
-      ffi = SV2ffi_pl_type(*svp)->ffi_type;
-    }
   }
+  else if (arg2 != NULL)
+  {
+    croak("invalid argument returned from Perl handler");
+  }
+
+  SvREFCNT_dec(arg2);
 
   svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
   if (svp) {

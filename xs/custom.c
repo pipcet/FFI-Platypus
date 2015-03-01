@@ -60,7 +60,11 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
 {
   if(subref == NULL)
   {
-    return newSVsv(in_arg);
+    AV *av = newAV();
+
+    av_push(av, newSVsv(in_arg));
+
+    return newRV_noinc((SV *)av);
   }
   else
   {
