@@ -258,7 +258,7 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
 
     if (!*freeme)
     {
-      *freeme = newRV_noinc(newAV());
+      *freeme = newRV_noinc((SV*)newAV());
     }
 
     av_push((AV*)SvRV(*freeme), arg2);
@@ -307,7 +307,7 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 
   if (!*freeme)
   {
-    *freeme = newRV_noinc(newAV());
+    *freeme = newRV_noinc((SV*)newAV());
   }
 
   av_push((AV*)SvRV(*freeme), value);
@@ -670,7 +670,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
     case  8:
     {
       float *ptr;
-      Newx_or_alloca(ptr, 2, float complex);
+      Newx_or_alloca(ptr, 2, float);
       argument_pointers[i] = ptr;
       ffi_pl_perl_complex_float(arg, ptr);
     }
