@@ -68,7 +68,7 @@ sub perl_to_native_post
 sub ffi_custom_type_api_1
 {
   {
-    native_type         => 'opaque',
+    native_type         => ['opaque', 'size_t'],
     perl_to_native      => \&perl_to_native,
     perl_to_native_post => \&perl_to_native_post,
     argument_count      => 2,
