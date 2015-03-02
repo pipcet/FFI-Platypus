@@ -824,44 +824,13 @@ int (*ffi_pl_arguments_perl_to_native(SV *type_sv))(ffi_pl_arguments *arguments,
 int
 ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, void **argument_pointers, SV **freeme)
 {
-  if (sv_derived_from(type_sv, "FFI::Platypus::Type::FFI"))
-  {
-    return ffi_pl_arguments_set_ffi(arguments, i, type_sv, arg, argument_pointers, freeme);
-  } else {
-    if(sv_derived_from(type_sv, "FFI::Platypus::Type::String"))
-    {
-      return ffi_pl_arguments_set_perl_string(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Pointer"))
-    {
-      return ffi_pl_arguments_set_ref(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Record"))
-    {
-      return ffi_pl_arguments_set_record(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Array"))
-    {
-      return ffi_pl_arguments_set_array(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Closure"))
-    {
-      return ffi_pl_arguments_set_closure(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::CustomPerl"))
-    {
-      return ffi_pl_arguments_set_customperl(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::ExoticFloat"))
-    {
-      return ffi_pl_arguments_set_exoticfloat(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-    else if(sv_derived_from(type_sv, "FFI::Platypus::Type::Constant"))
-    {
-      return ffi_pl_arguments_set_constant(arguments, i, type_sv, arg, argument_pointers, freeme);
-    }
-  }
-  croak("unknown type type");
+  ffi_pl_getter getter;
+  getter.sv = arg;
+  getter.perl_args = 1;
+  getter.native_args = 1;
+  getter.perl_to_native = ffi_pl_arguments_perl_to_native(type_sv);
+
+  return getter.perl_to_native(arguments, i, type_sv, arg, argument_pointers, freeme);
 }
 
 int
