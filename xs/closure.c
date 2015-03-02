@@ -89,102 +89,18 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   if(!(flags & G_NOARGS))
   {
     svp = hv_fetch(type->hv, "argument_types", strlen("argument_types"), 0);
-    av = SvRV(*svp);
+    av = (AV*)SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
-      SV *arg_sv;
+      SV *arg_type_sv;
+      SV *arg;
+
       svp = av_fetch(av, i, 0);
-      arg_sv = *svp;
-      if (sv_derived_from(arg_sv, "FFI::Platypus::Type::FFI"))
-      {
-	ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg_sv)));
-        switch(ffi->type)
-        {
-          case FFI_TYPE_VOID:
-            break;
-          case FFI_TYPE_UINT8:
-            sv = sv_newmortal();
-            sv_setuv(sv, *((uint8_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_SINT8:
-            sv = sv_newmortal();
-            sv_setiv(sv, *((int8_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_UINT16:
-            sv = sv_newmortal();
-            sv_setuv(sv, *((uint16_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_SINT16:
-            sv = sv_newmortal();
-            sv_setiv(sv, *((int16_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_UINT32:
-            sv = sv_newmortal();
-            sv_setuv(sv, *((uint32_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_SINT32:
-            sv = sv_newmortal();
-            sv_setiv(sv, *((int32_t*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_UINT64:
-            sv = sv_newmortal();
-#ifdef HAVE_IV_IS_64
-            sv_setuv(sv, *((uint64_t*)arguments[i]));
-#else
-            sv_setu64(sv, *((uint64_t*)arguments[i]));
-#endif
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_SINT64:
-            sv = sv_newmortal();
-#ifdef HAVE_IV_IS_64
-            sv_setiv(sv, *((int64_t*)arguments[i]));
-#else
-            sv_seti64(sv, *((int64_t*)arguments[i]));
-#endif
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_FLOAT:
-            sv = sv_newmortal();
-            sv_setnv(sv, *((float*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_DOUBLE:
-            sv = sv_newmortal();
-            sv_setnv(sv, *((double*)arguments[i]));
-            XPUSHs(sv);
-            break;
-          case FFI_TYPE_POINTER:
-            sv = sv_newmortal();
-            if( *((void**)arguments[i]) != NULL)
-              sv_setiv(sv, PTR2IV( *((void**)arguments[i]) ));
-            XPUSHs(sv);
-            break;
-        }
-      } else {
-	SV *arg_type_sv;
-	svp = av_fetch(av, i, 0);
-	arg_type_sv = *svp;
-	if(sv_derived_from(arg_type_sv, "FFI::Platypus::Type::String"))
-	{
-	  ffi_pl_type *arg_type = SV2ffi_pl_type(arg_type_sv);
-	  sv = sv_newmortal();
-	  if( *((char**)arguments[i]) != NULL)
-	  {
-	    if(arg_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
-	      sv_setpvn(sv, *((char**)arguments[i]), arg_type->extra[0].string.size);
-	    else
-	      sv_setpv(sv, *((char**)arguments[i]));
-	  }
-	  XPUSHs(sv);
-	}
-      }
+      arg_type_sv = *svp;
+
+
+      arg = ffi_pl_arguments_native_to_perl(arg_type_sv)((ffi_pl_result *)arguments[i], arg_type_sv);
+      XPUSHs(arg);
     }
     PUTBACK;
   }
