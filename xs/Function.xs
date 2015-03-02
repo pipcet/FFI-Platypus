@@ -94,7 +94,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].perl_to_native = ffi_pl_arguments_perl_to_native(arg);
       self->argument_getters[i].perl_to_native_post = ffi_pl_arguments_perl_to_native_post(arg);
 
-      if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
+      if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
+      {
         ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
       }
       else
@@ -102,15 +103,6 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
 	  int d = ffi_pl_prepare_customperl(self->argument_getters, i, ffi_argument_types, n, arg) - 1;
-	  SV **svp;
-
-	  svp = hv_fetch((HV*)SvRV(arg), "in_argument_count", strlen("in_argument_count"), 0);
-	  if(svp) {
-	    self->argument_getters[i].perl_args = SvIV(*svp);
-	  }
-
-	  self->argument_getters[i].native_args = d+1;
-
 	  n += d;
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))

@@ -491,7 +491,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
     }
     else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
     {
-      int d2 = ffi_pl_prepare_customperl(getters, i+perl_j, ffi_argument_types, n+j, *svp);
+      int d2 = ffi_pl_prepare_customperl(NULL, 0, ffi_argument_types, n+j, *svp);
 
       d += d2-1;
       j += d2-1;
@@ -501,6 +501,21 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
       ffi = SV2ffi_pl_type(*svp)->ffi_type;
 
       ffi_argument_types[n+j] = ffi;
+    }
+  }
+
+  if(getters)
+  {
+    getters[i].native_args = d+1;
+
+    svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
+    if(svp)
+    {
+      getters[i].perl_args = SvIV(*svp);
+    }
+    else
+    {
+      getters[i].perl_args = 1;
     }
   }
 
