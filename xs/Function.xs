@@ -114,8 +114,11 @@ call(self, ...)
     int i, n, perl_arg_index;
     SV *arg;
     ffi_pl_result result;
-    ffi_pl_arguments *arguments;
+    ffi_pl_arguments arguments;
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void **argument_pointers;
+    ffi_pl_argument *argument_slots;
+#endif
   CODE:
 #define EXTRA_ARGS 1
 #include "ffi_platypus_call.h"
