@@ -25,17 +25,33 @@ new(class, platypus, address, abi, return_type_arg, ...)
     for(i=0,extra_arguments=0; i<(items-5); i++)
     {
       arg = ST(i+5);
+
+      dSP;
+      int count;
+
       if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type")))
       {
         croak("non-type parameter passed in as type");
       }
-      if(!sv_derived_from(arg, "FFI::Platypus::Type::FFI")) {
-        tmp = SV2ffi_pl_type((SV*) arg);
-        if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl")) {
-	  extra_arguments += ffi_pl_customperl_count_native_arguments(arg) - 1;
-	}
-      }
+
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      XPUSHs(arg);
+      PUTBACK;
+
+      count = call_method("count_native_arguments", G_SCALAR);
+
+      SPAGAIN;
+
+      if(count == 1)
+	extra_arguments += POPi - 1;
+
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
     }
+    SPAGAIN;
   
     Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_getter)*(items-5)), char);
     self = (ffi_pl_function*)buffer;
@@ -44,6 +60,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     self->address = address;
     self->return_type = SvREFCNT_inc(return_type_arg);
     self->native_to_perl = ffi_pl_arguments_native_to_perl(self->return_type);
+    SPAGAIN;
     
     if(sv_isobject(self->return_type) && sv_derived_from(self->return_type, "FFI::Platypus::Type::FFI"))
     {
@@ -107,6 +124,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
+	  tmp = SV2ffi_pl_type(arg);
           ffi_argument_types[n] = tmp->ffi_type;
         }
         else
@@ -114,6 +132,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
           ffi_argument_types[n] = &ffi_type_pointer;
         }
       }
+      SPAGAIN;
     }
 
     self->nargs_perl = i;

@@ -1196,6 +1196,13 @@ sub argument_count
   return $meta->{argument_count} ? $meta->{argument_count} : 1;
 }
 
+sub count_native_arguments
+{
+  my($self) = @_;
+
+  return 1;
+}
+
 sub new
 {
   my($class, $type, $platypus) = @_;
@@ -1325,6 +1332,18 @@ use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::CustomPerl;
 use parent -norequire, 'FFI::Platypus::Type';
+
+sub count_native_arguments
+{
+  my($self) = @_;
+  my $count = 0;
+
+  for my $type (@{$self->{underlying_types}}) {
+    $count += $type->count_native_arguments;
+  }
+
+  return $count;
+}
 
 sub meta {
   my ($self) = @_;

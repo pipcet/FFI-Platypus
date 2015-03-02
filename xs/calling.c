@@ -416,47 +416,6 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   return i - orig_i;
 }
 
-/* I think it's safe to move this to the Type->new code, since we
- * currently do not have placeholder types for future types. */
-int ffi_pl_customperl_count_native_arguments(SV *arg)
-{
-  HV *hv = (HV*)SvRV(arg);
-  SV **svp;
-  int extra_arguments = 0;
-  int n=1;
-  int i;
-
-  svp = hv_fetch(hv, "native_argument_count", strlen("native_argument_count"), 0);
-  if (svp) {
-    return SvIV(*svp);
-  }
-
-  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
-  if (svp) {
-    extra_arguments += SvIV(*svp);
-    n = SvIV(*svp) + 1;
-  }
-
-  for(i=0; i<n; i++) {
-    AV *av;
-    SV **svp;
-    STRLEN len;
-    const char *name;
-    ffi_type *ffi;
-
-    svp = hv_fetch((HV*)SvRV(arg), "underlying_types", strlen("underlying_types"), 0);
-    av = (AV *)SvRV(*svp);
-    svp = av_fetch(av, i, 0);
-    if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl")) {
-      extra_arguments += ffi_pl_customperl_count_native_arguments(*svp)-1;
-    }
-  }
-
-  hv_store(hv, "native_argument_count", strlen("native_argument_count"), newSViv(extra_arguments+1), 0);
-
-  return extra_arguments+1;
-}
-
 int ffi_pl_prepare_ffi(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
 {
   ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV*)SvRV(arg_type)));
@@ -1095,9 +1054,30 @@ ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *ty
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
   SV *arg2 = NULL;
-  int native_count = ffi_pl_customperl_count_native_arguments(type_sv);
+  int native_count;
   int n;
 
+  {
+    dSP;
+    int count;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(type_sv);
+    PUTBACK;
+
+    count = call_method("count_native_arguments", G_SCALAR);
+
+    SPAGAIN;
+
+    if(count == 1)
+      native_count = POPi;
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+  }
   i -= native_count;
 
   svp = hv_fetch(hv, "perl_to_native_post", strlen("perl_to_native_post"), 0);

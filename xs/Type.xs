@@ -193,16 +193,32 @@ _new_struct_type(class, types)
     ffi_n = 0;
     for(i=0; i<perl_n; i++)
     {
+      dSP;
+      int count;
       SV *type;
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
       type = *svp;
 
-      if(sv_derived_from(type, "FFI::Platypus::Type::CustomPerl"))
-	ffi_n += ffi_pl_customperl_count_native_arguments(type);
-      else
-	ffi_n++;
+      ENTER;
+      SAVETMPS;
+      PUSHMARK(SP);
+      XPUSHs(type);
+      PUTBACK;
+
+      count = call_method("count_native_arguments", G_SCALAR);
+
+      SPAGAIN;
+
+      if(count == 1)
+	ffi_n += POPi;
+
+      PUTBACK;
+      FREETMPS;
+      LEAVE;
+      SPAGAIN;
     }
+    SPAGAIN;
 
     ffi_sv = newSV(sizeof(*ffi));
     hv_store((HV *)self->hv, "ffi_type", strlen("ffi_type"), ffi_sv, 0);
