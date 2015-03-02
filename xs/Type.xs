@@ -233,7 +233,30 @@ _new_struct_type(class, types)
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
-      j += ffi_pl_prepare_any(NULL, 0, ffi_children, j, *svp);
+      if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
+      {
+	ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+
+	ffi_children[j] = ffi;
+      }
+      else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array"))
+      {
+	ffi = &ffi_type_pointer;
+
+	ffi_children[j] = ffi;
+      }
+      else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
+      {
+	int d2 = ffi_pl_prepare_customperl(NULL, 0, ffi_children, j, *svp);
+
+	j += d2-1;
+      }
+      else
+      {
+	ffi = SV2ffi_pl_type(*svp)->ffi_type;
+
+	ffi_children[j] = ffi;
+      }
     }
 
     ffi_children[ffi_n] = NULL;
@@ -290,13 +313,22 @@ _new_closure(class, return_type_arg, ...)
     hv_store(self->hv, "return_type", strlen("return_type"), SvREFCNT_inc(return_type_arg), 0);
     
     av = newAV();
-    for(i=0; i<(items-2);)
+    for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      i += ffi_pl_prepare_any(NULL, 0, ffi_argument_types, i, arg);
-      SPAGAIN;
+      if (!sv_isobject(arg) ||
+          !sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
+      {
+	ffi_pl_type *tmp = SV2ffi_pl_type(arg);
+
+	ffi_argument_types[i] = &ffi_type_pointer;
+      }
+      else
+      {
+	ffi_argument_types[i] = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg)));
+      }
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
     sv = newSV(sizeof(ffi_cif));
