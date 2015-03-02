@@ -102,7 +102,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
     }
 
-    for(i=0,n=0; i<(items-5); i++,n++)
+    for(i=0,n=0; i<(items-5); i++)
     {
       arg = ST(i+5);
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
@@ -111,27 +111,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].perl_to_native = ffi_pl_arguments_perl_to_native(arg);
       self->argument_getters[i].perl_to_native_post = ffi_pl_arguments_perl_to_native_post(arg);
 
-      if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
-      {
-        ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
-      }
-      else
-      {
-	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
-        {
-	  int d = ffi_pl_prepare_customperl(self->argument_getters, i, ffi_argument_types, n, arg) - 1;
-	  n += d;
-        }
-	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
-        {
-	  tmp = SV2ffi_pl_type(arg);
-          ffi_argument_types[n] = tmp->ffi_type;
-        }
-        else
-        {
-          ffi_argument_types[n] = &ffi_type_pointer;
-        }
-      }
+      n += ffi_pl_prepare_any(self->argument_getters, i, ffi_argument_types, n, arg);
       SPAGAIN;
     }
 

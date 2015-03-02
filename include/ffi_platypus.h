@@ -208,8 +208,6 @@ typedef struct _ffi_pl_record_member {
 #define ffi_pl_arguments_set_double(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->xdouble  = value)
 #define ffi_pl_arguments_get_double(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->xdouble)
 
-#define ffi_pl_arguments_pointers(arguments) ((void**)&arguments->slot[arguments->count])
-
 #define Newx_or_alloca(ptr, count, type) Newx(ptr, count, type)
 
 ffi_type *ffi_pl_name_to_type(const char *);
