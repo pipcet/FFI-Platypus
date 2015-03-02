@@ -75,13 +75,6 @@ typedef struct _ffi_pl_type_extra_array {
 
 struct _ffi_pl_type;
 
-typedef struct _ffi_pl_type_extra_closure {
-  ffi_cif ffi_cif;
-  int flags;
-  void *return_type; /* SV * */
-  void *argument_types[0]; /* SV * */
-} ffi_pl_type_extra_closure;
-
 typedef struct _ffi_pl_type_extra_string {
   platypus_string_type platypus_string_type;
   size_t size;
@@ -90,7 +83,6 @@ typedef struct _ffi_pl_type_extra_string {
 typedef union _ffi_pl_type_extra {
   ffi_pl_type_extra_custom_perl  custom_perl;
   ffi_pl_type_extra_array        array;
-  ffi_pl_type_extra_closure      closure;
   ffi_pl_type_extra_record       record;
   ffi_pl_type_extra_string       string;
 } ffi_pl_type_extra;

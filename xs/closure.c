@@ -68,12 +68,15 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   ffi_pl_closure *closure = (ffi_pl_closure*) user;
   ffi_pl_type *type = SV2ffi_pl_type((SV*)closure->type);
-  ffi_pl_type_extra_closure *extra = &type->extra[0].closure;
-  int flags = extra->flags;
+  int flags;
   int i;
   int count;
   SV *sv;
   SV **svp;
+  AV *av;
+
+  svp = hv_fetch(type->hv, "flags", strlen("flags"), 0);
+  flags = SvIV(*svp);
 
   if(!(flags & G_NOARGS))
   {
@@ -85,9 +88,13 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   if(!(flags & G_NOARGS))
   {
+    svp = hv_fetch(type->hv, "argument_types", strlen("argument_types"), 0);
+    av = SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
-      SV *arg_sv = extra->argument_types[i];
+      SV *arg_sv;
+      svp = av_fetch(av, i, 0);
+      arg_sv = *svp;
       if (sv_derived_from(arg_sv, "FFI::Platypus::Type::FFI"))
       {
 	ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg_sv)));
@@ -161,7 +168,9 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
             break;
         }
       } else {
-	SV *arg_type_sv = extra->argument_types[i];
+	SV *arg_type_sv;
+	svp = av_fetch(av, i, 0);
+	arg_type_sv = *svp;
 	if(sv_derived_from(arg_type_sv, "FFI::Platypus::Type::String"))
 	{
 	  ffi_pl_type *arg_type = SV2ffi_pl_type(arg_type_sv);
@@ -204,7 +213,8 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     else
       sv = POPs;
 
-    SV *ret_sv = extra->return_type;
+    svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
+    SV *ret_sv = *svp;
     if (sv_derived_from(ret_sv, "FFI::Platypus::Type::FFI"))
     {
       ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(ret_sv)));

@@ -704,11 +704,16 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
       }
       else
       {
+	ffi_cif *cif;
+	SV **svp;
+
+	svp = hv_fetch(type->hv, "ffi_cif", strlen("ffi_cif"), 0);
+	cif = (ffi_cif *)SvPVX(*svp);
 	closure->type = type_sv;
 
 	ffi_status = ffi_prep_closure_loc(
 	  closure->ffi_closure,
-	  &type->extra[0].closure.ffi_cif,
+	  cif,
 	  ffi_pl_closure_call,
 	  closure,
 	  closure->function_pointer

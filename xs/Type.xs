@@ -206,11 +206,11 @@ _new_struct_type(class, types)
 
     ffi_sv = newSV(sizeof(*ffi));
     hv_store((HV *)self->hv, "ffi_type", strlen("ffi_type"), ffi_sv, 0);
-    ffi = SvPV_nolen(ffi_sv);
+    ffi = SvPVX(ffi_sv);
 
     ffi_children_sv =  newSV((ffi_n+1)*sizeof *ffi_children);
     hv_store((HV *)self->hv, "ffi_children", strlen("ffi_children"), ffi_children_sv, 0);
-    ffi_children = SvPV_nolen(ffi_children_sv);
+    ffi_children = (ffi_type **)SvPVX(ffi_children_sv);
 
     for(i=0, j=0; i<perl_n; i++,j++)
     {
@@ -261,13 +261,16 @@ _new_closure(class, return_type_arg, ...)
     const char *class;
     SV *return_type_arg;
   PREINIT:
-    char *buffer;
     ffi_pl_type *self;
     int i;
     SV *arg;
     ffi_type *ffi_return_type;
     ffi_type **ffi_argument_types;
     ffi_status ffi_status;
+    ffi_cif *cif;
+    AV *av;
+    SV *sv;
+    int flags = 0;
   CODE:
     if (!sv_isobject(return_type_arg) ||
         !sv_derived_from(return_type_arg, "FFI::Platypus::Type::FFI")) {
@@ -286,19 +289,18 @@ _new_closure(class, return_type_arg, ...)
       }
     }
     
-    Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_closure) + sizeof(ffi_pl_type)*(items-2), char);
+    Newx(self, 1, ffi_pl_type);
     Newx(ffi_argument_types, items-2, ffi_type*);
-    self = (ffi_pl_type*) buffer;
     
-    self->hv = NULL;
+    self->hv = newHV();
     self->ffi_type = &ffi_type_pointer;
-    self->extra[0].closure.return_type = SvREFCNT_inc(return_type_arg);
-    self->extra[0].closure.flags = 0;
+    hv_store(self->hv, "return_type", strlen("return_type"), SvREFCNT_inc(return_type_arg), 0);
     
+    av = newAV();
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
-      self->extra[0].closure.argument_types[i] = SvREFCNT_inc(arg);
+      av_push(av, SvREFCNT_inc(arg));
 
       if (!sv_isobject(arg) ||
           !sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
@@ -312,9 +314,13 @@ _new_closure(class, return_type_arg, ...)
 	ffi_argument_types[i] = INT2PTR(ffi_type *, SvIV((SV *) SvRV(arg)));
       }
     }
+    hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
+    sv = newSV(sizeof(ffi_cif));
+    cif = (ffi_cif *)SvPVX(sv);
+    hv_store(self->hv, "ffi_cif", strlen("ffi_cif"), sv, 0);
     
     ffi_status = ffi_prep_cif(
-      &self->extra[0].closure.ffi_cif,
+      cif,
       FFI_DEFAULT_ABI,
       items-2,
       ffi_return_type,
@@ -323,6 +329,7 @@ _new_closure(class, return_type_arg, ...)
     
     if(ffi_status != FFI_OK)
     {
+      SvREFCNT_dec(self->hv);
       Safefree(self);
       Safefree(ffi_argument_types);
       if(ffi_status == FFI_BAD_TYPEDEF)
@@ -335,17 +342,18 @@ _new_closure(class, return_type_arg, ...)
 
     if( items-2 == 0 )
     {
-      self->extra[0].closure.flags |= G_NOARGS;
+      flags |= G_NOARGS;
     }
 
     if(ffi_return_type == FFI_TYPE_VOID)
     {
-      self->extra[0].closure.flags |= G_DISCARD | G_VOID;
+      flags |= G_DISCARD | G_VOID;
     }
     else
     {
-      self->extra[0].closure.flags |= G_SCALAR;
+      flags |= G_SCALAR;
     }
+    hv_store(self->hv, "flags", strlen("flags"), newSViv(flags), 0);
     
     RETVAL = self;
     

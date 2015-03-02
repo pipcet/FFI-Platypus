@@ -200,66 +200,6 @@ ffi_pl_get_type_meta(SV *selfsv)
   }
   else if(sv_derived_from(selfsv, "FFI::Platypus::Type::Closure"))
   {
-    AV *signature;
-    AV *argument_types;
-    HV *subtype;
-    SV *rettype;
-    int i;
-    int number_of_arguments;
-
-    number_of_arguments = self->extra[0].closure.ffi_cif.nargs;
-
-    signature = newAV();
-    argument_types = newAV();
-
-    for(i=0; i < number_of_arguments; i++)
-    {
-      dSP;
-      int count;
-      SV *argtype = self->extra[0].closure.argument_types[i];
-
-      ENTER;
-      SAVETMPS;
-      PUSHMARK(SP);
-      XPUSHs(argtype);
-      PUTBACK;
-
-      count = call_method("meta", G_SCALAR);
-
-      SPAGAIN;
-      if (count == 1)
-	av_store(argument_types, i, SvREFCNT_inc(POPs));
-
-      PUTBACK;
-      FREETMPS;
-      LEAVE;
-    }
-    av_store(signature, 0, newRV_noinc((SV*)argument_types));
-
-    {
-      dSP;
-      int count;
-
-      rettype = self->extra[0].closure.return_type;
-      ENTER;
-      SAVETMPS;
-      PUSHMARK(SP);
-      XPUSHs(rettype);
-      PUTBACK;
-
-      count = call_method("meta", G_SCALAR);
-
-      SPAGAIN;
-      if (count == 1)
-	av_store(signature, 1, SvREFCNT_inc(POPs));
-
-      PUTBACK;
-      FREETMPS;
-      LEAVE;
-    }
-
-    hv_store(meta, "signature",     9, newRV_noinc((SV*)signature), 0);
-
     hv_store(meta, "element_size", 12, newSViv(sizeof(void*)), 0);
     hv_store(meta, "type",          4, newSVpv("closure",0),0);
   }

@@ -1304,6 +1304,22 @@ use parent -norequire, 'FFI::Platypus::Type';
 package FFI::Platypus::Type::Closure;
 use parent -norequire, 'FFI::Platypus::Type';
 
+sub meta {
+  my ($self) = @_;
+  my $meta = $self->SUPER::meta;
+
+  my $signature = [];
+  my $argument_types = [];
+  for my $argument_type (@{$self->{argument_types}}) {
+    push @$argument_types, $argument_type->meta;
+  }
+  $signature = [$argument_types, $self->{return_type}->meta];
+
+  $meta->{signature} = $signature;
+
+  return $meta;
+}
+
 package FFI::Platypus::Type::Constant;
 use parent -norequire, 'FFI::Platypus::Type';
 
