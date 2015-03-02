@@ -11,7 +11,10 @@
     current_argv = arguments = (ffi_pl_arguments*) buffer;
 
     arguments->count = self->ffi_cif.nargs;
-    argument_pointers = (void**) &arguments->slot[arguments->count];
+    arguments->slot = (void **)(arguments + 1);
+    for(i=0; i<arguments->count; i++) {
+      arguments->slot[i] = (ffi_pl_argument *)(&arguments->slot[arguments->count]) + i;
+    }
 
     /*
      * ARGUMENT IN
@@ -24,7 +27,6 @@
       int native_args = self->argument_getters[perl_type_index].native_args;
       int count;
 
-      argument_pointers[i] = (void*) &arguments->slot[i];
       if(perl_args == 1)
       {
         arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
@@ -39,11 +41,10 @@
         }
       }
 
-      count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, argument_pointers, &freeme);
+      count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, &freeme);
 
       for(n=0; n<count-1; n++) {
         i++;
-        argument_pointers[i] = &arguments->slot[i];
       }
     }
 
@@ -59,8 +60,8 @@
       i,
       type->ffi_type->type,
       type->platypus_type,
-      argument_pointers[i],
-      &arguments->slot[i]
+      &arguments->slot[i],
+      arguments->slot[i]
     );
     if(type->platypus_type  == FFI_PL_EXOTIC_FLOAT)
     {
@@ -101,12 +102,12 @@
 
   if(self->address != NULL)
   {
-    ffi_call(&self->ffi_cif, self->address, &result, ffi_pl_arguments_pointers(arguments));
+    ffi_call(&self->ffi_cif, self->address, &result, arguments->slot);
   }
   else
   {
     void *address = self->ffi_cif.nargs > 0 ? (void*) &cast1 : (void*) &cast0;
-    ffi_call(&self->ffi_cif, address, &result, ffi_pl_arguments_pointers(arguments));
+    ffi_call(&self->ffi_cif, address, &result, arguments->slot);
   }
 
   /*
@@ -141,7 +142,7 @@
 	  perl_arg_index--;
 	}
       }
-      count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, argument_pointers, &freeme);
+      count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, &freeme);
 
       SvREFCNT_dec(arg);
 

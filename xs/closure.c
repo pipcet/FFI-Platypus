@@ -122,6 +122,15 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   if(!(flags & G_DISCARD))
   {
+    ffi_pl_arguments *arguments;
+    SV *freeme = NULL;
+    char *buffer;
+    void *slot[1];
+
+    Newx(buffer, sizeof *arguments + sizeof *arguments->slot[0], char);
+    arguments = (ffi_pl_arguments *)buffer;
+    arguments->slot = slot;
+    arguments->slot[0] = result;
     SPAGAIN;
 
     if(count != 1)
@@ -131,70 +140,22 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
     svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
-    if (sv_derived_from(ret_sv, "FFI::Platypus::Type::FFI"))
+
+    int count = ffi_pl_arguments_perl_to_native(ret_sv)(arguments, 0, ret_sv, sv, &freeme);
+
+    if (count > 1)
     {
-      ffi_type *ffi = INT2PTR(ffi_type *, SvIV((SV *) SvRV(ret_sv)));
-      switch(ffi->type)
-      {
-        case FFI_TYPE_UINT8:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-          ((uint8_t*)result)[3] = SvUV(sv);
-#else
-          *((uint8_t*)result) = SvUV(sv);
-#endif
-          break;
-        case FFI_TYPE_SINT8:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-          ((int8_t*)result)[3] = SvIV(sv);
-#else
-          *((int8_t*)result) = SvIV(sv);
-#endif
-          break;
-        case FFI_TYPE_UINT16:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-          ((uint16_t*)result)[1] = SvUV(sv);
-#else
-          *((uint16_t*)result) = SvUV(sv);
-#endif
-          break;
-        case FFI_TYPE_SINT16:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-          ((int16_t*)result)[1] = SvIV(sv);
-#else
-          *((int16_t*)result) = SvIV(sv);
-#endif
-          break;
-        case FFI_TYPE_UINT32:
-          *((uint32_t*)result) = SvUV(sv);
-          break;
-        case FFI_TYPE_SINT32:
-          *((int32_t*)result) = SvIV(sv);
-          break;
-        case FFI_TYPE_UINT64:
-#ifdef HAVE_IV_IS_64
-          *((uint64_t*)result) = SvUV(sv);
-#else
-          *((uint64_t*)result) = SvU64(sv);
-#endif
-          break;
-        case FFI_TYPE_SINT64:
-#ifdef HAVE_IV_IS_64
-          *((int64_t*)result) = SvIV(sv);
-#else
-          *((int64_t*)result) = SvI64(sv);
-#endif
-          break;
-        case FFI_TYPE_FLOAT:
-          *((float*)result) = SvNV(sv);
-          break;
-        case FFI_TYPE_DOUBLE:
-          *((double*)result) = SvNV(sv);
-          break;
-        case FFI_TYPE_POINTER:
-          *((void**)result) = SvOK(sv) ? INT2PTR(void*, SvIV(sv)) : NULL;
-          break;
-      }
+      croak("memory corruption in closure return");
     }
+    if (arguments->slot[0] != result)
+    {
+      croak("cannot change size of closure return value");
+    }
+    if (freeme != NULL)
+    {
+      warn("leaking memory in closure return");
+    }
+    Safefree(buffer);
 
     PUTBACK;
   }

@@ -595,6 +595,9 @@ perl_to_native_pointer(ffi)
   CODE:
     switch(ffi->type)
     {
+    case FFI_TYPE_VOID:
+      RETVAL = ffi_pl_arguments_set_ffi_void;
+      break;
     case FFI_TYPE_UINT8:
       RETVAL = ffi_pl_arguments_set_ffi_uint8;
       break;
