@@ -379,7 +379,23 @@ sizeof(selfsv)
   OUTPUT:
     RETVAL
 
+void *
+prepare_pointer(ffi)
+    ffi_pl_type *ffi
+  CODE:
+    RETVAL = ffi_pl_prepare_generic;
+  OUTPUT:
+    RETVAL
+
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Array
+
+void *
+prepare_pointer(ffi)
+    ffi_pl_type *ffi
+  CODE:
+    RETVAL = ffi_pl_prepare_array;
+  OUTPUT:
+    RETVAL
 
 void *
 perl_to_native_pointer(self)
@@ -458,6 +474,14 @@ native_to_perl_pointer(self)
     RETVAL
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::CustomPerl
+
+void *
+prepare_pointer(ffi)
+    ffi_pl_type *ffi
+  CODE:
+    RETVAL = ffi_pl_prepare_customperl;
+  OUTPUT:
+    RETVAL
 
 void *
 perl_to_native_pointer(self)
@@ -588,6 +612,14 @@ native_to_perl_pointer(self)
     RETVAL
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+
+void *
+prepare_pointer(ffi)
+    ffi_type *ffi
+  CODE:
+    RETVAL = ffi_pl_prepare_ffi;
+  OUTPUT:
+    RETVAL
 
 void *
 perl_to_native_pointer(ffi)

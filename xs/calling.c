@@ -457,6 +457,61 @@ int ffi_pl_customperl_count_native_arguments(SV *arg)
   return extra_arguments+1;
 }
 
+int ffi_pl_prepare_ffi(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+{
+  ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV*)SvRV(arg_type)));
+
+  return 1;
+}
+
+int ffi_pl_prepare_array(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+{
+  ffi_argument_types[n] = &ffi_type_pointer;
+
+  return 1;
+}
+
+int ffi_pl_prepare_generic(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+{
+  ffi_argument_types[n] = SV2ffi_pl_type(arg_type)->ffi_type;
+
+  return 1;
+}
+
+int (*ffi_pl_prepare(SV *arg_type))(ffi_pl_getter *, int , ffi_type **, int, SV *)
+{
+  dSP;
+
+  int count;
+  void *out_arg;
+
+  ENTER;
+  SAVETMPS;
+  PUSHMARK(SP);
+  XPUSHs(arg_type);
+  PUTBACK;
+
+  count = call_method("prepare_pointer", G_SCALAR);
+
+  SPAGAIN;
+
+  if(count == 1)
+    out_arg = INT2PTR(void *, SvRV(POPs));
+  else
+    out_arg = NULL;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+
+  return out_arg;
+}
+
+int ffi_pl_prepare_any(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+{
+  return ffi_pl_prepare(arg_type)(getters, i, ffi_argument_types, n, arg_type);
+}
+
 int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
 {
   HV *hv = (HV*)SvRV(arg_type);
@@ -483,31 +538,10 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
     svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
     av = (AV *)SvRV(*svp);
     svp = av_fetch(av, perl_j, 0);
-    if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
-    {
-      ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
+    int d2 = ffi_pl_prepare_any(NULL, 0, ffi_argument_types, n+j, *svp);
+    d += d2-1;
+    j += d2-1;
 
-      ffi_argument_types[n+j] = ffi;
-    }
-    else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array"))
-    {
-      ffi = &ffi_type_pointer;
-
-      ffi_argument_types[n+j] = ffi;
-    }
-    else if(sv_derived_from(*svp, "FFI::Platypus::Type::CustomPerl"))
-    {
-      int d2 = ffi_pl_prepare_customperl(NULL, 0, ffi_argument_types, n+j, *svp);
-
-      d += d2-1;
-      j += d2-1;
-    }
-    else
-    {
-      ffi = SV2ffi_pl_type(*svp)->ffi_type;
-
-      ffi_argument_types[n+j] = ffi;
-    }
   }
 
   if(getters)
