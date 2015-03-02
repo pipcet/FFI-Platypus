@@ -1484,76 +1484,8 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
   svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
   av = (AV *)SvRV(*svp);
   svp = av_fetch(av, 0, 0);
-  if(sv_derived_from(*svp, "FFI::Platypus::Type::FFI"))
-    ffi = INT2PTR(ffi_type *, SvIV((SV*)SvRV(*svp)));
-  else {
-    ffi = SV2ffi_pl_type(*svp)->ffi_type;
-  }
 
-  switch(ffi->type)
-  {
-  case FFI_TYPE_UINT8:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-    ret_in = newSVuv(result->uint8_array[3]);
-#else
-    ret_in = newSVuv(result->uint8);
-#endif
-    break;
-  case FFI_TYPE_SINT8:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-    ret_in = newSViv(result->sint8_array[3]);
-#else
-    ret_in = newSViv(result->sint8);
-#endif
-    break;
-  case FFI_TYPE_UINT16:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-    ret_in = newSVuv(result->uint16_array[1]);
-#else
-    ret_in = newSVuv(result->uint16);
-#endif
-    break;
-  case FFI_TYPE_SINT16:
-#ifdef FFI_PL_PROBE_BIGENDIAN
-    ret_in = newSViv(result->sint16_array[1]);
-#else
-    ret_in = newSViv(result->sint16);
-#endif
-    break;
-  case FFI_TYPE_UINT32:
-    ret_in = newSVuv(result->uint32);
-    break;
-  case FFI_TYPE_SINT32:
-    ret_in = newSViv(result->sint32);
-    break;
-  case FFI_TYPE_UINT64:
-#ifdef HAVE_IV_IS_64
-    ret_in = newSVuv(result->uint64);
-#else
-    ret_in = newSVu64(result->uint64);
-#endif
-    break;
-  case FFI_TYPE_SINT64:
-#ifdef HAVE_IV_IS_64
-    ret_in = newSViv(result->sint64);
-#else
-    ret_in = newSVi64(result->sint64);
-#endif
-    break;
-  case FFI_TYPE_FLOAT:
-    ret_in = newSVnv(result->xfloat);
-    break;
-  case FFI_TYPE_DOUBLE:
-    ret_in = newSVnv(result->xdouble);
-    break;
-  case FFI_TYPE_POINTER:
-    if(result->pointer != NULL)
-      ret_in = newSViv(PTR2IV(result->pointer));
-    break;
-  default:
-    warn("return type not supported");
-    return NULL;
-  }
+  ret_in = SvREFCNT_inc(ffi_pl_arguments_native_to_perl(*svp)(result, *svp));
 
   {
     HV *hv = (HV*)SvRV(return_type);
@@ -1574,10 +1506,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
 
   current_argv = NULL;
 
-  if(ret_in != NULL)
-  {
-    SvREFCNT_dec(ret_in);
-  }
+  SvREFCNT_dec(ret_in);
 
   if(ret_out == NULL)
   {
