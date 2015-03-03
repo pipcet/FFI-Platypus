@@ -772,7 +772,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
   {
     long double *ptr;
     Newx(ptr, 1, long double);
-    arguments->slot[i] = ptr;
+    arguments->pointers[i] = (void *)ptr;
     ffi_pl_perl_to_long_double(arg, ptr);
   }
   break;
@@ -785,7 +785,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
     {
       float *ptr;
       Newx(ptr, 2, float);
-      arguments->slot[i] = ptr;
+      arguments->pointers[i] = (void *)ptr;
       ffi_pl_perl_complex_float(arg, ptr);
     }
     break;
@@ -793,7 +793,7 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
     {
       double *ptr;
       Newx(ptr, 2, double);
-      arguments->slot[i] = ptr;
+      arguments->pointers[i] = (void *)ptr;
       ffi_pl_perl_complex_double(arg, ptr);
     }
     break;
@@ -811,7 +811,8 @@ ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv
   return 1;
 }
 
-int (*ffi_pl_arguments_perl_to_native(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+perl_to_native_pointer_t
+ffi_pl_arguments_perl_to_native(SV *type_sv)
 {
   dSP;
 
@@ -1093,13 +1094,14 @@ ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *ty
 int
 ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  void *ptr = arguments->slot[i-1];
+  void *ptr = arguments->pointers[i-1];
   Safefree(ptr);
 
   return 1;
 }
 
-int (*ffi_pl_arguments_perl_to_native_post(SV *type_sv))(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+perl_to_native_pointer_t
+ffi_pl_arguments_perl_to_native_post(SV *type_sv)
 {
   dSP;
 
@@ -1558,7 +1560,8 @@ ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
   }
 }
 
-SV *(*ffi_pl_arguments_native_to_perl(SV *type_sv))(ffi_pl_result *result, SV *return_type)
+native_to_perl_pointer_t
+ffi_pl_arguments_native_to_perl(SV *type_sv)
 {
   dSP;
 

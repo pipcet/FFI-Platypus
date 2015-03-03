@@ -165,7 +165,8 @@
   }
 
 #ifndef HAVE_ALLOCA
-  Safefree(arguments);
+  Safefree(argument_pointers);
+  Safefree(argument_slots);
 #endif
   current_argv = NULL;
 
