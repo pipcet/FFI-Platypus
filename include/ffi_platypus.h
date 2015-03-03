@@ -99,8 +99,8 @@ typedef struct _ffi_pl_getter {
   void *sv; /* type object */
   int perl_args;
   int native_args;
-  int (*perl_to_native)(ffi_pl_arguments *, int, void *, void *, void **);
-  int (*perl_to_native_post)(ffi_pl_arguments *, int, void *, void *, void **);
+  int (*perl_to_native)(ffi_pl_arguments *, int, void *, void *, void *);
+  int (*perl_to_native_post)(ffi_pl_arguments *, int, void *, void *, void *);
 } ffi_pl_getter;
 
 typedef union _ffi_pl_result ffi_pl_result;

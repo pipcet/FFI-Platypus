@@ -222,7 +222,7 @@ _new_struct_type(class, types)
 
     ffi_sv = newSV(sizeof(*ffi));
     hv_store((HV *)self->hv, "ffi_type", strlen("ffi_type"), ffi_sv, 0);
-    ffi = SvPVX(ffi_sv);
+    ffi = (ffi_type *)SvPVX(ffi_sv);
 
     ffi_children_sv =  newSV((ffi_n+1)*sizeof *ffi_children);
     hv_store((HV *)self->hv, "ffi_children", strlen("ffi_children"), ffi_children_sv, 0);
