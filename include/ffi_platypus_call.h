@@ -1,19 +1,18 @@
-#undef HAVE_ALLOCA
-    /* buffer contains the memory required for the arguments structure */
-    buffer_size = sizeof(ffi_pl_argument) * self->ffi_cif.nargs +
-                  sizeof(void*) * self->ffi_cif.nargs +
-                  sizeof(ffi_pl_arguments);
-#ifdef HAVE_ALLOCA
-    buffer = alloca(buffer_size);
+#ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
+    void *argument_pointers[self->ffi_cif.nargs];
+    ffi_pl_argument argument_slots[self->ffi_cif.nargs];
 #else
-    Newx(buffer, buffer_size, char);
+    Newx(argument_pointers, self->ffi_cif.nargs, void *);
+    Newx(argument_slots, self->ffi_cif.nargs, ffi_pl_argument);
 #endif
-    current_argv = arguments = (ffi_pl_arguments*) buffer;
+    arguments.pointers = (ffi_pl_argument **)argument_pointers;
+    current_argv = &arguments;
 
-    arguments->count = self->ffi_cif.nargs;
-    arguments->slot = (void **)(arguments + 1);
-    for(i=0; i<arguments->count; i++) {
-      arguments->slot[i] = (ffi_pl_argument *)(&arguments->slot[arguments->count]) + i;
+    arguments.count = self->ffi_cif.nargs;
+
+    for(i=0; i<self->ffi_cif.nargs; i++)
+    {
+      argument_pointers[i] = &argument_slots[i];
     }
 
     /*
@@ -41,7 +40,7 @@
         }
       }
 
-      count = self->argument_getters[perl_type_index].perl_to_native(arguments, i, type_sv, arg, &freeme);
+      count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
 
       for(n=0; n<count-1; n++) {
         i++;
@@ -60,8 +59,8 @@
       i,
       type->ffi_type->type,
       type->platypus_type,
-      &arguments->slot[i],
-      arguments->slot[i]
+      &arguments.pointers[i],
+      arguments.pointers[i]
     );
     if(type->platypus_type  == FFI_PL_EXOTIC_FLOAT)
     {
@@ -102,19 +101,19 @@
 
   if(self->address != NULL)
   {
-    ffi_call(&self->ffi_cif, self->address, &result, arguments->slot);
+    ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
   }
   else
   {
     void *address = self->ffi_cif.nargs > 0 ? (void*) &cast1 : (void*) &cast0;
-    ffi_call(&self->ffi_cif, address, &result, arguments->slot);
+    ffi_call(&self->ffi_cif, address, &result, (void **)arguments.pointers);
   }
 
   /*
    * ARGUMENT OUT
    */
 
-  current_argv = arguments;
+  current_argv = &arguments;
 
   for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
   {
@@ -142,7 +141,7 @@
 	  perl_arg_index--;
 	}
       }
-      count = self->argument_getters[perl_type_index].perl_to_native_post(arguments, i, type_sv, arg, &freeme);
+      count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, arg, &freeme);
 
       SvREFCNT_dec(arg);
 

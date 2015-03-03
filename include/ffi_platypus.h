@@ -172,7 +172,7 @@ typedef union _ffi_pl_argument {
 typedef struct _ffi_pl_arguments {
   int count;
   int reserved;
-  void **slot;
+  ffi_pl_argument **pointers;
 } ffi_pl_arguments;
 
 typedef struct _ffi_pl_record_member {
@@ -180,37 +180,39 @@ typedef struct _ffi_pl_record_member {
   int count;
 } ffi_pl_record_member;
 
-#define ffi_pl_arguments_count(arguments)                 (arguments->count)
-#define ffi_pl_arguments_set_pointer(arguments, i, value) (((ffi_pl_argument *)arguments->slot[i])->pointer = value)
-#define ffi_pl_arguments_get_pointer(arguments, i)        (((ffi_pl_argument *)arguments->slot[i])->pointer)
-#define ffi_pl_arguments_set_string(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->string  = value)
-#define ffi_pl_arguments_get_string(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->string)
+#define ffi_pl_arguments_count(arguments)                 ((arguments)->count)
+#define ffi_pl_arguments_set_pointer(arguments, i, value) ((arguments)->pointers[i]->pointer = value)
+#define ffi_pl_arguments_get_pointer(arguments, i)        ((arguments)->pointers[i]->pointer)
+#define ffi_pl_arguments_set_string(arguments, i, value)  ((arguments)->pointers[i]->string  = value)
+#define ffi_pl_arguments_get_string(arguments, i)         ((arguments)->pointers[i]->string)
 
-#define ffi_pl_arguments_set_sint8(arguments, i, value)   (((ffi_pl_argument *)arguments->slot[i])->sint8   = value)
-#define ffi_pl_arguments_get_sint8(arguments, i)          (((ffi_pl_argument *)arguments->slot[i])->sint8)
-#define ffi_pl_arguments_set_uint8(arguments, i, value)   (((ffi_pl_argument *)arguments->slot[i])->uint8   = value)
-#define ffi_pl_arguments_get_uint8(arguments, i)          (((ffi_pl_argument *)arguments->slot[i])->uint8)
-#define ffi_pl_arguments_set_sint16(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->sint16  = value)
-#define ffi_pl_arguments_get_sint16(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->sint16)
-#define ffi_pl_arguments_set_uint16(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->uint16  = value)
-#define ffi_pl_arguments_get_uint16(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->uint16)
-#define ffi_pl_arguments_set_sint32(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->sint32  = value)
-#define ffi_pl_arguments_get_sint32(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->sint32)
-#define ffi_pl_arguments_set_uint32(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->uint32  = value)
-#define ffi_pl_arguments_get_uint32(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->uint32)
-#define ffi_pl_arguments_set_sint64(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->sint64  = value)
-#define ffi_pl_arguments_get_sint64(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->sint64)
-#define ffi_pl_arguments_set_uint64(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->uint64  = value)
-#define ffi_pl_arguments_get_uint64(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->uint64)
+#define ffi_pl_arguments_set_sint8(arguments, i, value)   ((arguments)->pointers[i]->sint8   = value)
+#define ffi_pl_arguments_get_sint8(arguments, i)          ((arguments)->pointers[i]->sint8)
+#define ffi_pl_arguments_set_uint8(arguments, i, value)   ((arguments)->pointers[i]->uint8   = value)
+#define ffi_pl_arguments_get_uint8(arguments, i)          ((arguments)->pointers[i]->uint8)
+#define ffi_pl_arguments_set_sint16(arguments, i, value)  ((arguments)->pointers[i]->sint16  = value)
+#define ffi_pl_arguments_get_sint16(arguments, i)         ((arguments)->pointers[i]->sint16)
+#define ffi_pl_arguments_set_uint16(arguments, i, value)  ((arguments)->pointers[i]->uint16  = value)
+#define ffi_pl_arguments_get_uint16(arguments, i)         ((arguments)->pointers[i]->uint16)
+#define ffi_pl_arguments_set_sint32(arguments, i, value)  ((arguments)->pointers[i]->sint32  = value)
+#define ffi_pl_arguments_get_sint32(arguments, i)         ((arguments)->pointers[i]->sint32)
+#define ffi_pl_arguments_set_uint32(arguments, i, value)  ((arguments)->pointers[i]->uint32  = value)
+#define ffi_pl_arguments_get_uint32(arguments, i)         ((arguments)->pointers[i]->uint32)
+#define ffi_pl_arguments_set_sint64(arguments, i, value)  ((arguments)->pointers[i]->sint64  = value)
+#define ffi_pl_arguments_get_sint64(arguments, i)         ((arguments)->pointers[i]->sint64)
+#define ffi_pl_arguments_set_uint64(arguments, i, value)  ((arguments)->pointers[i]->uint64  = value)
+#define ffi_pl_arguments_get_uint64(arguments, i)         ((arguments)->pointers[i]->uint64)
 
-#define ffi_pl_arguments_set_float(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->xfloat  = value)
-#define ffi_pl_arguments_get_float(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->xfloat)
-#define ffi_pl_arguments_set_double(arguments, i, value)  (((ffi_pl_argument *)arguments->slot[i])->xdouble  = value)
-#define ffi_pl_arguments_get_double(arguments, i)         (((ffi_pl_argument *)arguments->slot[i])->xdouble)
+#define ffi_pl_arguments_set_float(arguments, i, value)  ((arguments)->pointers[i]->xfloat  = value)
+#define ffi_pl_arguments_get_float(arguments, i)         ((arguments)->pointers[i]->xfloat)
+#define ffi_pl_arguments_set_double(arguments, i, value)  ((arguments)->pointers[i]->xdouble  = value)
+#define ffi_pl_arguments_get_double(arguments, i)         ((arguments)->pointers[i]->xdouble)
 
-#define ffi_pl_arguments_pointers(arguments) ((void**)&arguments->slot[arguments->count])
-
+#ifdef HAVE_ALLOCA
+#define Newx_or_alloca(ptr, count, type) ptr = alloca(sizeof(type)*count)
+#else
 #define Newx_or_alloca(ptr, count, type) Newx(ptr, count, type)
+#endif
 
 ffi_type *ffi_pl_name_to_type(const char *);
 

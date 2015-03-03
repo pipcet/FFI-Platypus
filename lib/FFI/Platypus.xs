@@ -44,9 +44,12 @@ XS(ffi_pl_sub_call)
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
   ffi_pl_result result;
-  ffi_pl_arguments *arguments;
-  void **argument_pointers;
+  ffi_pl_arguments arguments;
   SV *freeme = NULL; /* scratch space for custom perl handlers */
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
+  void **argument_pointers;
+  ffi_pl_argument *argument_slots;
+#endif
   
   dVAR; dXSARGS;
   
