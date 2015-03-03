@@ -59,7 +59,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     
     self->address = address;
     self->return_type = SvREFCNT_inc(return_type_arg);
-    self->native_to_perl = ffi_pl_arguments_native_to_perl(self->return_type);
+    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type);
     SPAGAIN;
     
     if(sv_isobject(self->return_type) && sv_derived_from(self->return_type, "FFI::Platypus::Type::FFI"))
@@ -108,8 +108,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
-      self->argument_getters[i].perl_to_native = ffi_pl_arguments_perl_to_native(arg);
-      self->argument_getters[i].perl_to_native_post = ffi_pl_arguments_perl_to_native_post(arg);
+      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg);
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg);
 
       if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
       {
