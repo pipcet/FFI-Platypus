@@ -111,6 +111,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   else
     count = 0;
 
+  SPAGAIN;
   if(SvTRUE(ERRSV))
   {
 #ifdef warn_sv
@@ -122,16 +123,13 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   if(!(flags & G_DISCARD))
   {
-    ffi_pl_arguments *arguments;
-    SV *freeme = NULL;
-    char *buffer;
+    ffi_pl_arguments arguments;
     void *slot[1];
+    SV *freeme = NULL;
 
-    Newx(buffer, sizeof *arguments + sizeof *arguments->slot[0], char);
-    arguments = (ffi_pl_arguments *)buffer;
-    arguments->slot = slot;
-    arguments->slot[0] = result;
-    SPAGAIN;
+    arguments.count = 1;
+    arguments.pointers = (ffi_pl_argument **)(slot);
+    slot[0] = result;
 
     if(count != 1)
       sv = &PL_sv_undef;
@@ -141,13 +139,14 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
 
-    int count = ffi_pl_arguments_perl_to_native(ret_sv)(arguments, 0, ret_sv, sv, &freeme);
+    perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv);
+    int count2 = perl_to_native(&arguments, 0, ret_sv, sv, &freeme);
 
-    if (count > 1)
+    if (count2 > 1)
     {
       croak("memory corruption in closure return");
     }
-    if (arguments->slot[0] != result)
+    if (arguments.pointers[0] != result)
     {
       croak("cannot change size of closure return value");
     }
@@ -155,7 +154,6 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     {
       warn("leaking memory in closure return");
     }
-    Safefree(buffer);
 
     PUTBACK;
   }
