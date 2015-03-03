@@ -8,32 +8,9 @@ def real_name(t):
         return type_code_string(t) + " " + t.tag
 
 def type_code_string(t):
-    if t.code == gdb.TYPE_CODE_STRUCT:
-        return "struct"
-    elif t.code == gdb.TYPE_CODE_UNION:
-        return "union"
-    elif t.code == gdb.TYPE_CODE_ENUM:
-        return "enum"
-    elif t.code == gdb.TYPE_CODE_PTR:
-        return "ptr"
-    elif t.code == gdb.TYPE_CODE_ARRAY:
-        return "array"
-    elif t.code == gdb.TYPE_CODE_INT:
-        return "int"
-    elif t.code == gdb.TYPE_CODE_VOID:
-        return "void"
-    elif t.code == gdb.TYPE_CODE_TYPEDEF:
-        return "typedef"
-    elif t.code == gdb.TYPE_CODE_FUNC:
-        return "func"
-    elif t.code == gdb.TYPE_CODE_STRING:
-        return "string"
-    elif t.code == gdb.TYPE_CODE_RANGE:
-        return "range"
-    elif t.code == gdb.TYPE_CODE_BOOL:
-        return "bool"
-    else:
-        return "TYPE_CODE_" + str(t.code)
+    s = gdb.typecodes[t.code]
+    s.replace("TYPE_CODE_", "")
+    return s
 
 def print_field(f, show):
     ret = "{"

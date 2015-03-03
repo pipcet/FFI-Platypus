@@ -1,5 +1,44 @@
 import gdb
-import gdb.types
+
+def opcode_string(t):
+    s = gdb.opcodes[t.code]
+    return s
+
+def print_expression_subexpressions(t):
+    ret = ""
+    try:
+        ret2 = "["
+        for f in t.children():
+            ret2 += print_expression_rec(f)
+            ret2 += ", "
+        ret2 += "]"
+        ret += ret2
+    except Exception:
+        pass
+    return ret
+
+def print_expression_inner(t):
+    ret = "{"
+    f = print_expression_subexpressions(t)
+    if f != "":
+        ret += "subexps=>" + f + ", "
+    try:
+        ret += "value=>'" + str(t.value()) + "', "
+    except Exception:
+        pass
+    try:
+        ret += "type=>" + print_type_rec(t.type(), True) + ", "
+    except Exception:
+        pass
+    ret += "}"
+    return ret
+
+def print_expression_rec(t):
+    return "$" + opcode_string(t) + "->(" + print_expression_inner(t) + ")"
+
+def print_expression(expr):
+    t = gdb.parse_expression(expr)
+    return "$expr->('" + expr + "', " + print_expression_rec(t.opcodes()[0]) + ");\n"
 
 def real_name(t):
     if t.name:
@@ -8,32 +47,9 @@ def real_name(t):
         return type_code_string(t) + " " + t.tag
 
 def type_code_string(t):
-    if t.code == gdb.TYPE_CODE_STRUCT:
-        return "struct"
-    elif t.code == gdb.TYPE_CODE_UNION:
-        return "union"
-    elif t.code == gdb.TYPE_CODE_ENUM:
-        return "enum"
-    elif t.code == gdb.TYPE_CODE_PTR:
-        return "ptr"
-    elif t.code == gdb.TYPE_CODE_ARRAY:
-        return "array"
-    elif t.code == gdb.TYPE_CODE_INT:
-        return "int"
-    elif t.code == gdb.TYPE_CODE_VOID:
-        return "void"
-    elif t.code == gdb.TYPE_CODE_TYPEDEF:
-        return "typedef"
-    elif t.code == gdb.TYPE_CODE_FUNC:
-        return "func"
-    elif t.code == gdb.TYPE_CODE_STRING:
-        return "string"
-    elif t.code == gdb.TYPE_CODE_RANGE:
-        return "range"
-    elif t.code == gdb.TYPE_CODE_BOOL:
-        return "bool"
-    else:
-        return "TYPE_CODE_" + str(t.code)
+    s = gdb.typecodes[t.code]
+    s.replace("TYPE_CODE_", "")
+    return s
 
 def print_field(f, show):
     ret = "{"
