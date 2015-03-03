@@ -12,6 +12,44 @@
 #include "ffi_platypus_guts.h"
 
 
+XS(ffi_pl_record_accessor_bitfield)
+{
+  ffi_pl_record_member *member;
+  int bit_count;
+  SV *self;
+  char *ptr1;
+  uint8_t *ptr2;
+
+  dVAR; dXSARGS;
+
+  if(items == 0)
+    croak("This is a method, you must provide at least the object");
+
+  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+
+  self = ST(0);
+  if(SvROK(self))
+    self = SvRV(self);
+
+  if(!SvOK(self))
+    croak("Null record error");
+
+  ptr1 = (char*) SvPV_nolen(self);
+  ptr2 = (uint8_t*) &ptr1[member->offset/8];
+
+  if(items > 1) {
+    if(SvUV(ST(1)))
+      *ptr2 |= 1<<(member->offset%8);
+    else
+      *ptr2 &= ~(1<<(member->offset%8));
+  }
+
+  if(GIMME_V == G_VOID)
+    XSRETURN_EMPTY;
+
+  XSRETURN_UV((*ptr2&(1<<(member->offset%8))) != 0);
+}
+
 XS(ffi_pl_record_accessor_uint8)
 {
   ffi_pl_record_member *member;

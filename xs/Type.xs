@@ -344,6 +344,23 @@ _new_closure(class, return_type_arg, ...)
   OUTPUT:
     RETVAL
 
+ffi_pl_type *
+_new_bitfield(class,bit_offset,bit_count)
+    const char *class
+    size_t bit_offset;
+    size_t bit_count;
+  PREINIT:
+    ffi_pl_type *self;
+  CODE:
+    Newx(self, 1, ffi_pl_type);
+    self->hv = newHV();
+    self->ffi_type = NULL;
+    hv_store((HV *)self->hv, "bit_offset", strlen("bit_offset"), newSViv(bit_offset), 0);
+    hv_store((HV *)self->hv, "bit_count", strlen("bit_count"), newSViv(bit_count), 0);
+    RETVAL = self;
+  OUTPUT:
+    RETVAL
+
 SV*
 meta(self)
     SV *self

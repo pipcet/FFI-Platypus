@@ -12,6 +12,7 @@ _accessor(perl_name, path_name, typesv, offset)
     CV *cv;
     void *function;
     /* not the correct prototype */
+    extern void ffi_pl_record_accessor_bitfield();
     extern void ffi_pl_record_accessor_uint8();
     extern void ffi_pl_record_accessor_uint16();
     extern void ffi_pl_record_accessor_uint32();
@@ -150,6 +151,19 @@ _accessor(perl_name, path_name, typesv, offset)
             function = ffi_pl_record_accessor_string_fixed;
             break;
         }
+      }
+      else if(sv_derived_from(typesv, "FFI::Platypus::Type::Bitfield"))
+      {
+	SV **svp;
+	svp = hv_fetch(type->hv, "bit_offset", strlen("bit_offset"), 0);
+	member->offset *= 8;
+	if (svp)
+	  member->offset = SvIV(*svp);
+	svp = hv_fetch(type->hv, "bit_count", strlen("bit_count"), 0);
+	if (svp)
+	  member->count = SvIV(*svp);
+
+	function = ffi_pl_record_accessor_bitfield;
       }
       else
       {
