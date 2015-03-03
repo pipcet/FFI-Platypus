@@ -382,15 +382,16 @@ sub type
 {
   my($self, $name, $alias) = @_;
   croak "usage: \$ffi->type(name => alias) (alias is optional)" unless defined $self && defined $name;
-  croak "spaces not allowed in alias" if defined $alias && $alias =~ /\s/;
-  croak "allowed characters for alias: [A-Za-z0-9_]+" if defined $alias && $alias =~ /[^A-Za-z0-9_]/;
+  # croak "spaces not allowed in alias" if defined $alias && $alias =~ /\s/;
+  # croak "allowed characters for alias: [A-Za-z0-9_]+" if defined $alias && $alias =~ /[^A-Za-z0-9_]/;
 
   my $type_map = $self->_type_map;
 
-  croak "alias conflicts with existing type" if defined $alias && (defined $type_map->{$alias} || defined $self->{types}->{$alias});
+  croak "alias $alias conflicts with existing type" if defined $alias && (defined $type_map->{$alias} || defined $self->{types}->{$alias});
 
   if($name =~ /-\>/ || $name =~ /^record\s*\([0-9A-Z:a-z_]+\)$/
-  || $name =~ /^string(_rw|_ro|\s+rw|\s+ro|\s*\([0-9]+\))$/)
+  || $name =~ /^string(_rw|_ro|\s+rw|\s+ro|\s*\([0-9]+\))$/
+  || 1)
   {
     # for closure and record types we do not try to convet into the
     # basic type so you can have many many many copies of a given
