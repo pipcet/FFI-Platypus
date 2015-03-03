@@ -456,10 +456,10 @@ sub constant_type
   my $size = 0;
   if (ref $type eq "ARRAY") {
     for my $t (@$type) {
-      push @types, $type_map->{$t} // $t;
+      push @types, $type_map->{$t} || $t;
     }
   } else {
-    @types = ($type_map->{$type} // $type) x $argument_count;
+    @types = ($type_map->{$type} || $type) x $argument_count;
   }
   @types = map { $self->_type_lookup($_) } @types;
   for my $type (@types) {
@@ -516,10 +516,10 @@ sub custom_type
   my $size = 0;
   if (ref $type eq "ARRAY") {
     for my $t (@$type) {
-      push @types, $type_map->{$t} // $t;
+      push @types, $type_map->{$t} || $t;
     }
   } else {
-    @types = ($type_map->{$type} // $type) x $out_argument_count;
+    @types = ($type_map->{$type} || $type) x $out_argument_count;
   }
   @types = map { $self->_type_lookup($_) } @types;
   for my $type (@types) {
