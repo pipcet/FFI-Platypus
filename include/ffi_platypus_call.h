@@ -6,8 +6,7 @@
 #ifdef HAVE_ALLOCA
     buffer = alloca(buffer_size);
 #else
-    char buffer2[1024] __attribute__((aligned));
-    buffer = buffer2;
+    Newx(buffer, buffer_size, char);
 #endif
     current_argv = arguments = (ffi_pl_arguments*) buffer;
 
@@ -167,7 +166,7 @@
   }
 
 #ifndef HAVE_ALLOCA
-///Safefree(arguments);
+  Safefree(arguments);
 #endif
   current_argv = NULL;
 
