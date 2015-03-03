@@ -20,9 +20,6 @@ int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 SV *ffi_pl_any_native_to_perl(ffi_pl_result *, SV *);
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-typedef int (*native_to_perl_pointer_t)(ffi_pl_result *result, SV *return_type);
-
 perl_to_native_pointer_t ffi_pl_arguments_perl_to_native(SV *);
 perl_to_native_pointer_t ffi_pl_arguments_perl_to_native_post(SV *);
 native_to_perl_pointer_t ffi_pl_arguments_native_to_perl(SV *);
