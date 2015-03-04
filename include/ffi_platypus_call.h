@@ -108,6 +108,7 @@
 
   current_argv = &arguments;
 
+  if(self->any_post || 1)
   for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
   {
     if(self->argument_getters[perl_type_index].perl_to_native_post)

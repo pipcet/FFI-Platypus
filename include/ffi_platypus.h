@@ -113,6 +113,9 @@ typedef struct _ffi_pl_function {
   ffi_cif ffi_cif;
   int nargs_perl;
   void *return_type;       /* really SV* */
+
+  int any_post;
+
   native_to_perl_pointer_t native_to_perl;
   ffi_pl_getter argument_getters[0];
 } ffi_pl_function;
