@@ -257,7 +257,6 @@ _new_closure(class, return_type_arg, ...)
   PREINIT:
     ffi_pl_type *self;
     int i;
-    int extra_arguments;
     SV *arg;
     ffi_type *ffi_return_type;
     ffi_type **ffi_argument_types;
@@ -267,58 +266,37 @@ _new_closure(class, return_type_arg, ...)
     SV *sv;
     int flags = 0;
   CODE:
-    if(ffi_pl_prepare_any(NULL, NULL, &ffi_return_type, (&ffi_return_type)+1, return_type_arg) < 0)
-      croak("FFI closures must have a single native return argument");
-
-    for(i=0,extra_arguments=0; i<(items-2); i++)
-    {
-      arg = ST(i+2);
-
-      dSP;
-      int count;
-
-      if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type")))
-      {
-        croak("non-type parameter passed in as type");
-      }
-
-      ENTER;
-      SAVETMPS;
-      PUSHMARK(SP);
-      XPUSHs(arg);
-      PUTBACK;
-
-      count = call_method("count_native_arguments", G_SCALAR);
-
-      SPAGAIN;
-
-      if(count == 1)
-	extra_arguments += POPi - 1;
-
-      PUTBACK;
-      FREETMPS;
-      LEAVE;
+    if (!sv_isobject(return_type_arg) ||
+        !sv_derived_from(return_type_arg, "FFI::Platypus::Type::FFI")) {
+      croak("Only native types are supported as closure return types");
     }
-    SPAGAIN;
 
+    ffi_return_type = INT2PTR(ffi_type *, SvIV((SV *) SvRV(return_type_arg)));
+
+    for(i=0; i<(items-2); i++)
+    {
+      arg = ST(2+i);
+      if (!sv_isobject(arg) ||
+          (!sv_derived_from(arg, "FFI::Platypus::Type::FFI") &&
+	   !sv_derived_from(arg, "FFI::Platypus::Type::String"))) {
+	croak("Only native types and strings are supported as closure argument types");
+      }
+    }
+    
     Newx(self, 1, ffi_pl_type);
-    Newx(ffi_argument_types, items-2+extra_arguments, ffi_type*);
+    Newx(ffi_argument_types, items-2, ffi_type*);
     
     self->hv = newHV();
     self->ffi_type = &ffi_type_pointer;
     hv_store(self->hv, "return_type", strlen("return_type"), SvREFCNT_inc(return_type_arg), 0);
     
     av = newAV();
-    for(i=0; i<(items-2+extra_arguments);)
+    for(i=0; i<(items-2);)
     {
-      int d;
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      d = ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2+extra_arguments, arg);
-      if(d<0)
-	croak("excessive number of native arguments");
-      i += d;
+      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg);
       SPAGAIN;
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
@@ -329,7 +307,7 @@ _new_closure(class, return_type_arg, ...)
     ffi_status = ffi_prep_cif(
       cif,
       FFI_DEFAULT_ABI,
-      items-2+extra_arguments,
+      items-2,
       ffi_return_type,
       ffi_argument_types
     );
@@ -460,6 +438,14 @@ perl_to_native_post_pointer(self)
     ffi_pl_type *self
   CODE:
     RETVAL = ffi_pl_arguments_set_closure_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(self)
+    ffi_pl_type *self
+  CODE:
+    RETVAL = NULL;
   OUTPUT:
     RETVAL
 
