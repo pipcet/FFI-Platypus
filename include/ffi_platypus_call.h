@@ -149,8 +149,13 @@
    * RETURN VALUE
    */
 
-  SV *perl_return = self->native_to_perl(&result, self->return_type);
+  SV *perl_return = NULL;
+
+  if(self->native_to_perl)
+  {
+    perl_return = self->native_to_perl(&result, self->return_type);
     SPAGAIN;
+  }
 
   if(freeme)
   {
