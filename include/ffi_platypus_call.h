@@ -159,7 +159,7 @@
     SvREFCNT_dec(freeme);
   }
 
-#ifndef HAVE_ALLOCA
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
   Safefree(argument_pointers);
   Safefree(argument_slots);
 #endif
