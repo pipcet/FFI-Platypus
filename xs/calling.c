@@ -1268,7 +1268,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
   }
   else
   {
-    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
 
     if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
     {
