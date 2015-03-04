@@ -8,6 +8,7 @@
 #include "XSUB.h"
 #include "ppport.h"
 
+#include "ffi_platypus.h"
 #include "impl/libffi-perl/ffi_platypus.h"
 #include "impl/libffi-perl/ffi_platypus_guts.h"
 

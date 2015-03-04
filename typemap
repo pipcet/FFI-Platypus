@@ -31,7 +31,7 @@ T_FFI_PL_LIBFFIPERL_TYPE
       hv = newHV();
       $var->hv = hv;
     }
-    sv_setref_pv(sv, \"FFI::Platypus::Type::C\", (void *) $var);
+    sv_setref_pv(sv, \"FFI::Platypus::Impl::LibffiPerl::Type::C\", (void *) $var);
     hv_store(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), sv, 0);
     tmp = newRV_noinc((SV*)hv);
     $arg = sv_2mortal(sv_bless(tmp, stash));

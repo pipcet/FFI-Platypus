@@ -45,6 +45,33 @@ ffi_pl_type *SV2ffi_pl_type_nocheck(void *svraw)
   return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
 }
 
+#include "impl/libffi-perl/ffi_platypus.h"
+#include "impl/libffi-perl/ffi_platypus_guts.h"
+
+ffi_pl_ffiperl_type *SV2ffi_pl_ffiperl_type(void *svraw)
+{
+  SV *sv = svraw;
+
+  if(sv_isobject(sv) && sv_derived_from(sv, "FFI::Platypus::Type")) {
+    HV *hv = (HV*)SvRV(sv);
+    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+    if (svp == NULL)
+      Perl_croak(aTHX_ "ret is missing the ffi_pl_type hash entry");
+    return INT2PTR(ffi_pl_ffiperl_type *, SvIV((SV*)SvRV(*svp)));
+  } else
+    Perl_croak(aTHX_ "ret is not of type FFI::Platypus::Type");
+}
+
+ffi_pl_ffiperl_type *SV2ffi_pl_ffiperl_type_nocheck(void *svraw)
+{
+  SV *sv = svraw;
+
+  HV *hv = (HV*)SvRV(sv);
+  SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+
+  return INT2PTR(ffi_pl_ffiperl_type *, SvIV((SV*)SvRV(*svp)));
+}
+
 /*
  * -1 until we have checked
  *  0 tried, not there

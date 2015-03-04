@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Function
 
 ffi_pl_ffiperl_function *
 new(class, platypus, address, abi, return_type_arg, ...)

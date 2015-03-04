@@ -1288,6 +1288,7 @@ sub new
     }
     else
     {
+      warn "recursing for type $type";
       return FFI::Platypus::Type::FFI->new($type);
     }
   }

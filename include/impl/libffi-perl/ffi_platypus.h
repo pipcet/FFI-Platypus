@@ -1,9 +1,11 @@
-#ifndef FFI_PLATYPUS_H
-#define FFI_PLATYPUS_H
+#ifndef FFI_LIBFFI_PERL_PLATYPUS_H
+#define FFI_LIBFFI_PERL_PLATYPUS_H
 
 #include <ffi.h>
 #include "ffi_platypus_config.h"
 #include "ffi_platypus_probe.h"
+
+#include "ffi_platypus.h"
 
 #ifdef HAVE_DLFCN_H
 #ifndef PERL_OS_WINDOWS
@@ -54,12 +56,6 @@ int windlclose(void *);
 
 #endif
 
-typedef enum _platypus_string_type {
-  FFI_PL_STRING_RO = 0,
-  FFI_PL_STRING_RW,
-  FFI_PL_STRING_FIXED
-} platypus_string_type;
-
 typedef struct _ffi_pl_ffiperl_type_extra_record {
   size_t size;
   void *stash; /* really a HV* pointing to the package stash, or NULL */
@@ -96,8 +92,8 @@ typedef struct _ffi_pl_ffiperl_type {
 typedef struct _ffi_pl_ffiperl_arguments ffi_pl_ffiperl_arguments;
 typedef union _ffi_pl_ffiperl_result ffi_pl_ffiperl_result;
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_ffiperl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
-typedef void *(*native_to_perl_pointer_t)(ffi_pl_ffiperl_result *result, void *return_type);
+typedef int (*ffi_pl_ffiperl_perl_to_native_pointer_t)(ffi_pl_ffiperl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
+typedef void *(*ffi_pl_ffiperl_native_to_perl_pointer_t)(ffi_pl_ffiperl_result *result, void *return_type);
 
 typedef struct _ffi_pl_ffiperl_getter {
   void *sv; /* type object */

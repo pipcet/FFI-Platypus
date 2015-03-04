@@ -49,7 +49,7 @@ XS(ffi_pl_sub_call)
 int have_math_longdouble = -1;  /* Math::LongDouble */
 int have_math_complex    = -1;  /* Math::Complex    */
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus
+MODULE = FFI::Platypus::Impl::LibffiC PACKAGE = FFI::Platypus::Impl::LibffiC
 
 BOOT:
 #ifndef HAVE_IV_IS_64

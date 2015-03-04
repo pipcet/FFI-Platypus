@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type
 
 SV *
 _new(class, type, platypus_type, array_or_record_or_string_size, type_classname, rw)
@@ -96,7 +96,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
         hv = newHV();
         self->hv = hv;
       }
-      sv_setref_pv(sv, "FFI::Platypus::Type::C", (void *) self);
+      sv_setref_pv(sv, "FFI::Platypus::Impl::LibffiPerl::Type::C", (void *) self);
       hv_store(hv, "ffi_pl_ffiperl_type", strlen("ffi_pl_ffiperl_type"), sv, 0);
       RETVAL = newRV_inc((SV*)hv);
       sv_bless(RETVAL, stash);
@@ -267,7 +267,7 @@ _new_closure(class, return_type_arg, ...)
     int flags = 0;
   CODE:
     if (!sv_isobject(return_type_arg) ||
-        !sv_derived_from(return_type_arg, "FFI::Platypus::Type::FFI")) {
+        !sv_derived_from(return_type_arg, "FFI::Platypus::Impl::LibffiPerl::Type::FFI")) {
       croak("Only native types are supported as closure return types");
     }
 
@@ -277,8 +277,8 @@ _new_closure(class, return_type_arg, ...)
     {
       arg = ST(2+i);
       if (!sv_isobject(arg) ||
-          (!sv_derived_from(arg, "FFI::Platypus::Type::FFI") &&
-	   !sv_derived_from(arg, "FFI::Platypus::Type::String"))) {
+          (!sv_derived_from(arg, "FFI::Platypus::Impl::LibffiPerl::Type::FFI") &&
+	   !sv_derived_from(arg, "FFI::Platypus::Impl::LibffiPerl::Type::String"))) {
 	croak("Only native types and strings are supported as closure argument types");
       }
     }
@@ -389,7 +389,7 @@ prepare_pointer(ffi)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Array
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::Array
 
 void *
 prepare_pointer(ffi)
@@ -423,7 +423,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Closure
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::Closure
 
 void *
 perl_to_native_pointer(self)
@@ -449,7 +449,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Constant
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::Constant
 
 void *
 perl_to_native_pointer(self)
@@ -475,7 +475,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::CustomPerl
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::CustomPerl
 
 void *
 prepare_pointer(ffi)
@@ -509,7 +509,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::ExoticFloat
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::ExoticFloat
 
 void *
 perl_to_native_pointer(self)
@@ -535,7 +535,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Pointer
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::Pointer
 
 void *
 perl_to_native_pointer(self)
@@ -561,7 +561,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Record
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::Record
 
 void *
 perl_to_native_pointer(self)
@@ -587,7 +587,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::String
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::String
 
 void *
 perl_to_native_pointer(self)
@@ -623,7 +623,7 @@ native_to_perl_pointer(self)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::FFI
 
 void *
 prepare_pointer(ffi)
@@ -756,7 +756,7 @@ native_to_perl_pointer(ffi)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::C
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::C
 
 void
 DESTROY(self_sv)
@@ -791,7 +791,7 @@ DESTROY(self_sv)
 */
     Safefree(self);
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::StringPointer
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::StringPointer
 
 void
 native_to_perl_xs(pointer)
@@ -821,7 +821,7 @@ native_to_perl_xs(pointer)
       XSRETURN_EMPTY;
     }
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::Type::FFI
 
 ffi_type*
 new(class, name)

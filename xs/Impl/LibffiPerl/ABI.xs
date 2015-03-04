@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::ABI
+MODULE = FFI::Platypus::Impl::LibffiPerl PACKAGE = FFI::Platypus::Impl::LibffiPerl::ABI
 
 int
 verify(abi)
