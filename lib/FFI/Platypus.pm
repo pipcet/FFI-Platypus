@@ -182,30 +182,10 @@ Set the L<lang|/lang> attribute.
 sub new
 {
   my($class, %args) = @_;
-  my @lib;
-  if(defined $args{lib})
-  {
-    if(!ref($args{lib}))
-    {
-      push @lib, $args{lib};
-    }
-    elsif(ref($args{lib}) eq 'ARRAY')
-    {
-      push @lib, @{$args{lib}};
-    }
-    else
-    {
-      croak "lib argument must be a scalar or array reference";
-    }
-  }
-  bless {
-    lib              => \@lib,
-    handles          => {},
-    types            => {},
-    lang             => $args{lang} || 'C',
-    abi              => -1,
-    ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
-  }, $class;
+
+  $class .= "::Impl::LibffiPerl";
+
+  return $class->new(%args);
 }
 
 sub _lang_class ($)
@@ -417,6 +397,7 @@ sub type
   {
     $self->{types}->{$alias} = $self->{types}->{$name};
   }
+  warn $self->{types}->{$name};
   $self;
 }
 
@@ -1185,7 +1166,7 @@ package FFI::Platypus::ClosureData;
 # VERSION
 
 package FFI::Platypus::Type;
-
+use parent -norequire, 'FFI::Platypus::Type::Impl::LibffiPerl::Type';
 use Carp qw( croak );
 
 # VERSION
@@ -1305,16 +1286,16 @@ sub new
 }
 
 package FFI::Platypus::Type::String;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::String';
 
 package FFI::Platypus::Type::Pointer;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Pointer';
 
 package FFI::Platypus::Type::Array;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Array';
 
 package FFI::Platypus::Type::Closure;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Closure';
 
 sub meta {
   my ($self) = @_;
@@ -1333,10 +1314,10 @@ sub meta {
 }
 
 package FFI::Platypus::Type::Constant;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Constant';
 
 package FFI::Platypus::Type::CustomPerl;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::CustomPerl';
 
 sub count_native_arguments
 {
@@ -1378,16 +1359,16 @@ sub meta {
 }
 
 package FFI::Platypus::Type::Record;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Record';
 
 package FFI::Platypus::Type::Struct;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::Struct';
 
 package FFI::Platypus::Type::ExoticFloat;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::ExoticFloat';
 
 package FFI::Platypus::Type::FFI;
-use parent -norequire, 'FFI::Platypus::Type';
+use parent -norequire, 'FFI::Platypus::Impl::LibffiPerl::Type::FFI';
 use Carp qw(croak);
 
 

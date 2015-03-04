@@ -29,7 +29,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       dSP;
       int count;
 
-      if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type")))
+      if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Impl::LibffiPerl::Type")))
       {
         croak("non-type parameter passed in as type");
       }
@@ -201,7 +201,7 @@ attach(self, perl_name, path_name, proto)
   PREINIT:
     CV* cv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function")))
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Impl::LibffiPerl::Function")))
       croak("self is not of type FFI::Platypus::Function");
 
     if(path_name == NULL)

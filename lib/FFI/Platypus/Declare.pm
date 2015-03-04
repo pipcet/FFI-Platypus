@@ -44,7 +44,7 @@ our $types  = {};
 sub _ffi_object
 {
   my($package, $filename) = caller(1);
-  $ffi->{$package} ||= FFI::Platypus->new->package($package,$filename);
+  $ffi->{$package} ||= FFI::Platypus::Impl::LibffiPerl->new->package($package,$filename);
 }
 
 =head1 FUNCTIONS

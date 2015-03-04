@@ -97,7 +97,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
         self->hv = hv;
       }
       sv_setref_pv(sv, "FFI::Platypus::Impl::LibffiPerl::Type::C", (void *) self);
-      hv_store(hv, "ffi_pl_ffiperl_type", strlen("ffi_pl_ffiperl_type"), sv, 0);
+      hv_store(hv, "ffi_pl_type", strlen("ffi_pl_type"), sv, 0);
       RETVAL = newRV_inc((SV*)hv);
       sv_bless(RETVAL, stash);
     }
