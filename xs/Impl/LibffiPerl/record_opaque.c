@@ -3,12 +3,12 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
-#include "ffi_platypus_guts.h"
+#include "impl/libffi-perl/ffi_platypus.h"
+#include "impl/libffi-perl/ffi_platypus_guts.h"
 
-XS(ffi_pl_record_accessor_opaque)
+XS(ffi_pl_ffiperl_record_accessor_opaque)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   char *ptr1;
@@ -19,7 +19,7 @@ XS(ffi_pl_record_accessor_opaque)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -46,9 +46,9 @@ XS(ffi_pl_record_accessor_opaque)
     XSRETURN_EMPTY;
 }
 
-XS(ffi_pl_record_accessor_opaque_array)
+XS(ffi_pl_ffiperl_record_accessor_opaque_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -62,7 +62,7 @@ XS(ffi_pl_record_accessor_opaque_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))

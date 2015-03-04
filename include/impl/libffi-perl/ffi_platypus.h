@@ -60,54 +60,54 @@ typedef enum _platypus_string_type {
   FFI_PL_STRING_FIXED
 } platypus_string_type;
 
-typedef struct _ffi_pl_type_extra_record {
+typedef struct _ffi_pl_ffiperl_type_extra_record {
   size_t size;
   void *stash; /* really a HV* pointing to the package stash, or NULL */
-} ffi_pl_type_extra_record;
+} ffi_pl_ffiperl_type_extra_record;
 
-typedef struct _ffi_pl_type_extra_custom_perl {
+typedef struct _ffi_pl_ffiperl_type_extra_custom_perl {
   size_t size;
-} ffi_pl_type_extra_custom_perl;
+} ffi_pl_ffiperl_type_extra_custom_perl;
 
-typedef struct _ffi_pl_type_extra_array {
+typedef struct _ffi_pl_ffiperl_type_extra_array {
   int element_count;
-} ffi_pl_type_extra_array;
+} ffi_pl_ffiperl_type_extra_array;
 
-struct _ffi_pl_type;
+struct _ffi_pl_ffiperl_type;
 
-typedef struct _ffi_pl_type_extra_string {
+typedef struct _ffi_pl_ffiperl_type_extra_string {
   platypus_string_type platypus_string_type;
   size_t size;
-} ffi_pl_type_extra_string;
+} ffi_pl_ffiperl_type_extra_string;
 
-typedef union _ffi_pl_type_extra {
-  ffi_pl_type_extra_custom_perl  custom_perl;
-  ffi_pl_type_extra_array        array;
-  ffi_pl_type_extra_record       record;
-  ffi_pl_type_extra_string       string;
-} ffi_pl_type_extra;
+typedef union _ffi_pl_ffiperl_type_extra {
+  ffi_pl_ffiperl_type_extra_custom_perl  custom_perl;
+  ffi_pl_ffiperl_type_extra_array        array;
+  ffi_pl_ffiperl_type_extra_record       record;
+  ffi_pl_ffiperl_type_extra_string       string;
+} ffi_pl_ffiperl_type_extra;
 
-typedef struct _ffi_pl_type {
+typedef struct _ffi_pl_ffiperl_type {
   void *hv; /* the Perl HV* corresponding to our object. Not reference-counted to avoid a circular reference */
   ffi_type *ffi_type;
-  ffi_pl_type_extra extra[0];
-} ffi_pl_type;
+  ffi_pl_ffiperl_type_extra extra[0];
+} ffi_pl_ffiperl_type;
 
-typedef struct _ffi_pl_arguments ffi_pl_arguments;
-typedef union _ffi_pl_result ffi_pl_result;
+typedef struct _ffi_pl_ffiperl_arguments ffi_pl_ffiperl_arguments;
+typedef union _ffi_pl_ffiperl_result ffi_pl_ffiperl_result;
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
-typedef void *(*native_to_perl_pointer_t)(ffi_pl_result *result, void *return_type);
+typedef int (*perl_to_native_pointer_t)(ffi_pl_ffiperl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
+typedef void *(*native_to_perl_pointer_t)(ffi_pl_ffiperl_result *result, void *return_type);
 
-typedef struct _ffi_pl_getter {
+typedef struct _ffi_pl_ffiperl_getter {
   void *sv; /* type object */
   int perl_args;
   int native_args;
   perl_to_native_pointer_t perl_to_native;
   perl_to_native_pointer_t perl_to_native_post;
-} ffi_pl_getter;
+} ffi_pl_ffiperl_getter;
 
-typedef struct _ffi_pl_function {
+typedef struct _ffi_pl_ffiperl_function {
   void *address;
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
@@ -117,19 +117,19 @@ typedef struct _ffi_pl_function {
   int any_post;
 
   native_to_perl_pointer_t native_to_perl;
-  ffi_pl_getter argument_getters[0];
-} ffi_pl_function;
+  ffi_pl_ffiperl_getter argument_getters[0];
+} ffi_pl_ffiperl_function;
 
-typedef struct _ffi_pl_closure {
+typedef struct _ffi_pl_ffiperl_closure {
   ffi_closure *ffi_closure;
   void *function_pointer; /* C function pointer */
   void *coderef;          /* Perl SV* pointing to FFI::Platypus::Closure object */
   void *type;             /* Perl SV* */
-} ffi_pl_closure;
+} ffi_pl_ffiperl_closure;
 
-typedef const char *ffi_pl_string;
+typedef const char *ffi_pl_ffiperl_string;
 
-typedef union _ffi_pl_result {
+typedef union _ffi_pl_ffiperl_result {
   void       *pointer;
   const char *string;
   int8_t     sint8;
@@ -157,9 +157,9 @@ typedef union _ffi_pl_result {
   double complex complex_double;
 #endif
 #endif
-} ffi_pl_result;
+} ffi_pl_ffiperl_result;
 
-typedef union _ffi_pl_argument {
+typedef union _ffi_pl_ffiperl_argument {
   void       *pointer;
   const char *string;
   int8_t     sint8;
@@ -172,46 +172,46 @@ typedef union _ffi_pl_argument {
   uint64_t   uint64;
   float      xfloat;
   double     xdouble;
-} ffi_pl_argument;
+} ffi_pl_ffiperl_argument;
 
-typedef struct _ffi_pl_arguments {
+typedef struct _ffi_pl_ffiperl_arguments {
   int count;
   int reserved;
-  ffi_pl_argument **pointers;
-} ffi_pl_arguments;
+  ffi_pl_ffiperl_argument **pointers;
+} ffi_pl_ffiperl_arguments;
 
-typedef struct _ffi_pl_record_member {
+typedef struct _ffi_pl_ffiperl_record_member {
   int offset;
   int count;
-} ffi_pl_record_member;
+} ffi_pl_ffiperl_record_member;
 
-#define ffi_pl_arguments_count(arguments)                 ((arguments)->count)
-#define ffi_pl_arguments_set_pointer(arguments, i, value) ((arguments)->pointers[i]->pointer = value)
-#define ffi_pl_arguments_get_pointer(arguments, i)        ((arguments)->pointers[i]->pointer)
-#define ffi_pl_arguments_set_string(arguments, i, value)  ((arguments)->pointers[i]->string  = value)
-#define ffi_pl_arguments_get_string(arguments, i)         ((arguments)->pointers[i]->string)
+#define ffi_pl_ffiperl_arguments_count(arguments)                 ((arguments)->count)
+#define ffi_pl_ffiperl_arguments_set_pointer(arguments, i, value) ((arguments)->pointers[i]->pointer = value)
+#define ffi_pl_ffiperl_arguments_get_pointer(arguments, i)        ((arguments)->pointers[i]->pointer)
+#define ffi_pl_ffiperl_arguments_set_string(arguments, i, value)  ((arguments)->pointers[i]->string  = value)
+#define ffi_pl_ffiperl_arguments_get_string(arguments, i)         ((arguments)->pointers[i]->string)
 
-#define ffi_pl_arguments_set_sint8(arguments, i, value)   ((arguments)->pointers[i]->sint8   = value)
-#define ffi_pl_arguments_get_sint8(arguments, i)          ((arguments)->pointers[i]->sint8)
-#define ffi_pl_arguments_set_uint8(arguments, i, value)   ((arguments)->pointers[i]->uint8   = value)
-#define ffi_pl_arguments_get_uint8(arguments, i)          ((arguments)->pointers[i]->uint8)
-#define ffi_pl_arguments_set_sint16(arguments, i, value)  ((arguments)->pointers[i]->sint16  = value)
-#define ffi_pl_arguments_get_sint16(arguments, i)         ((arguments)->pointers[i]->sint16)
-#define ffi_pl_arguments_set_uint16(arguments, i, value)  ((arguments)->pointers[i]->uint16  = value)
-#define ffi_pl_arguments_get_uint16(arguments, i)         ((arguments)->pointers[i]->uint16)
-#define ffi_pl_arguments_set_sint32(arguments, i, value)  ((arguments)->pointers[i]->sint32  = value)
-#define ffi_pl_arguments_get_sint32(arguments, i)         ((arguments)->pointers[i]->sint32)
-#define ffi_pl_arguments_set_uint32(arguments, i, value)  ((arguments)->pointers[i]->uint32  = value)
-#define ffi_pl_arguments_get_uint32(arguments, i)         ((arguments)->pointers[i]->uint32)
-#define ffi_pl_arguments_set_sint64(arguments, i, value)  ((arguments)->pointers[i]->sint64  = value)
-#define ffi_pl_arguments_get_sint64(arguments, i)         ((arguments)->pointers[i]->sint64)
-#define ffi_pl_arguments_set_uint64(arguments, i, value)  ((arguments)->pointers[i]->uint64  = value)
-#define ffi_pl_arguments_get_uint64(arguments, i)         ((arguments)->pointers[i]->uint64)
+#define ffi_pl_ffiperl_arguments_set_sint8(arguments, i, value)   ((arguments)->pointers[i]->sint8   = value)
+#define ffi_pl_ffiperl_arguments_get_sint8(arguments, i)          ((arguments)->pointers[i]->sint8)
+#define ffi_pl_ffiperl_arguments_set_uint8(arguments, i, value)   ((arguments)->pointers[i]->uint8   = value)
+#define ffi_pl_ffiperl_arguments_get_uint8(arguments, i)          ((arguments)->pointers[i]->uint8)
+#define ffi_pl_ffiperl_arguments_set_sint16(arguments, i, value)  ((arguments)->pointers[i]->sint16  = value)
+#define ffi_pl_ffiperl_arguments_get_sint16(arguments, i)         ((arguments)->pointers[i]->sint16)
+#define ffi_pl_ffiperl_arguments_set_uint16(arguments, i, value)  ((arguments)->pointers[i]->uint16  = value)
+#define ffi_pl_ffiperl_arguments_get_uint16(arguments, i)         ((arguments)->pointers[i]->uint16)
+#define ffi_pl_ffiperl_arguments_set_sint32(arguments, i, value)  ((arguments)->pointers[i]->sint32  = value)
+#define ffi_pl_ffiperl_arguments_get_sint32(arguments, i)         ((arguments)->pointers[i]->sint32)
+#define ffi_pl_ffiperl_arguments_set_uint32(arguments, i, value)  ((arguments)->pointers[i]->uint32  = value)
+#define ffi_pl_ffiperl_arguments_get_uint32(arguments, i)         ((arguments)->pointers[i]->uint32)
+#define ffi_pl_ffiperl_arguments_set_sint64(arguments, i, value)  ((arguments)->pointers[i]->sint64  = value)
+#define ffi_pl_ffiperl_arguments_get_sint64(arguments, i)         ((arguments)->pointers[i]->sint64)
+#define ffi_pl_ffiperl_arguments_set_uint64(arguments, i, value)  ((arguments)->pointers[i]->uint64  = value)
+#define ffi_pl_ffiperl_arguments_get_uint64(arguments, i)         ((arguments)->pointers[i]->uint64)
 
-#define ffi_pl_arguments_set_float(arguments, i, value)  ((arguments)->pointers[i]->xfloat  = value)
-#define ffi_pl_arguments_get_float(arguments, i)         ((arguments)->pointers[i]->xfloat)
-#define ffi_pl_arguments_set_double(arguments, i, value)  ((arguments)->pointers[i]->xdouble  = value)
-#define ffi_pl_arguments_get_double(arguments, i)         ((arguments)->pointers[i]->xdouble)
+#define ffi_pl_ffiperl_arguments_set_float(arguments, i, value)  ((arguments)->pointers[i]->xfloat  = value)
+#define ffi_pl_ffiperl_arguments_get_float(arguments, i)         ((arguments)->pointers[i]->xfloat)
+#define ffi_pl_ffiperl_arguments_set_double(arguments, i, value)  ((arguments)->pointers[i]->xdouble  = value)
+#define ffi_pl_ffiperl_arguments_get_double(arguments, i)         ((arguments)->pointers[i]->xdouble)
 
 #ifdef HAVE_ALLOCA
 #define Newx_or_alloca(ptr, count, type) ptr = alloca(sizeof(type)*count)
@@ -219,10 +219,10 @@ typedef struct _ffi_pl_record_member {
 #define Newx_or_alloca(ptr, count, type) Newx(ptr, count, type)
 #endif
 
-ffi_type *ffi_pl_name_to_type(const char *);
+ffi_type *ffi_pl_ffiperl_name_to_type(const char *);
 
-ffi_pl_type *SV2ffi_pl_type(void *sv);
-ffi_pl_type *SV2ffi_pl_type_nocheck(void *sv);
+ffi_pl_ffiperl_type *SV2ffi_pl_ffiperl_type(void *sv);
+ffi_pl_ffiperl_type *SV2ffi_pl_ffiperl_type_nocheck(void *sv);
 
 #ifdef __cplusplus
 }

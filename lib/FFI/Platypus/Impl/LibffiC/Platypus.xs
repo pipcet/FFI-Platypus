@@ -3,7 +3,8 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
+#include "impl/libffi-c/ffi_platypus.h"
+#include "impl/libffi-c/ffi_platypus_guts.h"
 
 #ifndef HAVE_IV_IS_64
 #include "perl_math_int64.h"
@@ -21,28 +22,23 @@ void *cast1(void *value)
   return value;
 }
 
-ffi_pl_type *SV2ffi_pl_type(void *svraw)
+XS(ffi_pl_sub_call)
 {
-  SV *sv = svraw;
+  ffi_pl_function *self;
+  char *buffer;
+  size_t buffer_size;
+  int i,n, perl_arg_index;
+  SV *arg;
+  ffi_pl_result result;
+  ffi_pl_arguments *arguments;
+  void **argument_pointers;
+  
+  dVAR; dXSARGS;
+  
+  self = (ffi_pl_function*) CvXSUBANY(cv).any_ptr;
 
-  if(sv_isobject(sv) && sv_derived_from(sv, "FFI::Platypus::Type")) {
-    HV *hv = (HV*)SvRV(sv);
-    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
-    if (svp == NULL)
-      Perl_croak(aTHX_ "ret is missing the ffi_pl_type hash entry");
-    return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
-  } else
-    Perl_croak(aTHX_ "ret is not of type FFI::Platypus::Type");
-}
-
-ffi_pl_type *SV2ffi_pl_type_nocheck(void *svraw)
-{
-  SV *sv = svraw;
-
-  HV *hv = (HV*)SvRV(sv);
-  SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
-
-  return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+#define EXTRA_ARGS 0
+#include "impl/libffi-c/ffi_platypus_call.h"
 }
 
 /*
@@ -88,3 +84,8 @@ _have_type(name)
   OUTPUT:
     RETVAL
 
+
+INCLUDE: ../../../../../xs/Impl/LibffiC/Type.xs
+INCLUDE: ../../../../../xs/Impl/LibffiC/Function.xs
+INCLUDE: ../../../../../xs/Impl/LibffiC/ABI.xs
+INCLUDE: ../../../../../xs/Impl/LibffiC/Record.xs

@@ -3,7 +3,7 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
+#include "impl/libffi-c/ffi_platypus.h"
 
 size_t
 ffi_pl_sizeof(ffi_pl_type *self)

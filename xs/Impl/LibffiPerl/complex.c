@@ -3,8 +3,8 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
-#include "ffi_platypus_guts.h"
+#include "impl/libffi-perl/ffi_platypus.h"
+#include "impl/libffi-perl/ffi_platypus_guts.h"
 
 static double
 decompose(SV *sv, int imag)
@@ -36,7 +36,7 @@ decompose(SV *sv, int imag)
 }
 
 void
-ffi_pl_perl_complex_float(SV *sv, float *ptr)
+ffi_pl_ffiperl_perl_complex_float(SV *sv, float *ptr)
 {
   if(sv_isobject(sv) && sv_derived_from(sv, "Math::Complex"))
   {
@@ -60,7 +60,7 @@ ffi_pl_perl_complex_float(SV *sv, float *ptr)
 }
 
 void
-ffi_pl_perl_complex_double(SV *sv, double *ptr)
+ffi_pl_ffiperl_perl_complex_double(SV *sv, double *ptr)
 {
   if(sv_isobject(sv) && sv_derived_from(sv, "Math::Complex"))
   {

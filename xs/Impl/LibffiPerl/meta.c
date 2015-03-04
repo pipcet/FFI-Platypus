@@ -3,10 +3,10 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
+#include "impl/libffi-perl/ffi_platypus.h"
 
 size_t
-ffi_pl_sizeof(SV *selfsv, ffi_pl_type *self)
+ffi_pl_ffiperl_sizeof(SV *selfsv, ffi_pl_ffiperl_type *self)
 {
   if(sv_derived_from(selfsv, "FFI::Platypus::Type::CustomPerl"))
   {
@@ -44,7 +44,7 @@ ffi_pl_sizeof(SV *selfsv, ffi_pl_type *self)
 }
 
 HV *
-ffi_pl_ffi_get_type_meta(ffi_type *ffi_type)
+ffi_pl_ffiperl_ffi_get_type_meta(ffi_type *ffi_type)
 {
   const char *string;
   HV *meta = newHV();
@@ -141,9 +141,9 @@ ffi_pl_ffi_get_type_meta(ffi_type *ffi_type)
 }
 
 HV *
-ffi_pl_get_type_meta(SV *selfsv)
+ffi_pl_ffiperl_get_type_meta(SV *selfsv)
 {
-  ffi_pl_type *self;
+  ffi_pl_ffiperl_type *self;
   HV *meta;
   const char *string;
 
@@ -151,14 +151,14 @@ ffi_pl_get_type_meta(SV *selfsv)
 
   if(sv_isobject(selfsv) && sv_derived_from(selfsv, "FFI::Platypus::Type")) {
     HV *hv = (HV*)SvRV(selfsv);
-    SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+    SV **svp = hv_fetch(hv, "ffi_pl_ffiperl_type", strlen("ffi_pl_ffiperl_type"), 0);
     if (svp == NULL)
-      Perl_croak(aTHX_ "self is missing the ffi_pl_type hash entry");
-    self = INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+      Perl_croak(aTHX_ "self is missing the ffi_pl_ffiperl_type hash entry");
+    self = INT2PTR(ffi_pl_ffiperl_type *, SvIV((SV*)SvRV(*svp)));
   } else
     Perl_croak(aTHX_ "self is not of type FFI::Platypus::Type");
 
-  hv_store(meta, "size", 4, newSViv(ffi_pl_sizeof(selfsv, self)), 0);
+  hv_store(meta, "size", 4, newSViv(ffi_pl_ffiperl_sizeof(selfsv, self)), 0);
 
   if(sv_derived_from(selfsv, "FFI::Platypus::Type::FFI") || sv_derived_from(selfsv, "FFI::Platypus::Type::ExoticFloat"))
   {

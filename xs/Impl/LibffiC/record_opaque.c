@@ -3,8 +3,8 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
-#include "ffi_platypus_guts.h"
+#include "impl/libffi-c/ffi_platypus.h"
+#include "impl/libffi-c/ffi_platypus_guts.h"
 
 XS(ffi_pl_record_accessor_opaque)
 {

@@ -8,13 +8,13 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#include "ffi_platypus.h"
-#include "ffi_platypus_guts.h"
+#include "impl/libffi-perl/ffi_platypus.h"
+#include "impl/libffi-perl/ffi_platypus_guts.h"
 
 
-XS(ffi_pl_record_accessor_bitfield)
+XS(ffi_pl_ffiperl_record_accessor_bitfield)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   int bit_count;
   SV *self;
   char *ptr1;
@@ -25,7 +25,7 @@ XS(ffi_pl_record_accessor_bitfield)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -50,9 +50,9 @@ XS(ffi_pl_record_accessor_bitfield)
   XSRETURN_UV((*ptr2&(1<<(member->offset%8))) != 0);
 }
 
-XS(ffi_pl_record_accessor_uint8)
+XS(ffi_pl_ffiperl_record_accessor_uint8)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   uint8_t *ptr2;
@@ -62,7 +62,7 @@ XS(ffi_pl_record_accessor_uint8)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -83,9 +83,9 @@ XS(ffi_pl_record_accessor_uint8)
   XSRETURN_UV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_uint8_array)
+XS(ffi_pl_ffiperl_record_accessor_uint8_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -99,7 +99,7 @@ XS(ffi_pl_record_accessor_uint8_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -168,9 +168,9 @@ XS(ffi_pl_record_accessor_uint8_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_sint8)
+XS(ffi_pl_ffiperl_record_accessor_sint8)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   int8_t *ptr2;
@@ -180,7 +180,7 @@ XS(ffi_pl_record_accessor_sint8)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -201,9 +201,9 @@ XS(ffi_pl_record_accessor_sint8)
   XSRETURN_IV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_sint8_array)
+XS(ffi_pl_ffiperl_record_accessor_sint8_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -217,7 +217,7 @@ XS(ffi_pl_record_accessor_sint8_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -286,9 +286,9 @@ XS(ffi_pl_record_accessor_sint8_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_uint16)
+XS(ffi_pl_ffiperl_record_accessor_uint16)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   uint16_t *ptr2;
@@ -298,7 +298,7 @@ XS(ffi_pl_record_accessor_uint16)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -319,9 +319,9 @@ XS(ffi_pl_record_accessor_uint16)
   XSRETURN_UV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_uint16_array)
+XS(ffi_pl_ffiperl_record_accessor_uint16_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -335,7 +335,7 @@ XS(ffi_pl_record_accessor_uint16_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -404,9 +404,9 @@ XS(ffi_pl_record_accessor_uint16_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_sint16)
+XS(ffi_pl_ffiperl_record_accessor_sint16)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   int16_t *ptr2;
@@ -416,7 +416,7 @@ XS(ffi_pl_record_accessor_sint16)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -437,9 +437,9 @@ XS(ffi_pl_record_accessor_sint16)
   XSRETURN_IV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_sint16_array)
+XS(ffi_pl_ffiperl_record_accessor_sint16_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -453,7 +453,7 @@ XS(ffi_pl_record_accessor_sint16_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -522,9 +522,9 @@ XS(ffi_pl_record_accessor_sint16_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_uint32)
+XS(ffi_pl_ffiperl_record_accessor_uint32)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   uint32_t *ptr2;
@@ -534,7 +534,7 @@ XS(ffi_pl_record_accessor_uint32)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -555,9 +555,9 @@ XS(ffi_pl_record_accessor_uint32)
   XSRETURN_UV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_uint32_array)
+XS(ffi_pl_ffiperl_record_accessor_uint32_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -571,7 +571,7 @@ XS(ffi_pl_record_accessor_uint32_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -640,9 +640,9 @@ XS(ffi_pl_record_accessor_uint32_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_sint32)
+XS(ffi_pl_ffiperl_record_accessor_sint32)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   int32_t *ptr2;
@@ -652,7 +652,7 @@ XS(ffi_pl_record_accessor_sint32)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -673,9 +673,9 @@ XS(ffi_pl_record_accessor_sint32)
   XSRETURN_IV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_sint32_array)
+XS(ffi_pl_ffiperl_record_accessor_sint32_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -689,7 +689,7 @@ XS(ffi_pl_record_accessor_sint32_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -758,9 +758,9 @@ XS(ffi_pl_record_accessor_sint32_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_uint64)
+XS(ffi_pl_ffiperl_record_accessor_uint64)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   uint64_t *ptr2;
@@ -770,7 +770,7 @@ XS(ffi_pl_record_accessor_uint64)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -791,9 +791,9 @@ XS(ffi_pl_record_accessor_uint64)
   XSRETURN_UV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_uint64_array)
+XS(ffi_pl_ffiperl_record_accessor_uint64_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -807,7 +807,7 @@ XS(ffi_pl_record_accessor_uint64_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -876,9 +876,9 @@ XS(ffi_pl_record_accessor_uint64_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_sint64)
+XS(ffi_pl_ffiperl_record_accessor_sint64)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   int64_t *ptr2;
@@ -888,7 +888,7 @@ XS(ffi_pl_record_accessor_sint64)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -909,9 +909,9 @@ XS(ffi_pl_record_accessor_sint64)
   XSRETURN_IV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_sint64_array)
+XS(ffi_pl_ffiperl_record_accessor_sint64_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -925,7 +925,7 @@ XS(ffi_pl_record_accessor_sint64_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -994,9 +994,9 @@ XS(ffi_pl_record_accessor_sint64_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_float)
+XS(ffi_pl_ffiperl_record_accessor_float)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   float *ptr2;
@@ -1006,7 +1006,7 @@ XS(ffi_pl_record_accessor_float)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -1027,9 +1027,9 @@ XS(ffi_pl_record_accessor_float)
   XSRETURN_NV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_float_array)
+XS(ffi_pl_ffiperl_record_accessor_float_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -1043,7 +1043,7 @@ XS(ffi_pl_record_accessor_float_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -1112,9 +1112,9 @@ XS(ffi_pl_record_accessor_float_array)
   XSRETURN(1);
 }
 
-XS(ffi_pl_record_accessor_double)
+XS(ffi_pl_ffiperl_record_accessor_double)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   char *ptr1;
   double *ptr2;
@@ -1124,7 +1124,7 @@ XS(ffi_pl_record_accessor_double)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -1145,9 +1145,9 @@ XS(ffi_pl_record_accessor_double)
   XSRETURN_NV(*ptr2);
 }
 
-XS(ffi_pl_record_accessor_double_array)
+XS(ffi_pl_ffiperl_record_accessor_double_array)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_ffiperl_record_member *member;
   SV *self;
   SV *arg;
   SV **item;
@@ -1161,7 +1161,7 @@ XS(ffi_pl_record_accessor_double_array)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_ffiperl_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))

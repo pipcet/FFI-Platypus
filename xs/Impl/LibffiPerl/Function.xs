@@ -1,6 +1,6 @@
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function
 
-ffi_pl_function *
+ffi_pl_ffiperl_function *
 new(class, platypus, address, abi, return_type_arg, ...)
     const char *class
     SV *platypus
@@ -8,15 +8,15 @@ new(class, platypus, address, abi, return_type_arg, ...)
     int abi
     SV *return_type_arg
   PREINIT:
-    ffi_pl_function *self;
+    ffi_pl_ffiperl_function *self;
     int i,n,j;
     SV* arg;
     void *buffer;
     ffi_type *ffi_return_type;
     ffi_type **ffi_argument_types;
     ffi_status ffi_status;
-    ffi_pl_type *return_type;
-    ffi_pl_type *tmp;
+    ffi_pl_ffiperl_type *return_type;
+    ffi_pl_ffiperl_type *tmp;
     ffi_abi ffi_abi;
     int extra_arguments;
   CODE:
@@ -53,8 +53,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
     }
     SPAGAIN;
   
-    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_getter)*(items-5)), char);
-    self = (ffi_pl_function*)buffer;
+    Newx(buffer, (sizeof(ffi_pl_ffiperl_function) + sizeof(ffi_pl_ffiperl_getter)*(items-5)), char);
+    self = (ffi_pl_ffiperl_function*)buffer;
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
     self->address = address;
@@ -63,7 +63,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->address = (items-5+extra_arguments != 0) ? (void *)&cast1 : (void *)&cast0;
     }
     self->return_type = SvREFCNT_inc(return_type_arg);
-    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type);
+    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_ffiperl_arguments_native_to_perl(self->return_type);
     self->any_post = 0;
     SPAGAIN;
     
@@ -73,7 +73,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     }
     else
     {
-      ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
+      ffi_pl_ffiperl_type *return_type = SV2ffi_pl_ffiperl_type(self->return_type);
 
       if (sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
       {
@@ -92,7 +92,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	} else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array")) {
 	  ffi = &ffi_type_pointer;
 	} else {
-	  ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	  ffi = SV2ffi_pl_ffiperl_type(*svp)->ffi_type;
 	}
 
         ffi_return_type = ffi;
@@ -113,8 +113,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
-      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg);
-      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg);
+      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_ffiperl_arguments_perl_to_native(arg);
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_ffiperl_arguments_perl_to_native_post(arg);
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       if(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
@@ -125,7 +125,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
 	if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg) - 1;
+	  int d = ffi_pl_ffiperl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg) - 1;
 	  if(d < 0) {
 	    Safefree(self);
 	    Safefree(ffi_argument_types);
@@ -136,7 +136,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
-	  tmp = SV2ffi_pl_type(arg);
+	  tmp = SV2ffi_pl_ffiperl_type(arg);
           ffi_argument_types[n] = tmp->ffi_type;
         }
         else
@@ -177,27 +177,27 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
 void
 call(self, ...)
-    ffi_pl_function *self
+    ffi_pl_ffiperl_function *self
   PREINIT:
     int i, n, perl_arg_index, perl_type_index;
     SV *arg;
-    ffi_pl_result result;
-    ffi_pl_arguments arguments;
+    ffi_pl_ffiperl_result result;
+    ffi_pl_ffiperl_arguments arguments;
     SV *freeme = NULL; /* scratch space for custom perl handlers */
 #ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void **argument_pointers;
-    ffi_pl_argument *argument_slots;
+    ffi_pl_ffiperl_argument *argument_slots;
 #endif
   CODE:
 #define EXTRA_ARGS 1
-#include "ffi_platypus_call.h"
+#include "impl/libffi-perl/ffi_platypus_call.h"
 
 void
 attach(self, perl_name, path_name, proto)
     SV *self
     const char *perl_name
-    ffi_pl_string path_name
-    ffi_pl_string proto
+    ffi_pl_ffiperl_string path_name
+    ffi_pl_ffiperl_string proto
   PREINIT:
     CV* cv;
   CODE:
@@ -208,7 +208,7 @@ attach(self, perl_name, path_name, proto)
       path_name = "unknown";
 
     if(proto == NULL)
-      cv = newXS(perl_name, ffi_pl_sub_call, path_name);
+      cv = newXS(perl_name, ffi_pl_ffiperl_sub_call, path_name);
     else
     {
       /*
@@ -217,13 +217,13 @@ attach(self, perl_name, path_name, proto)
        * remove this workaround (the ndef'd branch)
        */
 #ifdef newXS_flags
-      cv = newXSproto(perl_name, ffi_pl_sub_call, path_name, proto);
+      cv = newXSproto(perl_name, ffi_pl_ffiperl_sub_call, path_name, proto);
 #else
-      newXSproto(perl_name, ffi_pl_sub_call, path_name, proto);
+      newXSproto(perl_name, ffi_pl_ffiperl_sub_call, path_name, proto);
       cv = get_cv(perl_name,0);
 #endif
     }
-    CvXSUBANY(cv).any_ptr = (void *) INT2PTR(ffi_pl_function*, SvIV((SV*) SvRV(self)));
+    CvXSUBANY(cv).any_ptr = (void *) INT2PTR(ffi_pl_ffiperl_function*, SvIV((SV*) SvRV(self)));
     /*
      * No coresponding decrement !!
      * once attached, you can never free the function object, or the FFI::Platypus
@@ -233,7 +233,7 @@ attach(self, perl_name, path_name, proto)
 
 void
 DESTROY(self)
-    ffi_pl_function *self
+    ffi_pl_ffiperl_function *self
   PREINIT:
     int i;
   CODE:

@@ -1,11 +1,11 @@
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void *argument_pointers[self->ffi_cif.nargs];
-    ffi_pl_argument argument_slots[self->ffi_cif.nargs];
+    ffi_pl_ffiperl_argument argument_slots[self->ffi_cif.nargs];
 #else
     Newx(argument_pointers, self->ffi_cif.nargs, void *);
-    Newx(argument_slots, self->ffi_cif.nargs, ffi_pl_argument);
+    Newx(argument_slots, self->ffi_cif.nargs, ffi_pl_ffiperl_argument);
 #endif
-    arguments.pointers = (ffi_pl_argument **)argument_pointers;
+    arguments.pointers = (ffi_pl_ffiperl_argument **)argument_pointers;
     current_argv = &arguments;
 
     arguments.count = self->ffi_cif.nargs;
@@ -88,7 +88,7 @@
     }
     else
     {
-      fprintf(stderr, "%016llx", ffi_pl_arguments_get_uint64(arguments, i));
+      fprintf(stderr, "%016llx", ffi_pl_ffiperl_arguments_get_uint64(arguments, i));
     }
     fprintf(stderr, "\n");
   }

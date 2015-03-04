@@ -4,27 +4,27 @@
 extern "C" {
 #endif
 
-void ffi_pl_closure_call(ffi_cif *, void *, void **, void *);
-SV *ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data);
-ffi_pl_closure *ffi_pl_closure_get_data(SV *closure, SV *type);
-SV*  ffi_pl_custom_perl(SV*,SV*,int);
-SV*  ffi_pl_custom_array_perl(SV*,SV*,int);
-void ffi_pl_custom_perl_cb(SV *, SV*, int);
-HV *ffi_pl_ffi_get_type_meta(ffi_type *);
-HV *ffi_pl_get_type_meta(SV *);
-size_t ffi_pl_sizeof(SV *,ffi_pl_type *);
-void ffi_pl_perl_complex_float(SV *sv, float *ptr);
-void ffi_pl_perl_complex_double(SV *sv, double *ptr);
+void ffi_pl_ffiperl_closure_call(ffi_cif *, void *, void **, void *);
+SV *ffi_pl_ffiperl_closure_add_data(SV *closure, ffi_pl_ffiperl_closure *closure_data);
+ffi_pl_ffiperl_closure *ffi_pl_ffiperl_closure_get_data(SV *closure, SV *type);
+SV*  ffi_pl_ffiperl_custom_perl(SV*,SV*,int);
+SV*  ffi_pl_ffiperl_custom_array_perl(SV*,SV*,int);
+void ffi_pl_ffiperl_custom_perl_cb(SV *, SV*, int);
+HV *ffi_pl_ffiperl_ffi_get_type_meta(ffi_type *);
+HV *ffi_pl_ffiperl_get_type_meta(SV *);
+size_t ffi_pl_ffiperl_sizeof(SV *,ffi_pl_ffiperl_type *);
+void ffi_pl_ffiperl_perl_complex_float(SV *sv, float *ptr);
+void ffi_pl_ffiperl_perl_complex_double(SV *sv, double *ptr);
 
-int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-SV *ffi_pl_any_native_to_perl(ffi_pl_result *, SV *);
+int ffi_pl_ffiperl_arguments_set_any(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_any_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+SV *ffi_pl_ffiperl_any_native_to_perl(ffi_pl_ffiperl_result *, SV *);
 
-perl_to_native_pointer_t ffi_pl_arguments_perl_to_native(SV *);
-perl_to_native_pointer_t ffi_pl_arguments_perl_to_native_post(SV *);
-native_to_perl_pointer_t ffi_pl_arguments_native_to_perl(SV *);
+perl_to_native_pointer_t ffi_pl_ffiperl_arguments_perl_to_native(SV *);
+perl_to_native_pointer_t ffi_pl_ffiperl_arguments_perl_to_native_post(SV *);
+native_to_perl_pointer_t ffi_pl_ffiperl_arguments_native_to_perl(SV *);
 
-#define ffi_pl_perl_to_long_double(sv, ptr)                           \
+#define ffi_pl_ffiperl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \
   {                                                                   \
     *(ptr) = 0.0L;                                                    \
@@ -50,7 +50,7 @@ native_to_perl_pointer_t ffi_pl_arguments_native_to_perl(SV *);
  *    C function _overload_inc.
  */
 
-#define ffi_pl_long_double_to_perl(sv, ptr)                      \
+#define ffi_pl_ffiperl_long_double_to_perl(sv, ptr)                      \
   if(sv_isobject(sv) && sv_derived_from(sv, "Math::LongDouble")) \
   {                                                              \
     *INT2PTR(long double *, SvIV((SV*) SvRV(sv))) = *(ptr);      \
@@ -67,67 +67,67 @@ native_to_perl_pointer_t ffi_pl_arguments_native_to_perl(SV *);
     sv_setnv(sv, *(ptr));                                        \
   }
 
-extern ffi_pl_arguments *current_argv;
+extern ffi_pl_ffiperl_arguments *current_argv;
 
-int ffi_pl_arguments_set_ffi_void(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_uint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_sint8(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_uint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_sint16(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_uint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_sint32(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_uint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_sint64(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_float(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_double(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ffi_pointer(ffi_pl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_void(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_uint8(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_sint8(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_uint16(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_sint16(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_uint32(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_sint32(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_uint64(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_sint64(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_float(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_double(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ffi_pointer(ffi_pl_ffiperl_arguments *arguments, int i, SV *arg_type, SV *arg, SV **freeme);
 
-int ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_any(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_array(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_closure(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_constant(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_customperl(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_exoticfloat(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_perl_string(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_perl_string_variable(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_record(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ref(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 
-int ffi_pl_arguments_set_any_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
-int ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_any_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_array_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_closure_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_custom_perl_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_exoticfloat_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_ffiperl_arguments_set_ref_post(ffi_pl_ffiperl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 
-SV *ffi_pl_native_to_perl_void(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_void(ffi_pl_ffiperl_result *result, SV *return_type);
 
-SV *ffi_pl_native_to_perl_ffi_uint8(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_sint8(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_uint16(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_sint16(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_uint32(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_sint32(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_uint64(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_sint64(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_float(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_double(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_ffi_pointer(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_uint8(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_sint8(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_uint16(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_sint16(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_uint32(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_sint32(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_uint64(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_sint64(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_float(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_double(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_ffi_pointer(ffi_pl_ffiperl_result *result, SV *return_type);
 
-SV *ffi_pl_native_to_perl_string_variable(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type);
-SV *ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_string_variable(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_string(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_pointer(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_record(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_array(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_customperl(ffi_pl_ffiperl_result *result, SV *return_type);
+SV *ffi_pl_ffiperl_native_to_perl_exoticfloat(ffi_pl_ffiperl_result *result, SV *return_type);
 
-int ffi_pl_prepare_ffi(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
-int ffi_pl_prepare_array(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
-int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
-int ffi_pl_prepare_generic(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_ffiperl_prepare_ffi(ffi_pl_ffiperl_getter *getters, ffi_pl_ffiperl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_ffiperl_prepare_array(ffi_pl_ffiperl_getter *getters, ffi_pl_ffiperl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_ffiperl_prepare_customperl(ffi_pl_ffiperl_getter *getters, ffi_pl_ffiperl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_ffiperl_prepare_generic(ffi_pl_ffiperl_getter *getters, ffi_pl_ffiperl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
 
-int ffi_pl_prepare_any(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_ffiperl_prepare_any(ffi_pl_ffiperl_getter *getters, ffi_pl_ffiperl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 #include "ffi_platypus.h"
 
 ffi_type *
-ffi_pl_name_to_type(const char *name)
+ffi_pl_ffiperl_name_to_type(const char *name)
 {
   if(!strcmp(name, "void"))
   { return &ffi_type_void; }
