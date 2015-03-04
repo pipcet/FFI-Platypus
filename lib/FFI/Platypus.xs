@@ -49,8 +49,6 @@ ffi_pl_type *SV2ffi_pl_type_nocheck(void *svraw)
 XS(ffi_pl_sub_call)
 {
   ffi_pl_function *self;
-  char *buffer;
-  size_t buffer_size;
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
   ffi_pl_result result;

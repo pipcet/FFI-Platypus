@@ -19,7 +19,7 @@
      * ARGUMENT IN
      */
 
-    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; i++, perl_type_index++)
+    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; perl_type_index++)
     {
       SV *type_sv = self->argument_getters[perl_type_index].sv;
       int perl_args = self->argument_getters[perl_type_index].perl_args;
@@ -43,9 +43,7 @@
       count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
       SPAGAIN;
 
-      for(n=0; n<count-1; n++) {
-        i++;
-      }
+      i += count;
     }
 
   /*
@@ -145,7 +143,6 @@
       perl_arg_index--;
       i--;
     }
-
   }
 
   /*
