@@ -1257,7 +1257,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
     }
     else
     {
-      return newSVpv(result->pointer, 0);
+      return sv_2mortal(newSVpv(result->pointer, 0));
     }
   }
 }
