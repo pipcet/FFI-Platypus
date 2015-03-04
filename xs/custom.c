@@ -23,7 +23,16 @@ ffi_pl_custom_perl(SV *subref, SV *in_arg, int i)
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs(in_arg);
+    if(SvTYPE(in_arg) == SVt_PVAV) {
+      int i;
+
+      for(i=0; i<av_len(in_arg)+1; i++) {
+	SV **svp = av_fetch(in_arg, i, 0);
+	XPUSHs(*svp);
+      }
+    } else {
+      XPUSHs(in_arg);
+    }
     XPUSHs(sv_2mortal(newSViv(i)));
     PUTBACK;
 

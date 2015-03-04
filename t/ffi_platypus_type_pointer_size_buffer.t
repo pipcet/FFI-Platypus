@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use FFI::CheckLib;
 use FFI::Platypus::Memory qw( malloc );
 use FFI::Platypus::Declare
@@ -38,3 +38,10 @@ my $str1 = "test";
 my $str2 = "test2";
 is !!memcmp4($str1, $str2), 1;
 is memcmp4($str1, $str1), 0;
+
+type '(buffer_t)->opaque', 'buffer_subset_t';
+attach strdup => ['string'] => 'opaque';
+attach split_buffer => ['buffer_subset_t', 'buffer_t'] => 'string';
+
+my $buf = 'not not happy';
+is split_buffer(sticky closure { $_[0] =~ s/ not / /; strdup($_[0]); }, $buf), 'not happy';

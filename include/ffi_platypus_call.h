@@ -155,7 +155,8 @@
 
   if(self->native_to_perl)
   {
-    perl_return = self->native_to_perl(&result, self->return_type);
+    void *resultp = &result;
+    perl_return = self->native_to_perl(&resultp, self->return_type, NULL);
     SPAGAIN;
   }
 

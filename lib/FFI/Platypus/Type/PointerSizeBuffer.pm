@@ -65,12 +65,24 @@ sub perl_to_native_post
   $_[0] = buffer_to_scalar($pointer, $size);
 }
 
+sub native_to_perl
+{
+  my($pointer, $size) = @_;
+
+  warn join(", ", @_);
+
+  warn "pointer is $pointer size is $size";
+
+  return buffer_to_scalar($pointer, $size);
+}
+
 sub ffi_custom_type_api_1
 {
   {
     native_type         => ['opaque', 'size_t'],
     perl_to_native      => \&perl_to_native,
     perl_to_native_post => \&perl_to_native_post,
+    native_to_perl      => \&native_to_perl,
     argument_count      => 2,
   }
 }

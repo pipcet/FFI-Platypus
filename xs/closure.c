@@ -98,8 +98,8 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
       svp = av_fetch(av, i, 0);
       arg_type_sv = *svp;
 
+      arg = ffi_pl_arguments_native_to_perl(arg_type_sv)((ffi_pl_result **)arguments + i, arg_type_sv, &i);
 
-      arg = ffi_pl_arguments_native_to_perl(arg_type_sv)((ffi_pl_result *)arguments[i], arg_type_sv);
       XPUSHs(arg);
     }
     PUTBACK;

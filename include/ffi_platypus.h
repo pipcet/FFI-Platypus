@@ -97,7 +97,7 @@ typedef struct _ffi_pl_arguments ffi_pl_arguments;
 typedef union _ffi_pl_result ffi_pl_result;
 
 typedef int (*perl_to_native_pointer_t)(ffi_pl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
-typedef void *(*native_to_perl_pointer_t)(ffi_pl_result *result, void *return_type);
+typedef void *(*native_to_perl_pointer_t)(ffi_pl_result **result, void *return_type, int *);
 
 typedef struct _ffi_pl_getter {
   void *sv; /* type object */
