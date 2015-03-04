@@ -36,6 +36,16 @@ ffi_pl_type *SV2ffi_pl_type(void *svraw)
     Perl_croak(aTHX_ "ret is not of type FFI::Platypus::Type");
 }
 
+ffi_pl_type *SV2ffi_pl_type_nocheck(void *svraw)
+{
+  SV *sv = svraw;
+
+  HV *hv = (HV*)SvRV(sv);
+  SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
+
+  return INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+}
+
 XS(ffi_pl_sub_call)
 {
   ffi_pl_function *self;
