@@ -1,5 +1,7 @@
 package FFI::Platypus;
 
+use FFI::Platypus::Impl::LibffiPerl;
+
 use strict;
 use warnings;
 use 5.008001;
@@ -1207,6 +1209,8 @@ sub new
 {
   my($class, $type, $platypus) = @_;
 
+  $class =~ s/::Type$/::Impl::LibffiPerl::Type/;
+
   # the platypus object is only needed for closures, so
   # that it can lookup existing types.
 
@@ -1289,7 +1293,7 @@ sub new
     else
     {
       warn "recursing for type $type";
-      return FFI::Platypus::Type::FFI->new($type);
+      return FFI::Platypus::Impl::LibffiPerl::Type::FFI->new($type);
     }
   }
 
