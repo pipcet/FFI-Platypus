@@ -234,6 +234,7 @@ _new_struct_type(class, types)
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
       j += ffi_pl_prepare_any(NULL, 0, ffi_children, j, *svp);
+      SPAGAIN;
     }
 
     ffi_children[ffi_n] = NULL;
