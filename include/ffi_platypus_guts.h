@@ -89,6 +89,7 @@ int ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_s
 int ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 int ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 int ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
+int ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 int ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 int ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme);
 
@@ -113,6 +114,7 @@ SV *ffi_pl_native_to_perl_ffi_float(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_ffi_double(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_ffi_pointer(ffi_pl_result *result, SV *return_type);
 
+SV *ffi_pl_native_to_perl_string_variable(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type);
