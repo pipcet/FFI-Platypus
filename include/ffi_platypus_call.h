@@ -41,6 +41,7 @@
       }
 
       count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
+      SPAGAIN;
 
       for(n=0; n<count-1; n++) {
         i++;
@@ -142,6 +143,7 @@
 	}
       }
       count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, arg, &freeme);
+      SPAGAIN;
 
       SvREFCNT_dec(arg);
 
@@ -158,6 +160,7 @@
    */
 
   SV *perl_return = self->native_to_perl(&result, self->return_type);
+    SPAGAIN;
 
   if(freeme)
   {
