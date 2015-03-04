@@ -171,7 +171,7 @@ int
 ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
   void *ptr;
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   int count = type->extra[0].array.element_count;
   int n;
 
@@ -532,7 +532,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_lim
 int
 ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr;
   STRLEN size;
   int expected;
@@ -564,7 +564,7 @@ ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV
 int
 ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
 
   switch(type->extra[0].string.platypus_string_type)
   {
@@ -779,7 +779,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 int
 ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
 
   switch(type->ffi_type->type)
   {
@@ -943,7 +943,7 @@ ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 int
 ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   int count = type->extra[0].array.element_count;
   int n;
@@ -1294,7 +1294,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1376,7 +1376,7 @@ ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer != NULL)
   {
     SV *value = sv_newmortal();
@@ -1401,7 +1401,7 @@ ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1524,7 +1524,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
   STRLEN len;
   const char *name;
   ffi_type *ffi;
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
 
   svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
   av = (AV *)SvRV(*svp);
@@ -1566,7 +1566,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   switch(pl_return_type->ffi_type->type)
   {
 #ifdef FFI_PL_PROBE_LONGDOUBLE
