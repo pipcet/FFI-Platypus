@@ -100,15 +100,7 @@
 
   current_argv = NULL;
 
-  if(self->address != NULL)
-  {
-    ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
-  }
-  else
-  {
-    void *address = self->ffi_cif.nargs > 0 ? (void*) &cast1 : (void*) &cast0;
-    ffi_call(&self->ffi_cif, address, &result, (void **)arguments.pointers);
-  }
+  ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
 
   /*
    * ARGUMENT OUT

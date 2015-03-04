@@ -58,6 +58,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
     self->address = address;
+    if(self->address == NULL)
+    {
+      self->address = (items-5+extra_arguments != 0) ? (void *)&cast1 : (void *)&cast0;
+    }
     self->return_type = SvREFCNT_inc(return_type_arg);
     self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type);
     SPAGAIN;
