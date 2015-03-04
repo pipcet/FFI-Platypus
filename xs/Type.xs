@@ -592,7 +592,12 @@ void *
 perl_to_native_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_perl_string;
+    if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
+       self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
+      RETVAL = ffi_pl_arguments_set_perl_string_variable;
+    } else {
+      RETVAL = ffi_pl_arguments_set_perl_string;
+    }
   OUTPUT:
     RETVAL
 
@@ -608,7 +613,12 @@ void *
 native_to_perl_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_string;
+    if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
+       self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
+      RETVAL = ffi_pl_native_to_perl_string_variable;
+    } else {
+      RETVAL = ffi_pl_native_to_perl_string;
+    }
   OUTPUT:
     RETVAL
 

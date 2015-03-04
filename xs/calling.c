@@ -546,6 +546,14 @@ ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV 
 }
 
 int
+ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  ffi_pl_arguments_set_string(arguments, i, SvOK(arg) ? SvPV_nolen(arg) : NULL);
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type(type_sv);
@@ -1236,6 +1244,19 @@ SV *
 ffi_pl_native_to_perl_void(ffi_pl_result *result, SV *return_type)
 {
   return NULL;
+}
+
+SV *
+ffi_pl_native_to_perl_string_variable(ffi_pl_result *result, SV *return_type)
+{
+  if(result->pointer == NULL)
+  {
+    return NULL;
+  }
+  else
+  {
+    return sv_2mortal(newSVpv(result->pointer, 0));
+  }
 }
 
 SV *
