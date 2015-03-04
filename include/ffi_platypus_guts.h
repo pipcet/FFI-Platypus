@@ -122,12 +122,12 @@ SV *ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type);
 SV *ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type);
 
-int ffi_pl_prepare_ffi(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type);
-int ffi_pl_prepare_array(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type);
-int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type);
-int ffi_pl_prepare_generic(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type);
+int ffi_pl_prepare_ffi(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_prepare_array(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
+int ffi_pl_prepare_generic(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
 
-int ffi_pl_prepare_any(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type);
+int ffi_pl_prepare_any(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type);
 
 #ifdef __cplusplus
 }
