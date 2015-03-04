@@ -1071,7 +1071,7 @@ ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *ty
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
   SV *arg2 = NULL;
-  int native_count;
+  int native_count=0;
   int n;
 
   {
