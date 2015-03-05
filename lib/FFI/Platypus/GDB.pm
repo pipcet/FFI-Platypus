@@ -867,17 +867,29 @@ sub new {
 
   $self->{ffi} = FFI::Platypus->new();
 
-  $self->{ipc} = start(['/home/pip/git/binutils-gdb/gdb/gdb', '/home/pip/git/FFI-Platypus/blib/arch/auto/FFI/Platypus/Platypus.so'], \$self->{in}, \$self->{out});
+  $self->{ipc} = start(['/home/pip/git/binutils-gdb/gdb/gdb', '/home/pip/git/binutils-gdb/gdb/gdb'], \$self->{in}, \$self->{out});
 
   $self->wait_for_prompt;
   $self->{out} = "";
-  $self->run_command("py exec file('/home/pip/git/FFI-Platypus/perlify-types.py')");
+  $self->run_command("py exec file('/home/pip/git/FFI-Platypus/share/gdb/perlify-expressions.py')");
 
   return $self;
 }
 
 my $gdb = FFI::Platypus::GDB->new;
-$gdb->handle_symbol('ffi_pl_closure_call', 1);
-$gdb->handle_symbol('ffi_pl_record_accessor_uint8', 1);
-$gdb->handle_symbol('ffi_pl_closure');
+$gdb->run_command("b main");
+$gdb->run_command("run");
+$gdb->read_type('struct type');
+$gdb->read_type('struct main_type');
+$gdb->read_type_expression('struct type *');
+$gdb->read_type_expression('struct main_type *');
+my @types = keys %{$gdb->{types}};
+for my $type (@types) {
+  $gdb->read_type($type);
+}
+$gdb->guess_macro_type('TYPE_OBJFILE', 'python.c:1000');
+
+# $gdb->handle_symbol('ffi_pl_closure_call', 1);
+# $gdb->handle_symbol('ffi_pl_record_accessor_uint8', 1);
+# $gdb->handle_symbol('ffi_pl_closure');
 die 'success';
