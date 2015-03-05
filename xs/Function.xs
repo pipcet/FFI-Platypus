@@ -19,6 +19,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     ffi_pl_type *tmp;
     ffi_abi ffi_abi;
     int extra_arguments;
+    int stack_arg_index;
   CODE:
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
@@ -113,6 +114,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
+      self->argument_getters[i].stack_args = 0;
       self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg);
       self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg);
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
@@ -147,12 +149,56 @@ new(class, platypus, address, abi, return_type_arg, ...)
       SPAGAIN;
     }
 
+    if(n < items-5+extra_arguments)
+    {
+      stack_arg_index = items-5+extra_arguments;
+      for(i=0; i<(items-5); i++)
+      {
+	arg = ST(i+5);
+
+	dSP;
+	int count;
+	
+	if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type")))
+	{
+	  croak("non-type parameter passed in as type");
+	}
+	
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(arg);
+	PUTBACK;
+	
+	count = call_method("count_native_arguments", G_SCALAR);
+
+	SPAGAIN;
+
+	if(count == 1)
+	{
+	  int stack_args = POPi - self->argument_getters[i].native_args;
+
+	  self->argument_getters[i].stack_arg_index = (stack_arg_index -= stack_args);
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+      }
+      if(stack_arg_index != n)
+      {
+	croak("internal error creating stack arguments");
+      }
+    }
+    SPAGAIN;
+
+
     self->nargs_perl = i;
     
     ffi_status = ffi_prep_cif(
       &self->ffi_cif,            /* ffi_cif     | */
       ffi_abi,                   /* ffi_abi     | */
-      items-5+extra_arguments,   /* int         | argument count */
+      n,                         /* int         | argument count */
       ffi_return_type,           /* ffi_type *  | return type */
       ffi_argument_types         /* ffi_type ** | argument types */
     );

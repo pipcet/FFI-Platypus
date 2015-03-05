@@ -10,9 +10,18 @@
 
     arguments.count = self->ffi_cif.nargs;
 
-    for(i=0; i<self->ffi_cif.nargs; i++)
+    int pointer_index;
+    int slot_index;
+
+    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_arg_index++)
     {
-      argument_pointers[i] = &argument_slots[i];
+      int j;
+
+      for(j=0; j<self->argument_getters[perl_type_index].native_args; j++)
+      {
+	argument_pointers[pointer_index++] = &argument_slots[slot_index++];
+      }
+      slot_index += self->argument_getters[perl_type_index].stack_args;
     }
 
     /*
@@ -43,7 +52,7 @@
       count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
       SPAGAIN;
 
-      i += count;
+      i += count + self->argument_getters[perl_type_index].stack_args;
     }
 
   /*
@@ -110,6 +119,7 @@
   {
     for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
     {
+      i -= self->argument_getters[perl_type_index].stack_args;
       if(self->argument_getters[perl_type_index].perl_to_native_post)
       {
 	SV *type_sv = self->argument_getters[perl_type_index].sv;

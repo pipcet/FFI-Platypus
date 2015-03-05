@@ -103,6 +103,8 @@ typedef struct _ffi_pl_getter {
   void *sv; /* type object */
   int perl_args;
   int native_args;
+  int stack_args;
+  int stack_arg_index;
   perl_to_native_pointer_t perl_to_native;
   perl_to_native_pointer_t perl_to_native_post;
 } ffi_pl_getter;

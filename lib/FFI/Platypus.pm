@@ -1305,6 +1305,13 @@ use parent -norequire, 'FFI::Platypus::Type';
 package FFI::Platypus::Type::Pointer;
 use parent -norequire, 'FFI::Platypus::Type';
 
+sub count_native_arguments
+{
+  my($self) = @_;
+
+  return 2;
+}
+
 package FFI::Platypus::Type::Array;
 use parent -norequire, 'FFI::Platypus::Type';
 
