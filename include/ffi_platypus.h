@@ -104,7 +104,6 @@ typedef struct _ffi_pl_getter {
   int perl_args;
   int native_args;
   int stack_args;
-  int stack_arg_index;
   perl_to_native_pointer_t perl_to_native;
   perl_to_native_pointer_t perl_to_native_post;
 } ffi_pl_getter;
@@ -114,6 +113,7 @@ typedef struct _ffi_pl_function {
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
+  int stack_args;
   void *return_type;       /* really SV* */
 
   int any_post;

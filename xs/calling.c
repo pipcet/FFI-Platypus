@@ -592,23 +592,24 @@ ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv
 int
 ffi_pl_arguments_set_ref_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  void *ptr = NULL;
+  ffi_pl_argument *ptrarg = arguments->pointers[i];
+  ffi_pl_argument *stackarg = ptrarg + 1;
+
+  ffi_pl_arguments_set_pointer(arguments, i, NULL);
 
   if(SvROK(arg)) /* TODO: and a scalar ref */
   {
     SV *arg2 = SvRV(arg);
     if(SvTYPE(arg2) < SVt_PVAV)
     {
-      ptr = arguments->pointers[i] + sizeof(ffi_pl_argument);
-      *((int32_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
+      stackarg->sint32 = SvOK(arg2) ? SvUV(arg2) : 0;
+      ffi_pl_arguments_set_pointer(arguments, i, &stackarg->sint32);
     }
     else
     {
       warn("argument type not a reference to scalar (%d)", i);
     }
   }
-
-  ffi_pl_arguments_set_pointer(arguments, i, ptr);
 
   return 1;
 }

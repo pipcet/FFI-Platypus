@@ -1,9 +1,9 @@
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void *argument_pointers[self->ffi_cif.nargs];
-    ffi_pl_argument argument_slots[self->ffi_cif.nargs];
+    ffi_pl_argument argument_slots[self->ffi_cif.nargs+self->stack_args];
 #else
     Newx(argument_pointers, self->ffi_cif.nargs, void *);
-    Newx(argument_slots, self->ffi_cif.nargs, ffi_pl_argument);
+    Newx(argument_slots, self->ffi_cif.nargs+self->stack_args, ffi_pl_argument);
 #endif
     arguments.pointers = (ffi_pl_argument **)argument_pointers;
     current_argv = &arguments;
@@ -21,6 +21,7 @@
       {
 	argument_pointers[pointer_index++] = &argument_slots[slot_index++];
       }
+
       slot_index += self->argument_getters[perl_type_index].stack_args;
     }
 
@@ -51,8 +52,7 @@
 
       count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
       SPAGAIN;
-
-      i += count + self->argument_getters[perl_type_index].stack_args;
+      i += count;
     }
 
   /*
@@ -119,7 +119,6 @@
   {
     for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
     {
-      i -= self->argument_getters[perl_type_index].stack_args;
       if(self->argument_getters[perl_type_index].perl_to_native_post)
       {
 	SV *type_sv = self->argument_getters[perl_type_index].sv;

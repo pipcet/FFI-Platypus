@@ -19,7 +19,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     ffi_pl_type *tmp;
     ffi_abi ffi_abi;
     int extra_arguments;
-    int stack_arg_index;
+    int stack_args;
   CODE:
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
@@ -151,7 +151,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
     if(n < items-5+extra_arguments)
     {
-      stack_arg_index = items-5+extra_arguments;
+      int stack_args = 0;
       for(i=0; i<(items-5); i++)
       {
 	arg = ST(i+5);
@@ -176,19 +176,19 @@ new(class, platypus, address, abi, return_type_arg, ...)
 
 	if(count == 1)
 	{
-	  int stack_args = POPi - self->argument_getters[i].native_args;
+	  int local_stack_args = POPi - self->argument_getters[i].native_args;
 
-	  self->argument_getters[i].stack_arg_index = (stack_arg_index -= stack_args);
+	  self->argument_getters[i].stack_args = local_stack_args;
+	  stack_args += local_stack_args;
 	}
 
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
       }
-      if(stack_arg_index != n)
-      {
-	croak("internal error creating stack arguments");
-      }
+      self->stack_args = stack_args;
+    } else {
+      self->stack_args = 0;
     }
     SPAGAIN;
 
