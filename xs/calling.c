@@ -590,6 +590,30 @@ ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv
 }
 
 int
+ffi_pl_arguments_set_ref_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  void *ptr = NULL;
+
+  if(SvROK(arg)) /* TODO: and a scalar ref */
+  {
+    SV *arg2 = SvRV(arg);
+    if(SvTYPE(arg2) < SVt_PVAV)
+    {
+      Newx(ptr, 1, int32_t);
+      *((int32_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
+    }
+    else
+    {
+      warn("argument type not a reference to scalar (%d)", i);
+    }
+  }
+
+  ffi_pl_arguments_set_pointer(arguments, i, ptr);
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
   ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
@@ -867,6 +891,22 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
   getter.perl_to_native = ffi_pl_arguments_perl_to_native(type_sv);
 
   return getter.perl_to_native(arguments, i, type_sv, arg, freeme);
+}
+
+int
+ffi_pl_arguments_set_ref_post_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
+  if(ptr != NULL)
+  {
+    if(!SvREADONLY(SvRV(arg)))
+    {
+      sv_setiv(SvRV(arg), *((int32_t*)ptr));
+    }
+  }
+  Safefree(ptr);
+
+  return 1;
 }
 
 int

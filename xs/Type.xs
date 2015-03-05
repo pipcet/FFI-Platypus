@@ -541,7 +541,10 @@ void *
 perl_to_native_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_ref;
+    if(self->ffi_type->type == FFI_TYPE_SINT32)
+      RETVAL = ffi_pl_arguments_set_ref_sint32;
+    else
+      RETVAL = ffi_pl_arguments_set_ref;
   OUTPUT:
     RETVAL
 
@@ -549,7 +552,10 @@ void *
 perl_to_native_post_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_ref_post;
+    if(self->ffi_type->type == FFI_TYPE_SINT32)
+      RETVAL = ffi_pl_arguments_set_ref_post_sint32;
+    else
+      RETVAL = ffi_pl_arguments_set_ref_post;
   OUTPUT:
     RETVAL
 
