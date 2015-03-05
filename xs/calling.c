@@ -599,7 +599,7 @@ ffi_pl_arguments_set_ref_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv,
     SV *arg2 = SvRV(arg);
     if(SvTYPE(arg2) < SVt_PVAV)
     {
-      Newx(ptr, 1, int32_t);
+      ptr = arguments->pointers[i] + sizeof(ffi_pl_argument);
       *((int32_t*)ptr) = SvOK(arg2) ? SvUV(arg2) : 0;
     }
     else
@@ -904,7 +904,6 @@ ffi_pl_arguments_set_ref_post_sint32(ffi_pl_arguments *arguments, int i, SV *typ
       sv_setiv(SvRV(arg), *((int32_t*)ptr));
     }
   }
-  Safefree(ptr);
 
   return 1;
 }
