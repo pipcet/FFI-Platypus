@@ -592,7 +592,7 @@ ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv
 int
 ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr;
 
   if(SvROK(arg)) /* TODO: and a scalar ref */
@@ -872,7 +872,7 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 int
 ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   if(ptr != NULL)
   {
