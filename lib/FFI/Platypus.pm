@@ -879,11 +879,14 @@ sub attach_cast
 Returns the total size of the given type in bytes.  For example to get 
 the size of an integer:
 
- my $intsize = $ffi->sizeof('int'); # usually 4 or 8 depending on platform
+ my $intsize = $ffi->sizeof('int');   # usually 4
+ my $longsize = $ffi->sizeof('long'); # usually 4 or 8 depending on platform
 
 You can also get the size of arrays
 
- my $intarraysize = $ffi->sizeof('int[64]'); # usually 4*64 or 8*64
+ my $intarraysize = $ffi->sizeof('int[64]');  # usually 4*64
+ my $intarraysize = $ffi->sizeof('long[64]'); # usually 4*64 or 8*64
+                                              # depending on platform
 
 Keep in mind that "pointer" types will always be the pointer / word size 
 for the platform that you are using.  This includes strings, opaque and 
@@ -1830,16 +1833,52 @@ environment variable when you run C<Build.PL>:
 
 =back
 
+=head2 Coding Guidelines
+
+=over 4
+
+=item
+
+Do not hesitate to make code contribution.  Making useful contributions 
+is more important than following byzantine bureaucratic coding 
+regulations.  We can always tweak things later.
+
+=item
+
+Please make an effort to follow existing coding style when making pull 
+requests.
+
+=item
+
+Platypus supports all production Perl releases since 5.8.1.  For that 
+reason, please do not introduce any code that requires a newer version 
+of Perl.
+
+=back
+
+=head2 Performance Testing
+
+As Mark Twain was fond of saying there are four types of lies: lies, 
+damn lies, statistics and benchmarks.  That being said, it can sometimes 
+be helpful to compare the runtime performance of Platypus if you are 
+making significant changes to the Platypus Core.  For that I use 
+`FFI-Performance`, which can be found in my GitHub repository here:
+
+=over 4
+
+=item L<https://github.com/plicease/FFI-Performance>
+
+=back
+
 =head2 System integrators
 
 If you are including Platypus in a larger system (for example a Linux 
 distribution), and you already have libffi as part of your system, you 
-may be interested in L<Alt::Alien::FFI::System>.  This is an 
-alternative to L<Alien::FFI> that does not require L<Alien::Base>.  In 
-fact it has zero non-Core dependencies, and doesn't even need to be 
-installed.  Simply include L<Alt::Alien::FFI::System>'s C<lib> 
-directory in your C<PERL5LIB> path when you build Platypus.  For 
-example:
+may be interested in L<Alt::Alien::FFI::System>.  This is an alternative 
+to L<Alien::FFI> that does not require L<Alien::Base>.  In fact it has 
+zero non-Core dependencies, and doesn't even need to be installed.  
+Simply include L<Alt::Alien::FFI::System>'s C<lib> directory in your 
+C<PERL5LIB> path when you build Platypus.  For example:
 
  % export PERL5LIB=/path/to/Alt-Alien-FFI-System/lib
  % cpanm FFI::Platypus
