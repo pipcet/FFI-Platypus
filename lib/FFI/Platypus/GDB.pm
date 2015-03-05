@@ -276,6 +276,168 @@ sub match {
   return;
 }
 
+package GDBType;
+
+sub match {
+  my($self, $other, $mapping) = @_;
+
+  return 1 if $self == $other;
+
+  return 0 if ($self->{kind} ne $other->{kind}) and not ($self->{kind} eq 'name' or $other->{kind} eq 'name');
+
+  if ($mapping->{$self}) {
+    return ($other == $mapping->{$self}) ? 1 : undef;
+  }
+
+  $mapping->{$self} = $other;
+
+  if ($self->{fields} and $other->{fields}) {
+    for my $field (keys %{$self->{fields}}, keys %{$other->{fields}}) {
+      return 0 unless $other->{fields}->{$field}->match($self->{fields}->{$field});
+    }
+  }
+
+  return;
+}
+
+sub describe {
+  my($self,$seen,$indent) = @_;
+  my $ret = "";
+
+  $indent = "" unless defined $indent;
+  $seen = {} unless $seen;
+
+  if($self->{name}) {
+    $ret .= $indent . "type " . $self->{name};
+  } else {
+    $ret .= $indent . "anonymous type $self";
+  }
+  $ret .=  ($indent eq "" ? ":": ", which:") . "\n";
+
+  $indent .= "  ";
+
+  if($seen->{$self}++) {
+    $ret .= $indent . "was seen before\n";
+  } else {
+    if($self->{kind} eq 'PTR') {
+      $ret .= $indent . "is a pointer to:\n";
+
+      $ret .= $self->{target}->describe($seen, $indent . "  ");
+    } elsif($self->{kind} eq 'INT') {
+      $ret .= $indent . "is a " . ($self->{sign} ? "signed" : "unsigned") . " integer of size " . $self->{bits} . "\n";
+    }
+    for my $field (keys %{$self->{fields}}) {
+      $ret .= $indent . "has a field named $field:\n";
+      $ret .= $self->{fields}->{$field}->describe($seen, $indent . "  ");
+    }
+  }
+
+  return $ret;
+}
+
+sub new_kind_target {
+  my($class, $kind, $target) = @_;
+
+  my $self = bless {}, $class;
+  $self->{kind} = $kind;
+  $self->{target} = $target;
+
+  return $self;
+}
+
+sub new_int {
+  my($class, $bits, $sign) = @_;
+
+  $sign = 1 unless defined $sign;
+
+  my $self = bless {}, $class;
+  $self->{kind} = 'INT';
+  $self->{bits} = $bits;
+  $self->{sign} = $sign;
+
+  return $self;
+}
+
+sub new_pointer {
+  my($class, $target) = @_;
+
+  return GDBType->new_kind_target('PTR', $target);
+}
+
+
+my $type_ops = {
+  PTR => sub {
+    my($attr) = @_;
+    my($self) = GDBType->new_pointer($attr->{target});
+
+    return $self;
+  },
+  INT => sub {
+    my($attr) = @_;
+    my($self) = GDBType->new_int($attr->{sizeof} * 8); # bits per byte;
+
+    return $self;
+  },
+  STRUCT => sub {
+    my($attr) = @_;
+    my($self) = GDBType->new_kind_target('struct', undef);
+
+    for my $field (@{$attr->{fields}}) {
+      $self->{fields}->{$field->{name}} = $field->{type};
+    }
+
+    return $self;
+  },
+  UNION => sub {
+    my($attr) = @_;
+    my($self) = GDBType->new_kind_target('struct', undef);
+
+    for my $field (@{$attr->{fields}}) {
+      $self->{fields}->{$field->{name}} = $field->{type};
+    }
+
+    return $self;
+  },
+  ENUM => sub {
+    my($attr) = @_;
+    my($self) = GDBType->new_kind_target('enum', undef);
+
+    for my $field (@{$attr->{fields}}) {
+      $self->{fields}->{$field->{name}} = $field->{type};
+    }
+
+    return $self;
+  },
+  name => sub {
+    my($name) = @_;
+    my $ret = GDBType->new_kind_target('name', undef);
+    $ret->{name} = $name;
+    return $ret;
+  }
+};
+
+sub ops {
+  my ($class, $types) = @_;
+  $types = {} if !$types;
+  my %ops = %$type_ops;
+
+  $ops{name} = sub {
+    my($name) = @_;
+
+    return $types->{$name} if $types->{$name};
+
+    my $ret = GDBType->new_kind_target('name', undef);
+    $ret->{name} = $name;
+
+    $types->{$name} = $ret;
+
+    return $ret;
+  };
+
+  return \%ops;
+}
+
+
 package FFI::Platypus::GDB;
 
 use strict;
