@@ -741,6 +741,64 @@ sub handle_symbol {
   return $self;
 }
 
+sub guess_macro_type
+{
+  my ($self, $macro, $linespec, $input_type) = @_;
+  my $internals = {};
+
+  my %e = %{PartialType->ops($internals)};
+  my %t = %{GDBType->ops($self->{types})};
+
+  my $expr = $self->run_command("py print print_macro('$macro', '$linespec')");
+
+  return $self if $expr eq "";
+
+  my $partial_type = eval $expr;
+
+  die $@ if $@;
+
+  print Dumper($partial_type);
+  print $partial_type->describe;
+
+  for my $name (keys %{$internals}) {
+    print "\n\n";
+
+    print Dumper($internals->{$name});
+    print $internals->{$name}->describe;
+  }
+
+  for my $internal (keys %{$internals}) {
+    my @potential_types;
+    for my $type (keys %{$self->{types}}) {
+      next if $self->{types}->{$type}->{kind} eq 'name';
+
+      my $matches =  $internals->{$internal}->match($self->{types}->{$type});
+
+      $matches = 'undef' unless defined $matches;
+
+      print "$internal matches $type: " . $matches . "\n";
+
+      push @potential_types, $self->{types}->{$type} if $matches eq 'undef';
+    }
+
+    for my $type (@potential_types) {
+      # this looks C-specific, but it's actually not.
+      $self->run_command("p \$"."$internal = typeof(" . $type->{name}. ")");
+
+      $self->run_command("ptype \$x0");
+      $self->run_command("ptype 0 ? \$x0 : (void *)0");
+      $self->run_command("ptype 1 ? \$x0 : (void *)0");
+
+
+      my $expr = $self->run_command("py print print_macro_type('$macro', '$linespec')");
+
+      die $expr;
+    }
+  }
+
+  return $self;
+}
+
 sub handle_macro
 {
   my ($self, $linespec, $macro, $input_type) = @_;
