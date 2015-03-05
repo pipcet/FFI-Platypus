@@ -500,7 +500,6 @@ sub handle_type {
   my $eval = $self->run_command("py print print_type('$name')");
   my $ffi = $self->{ffi};
 
-
   eval $eval;
 
   die $@;
@@ -741,6 +740,55 @@ sub handle_symbol {
   return $self;
 }
 
+use Data::Dumper;
+
+sub read_type
+{
+  my($self, $name) = @_;
+
+  $self->{types} = {} unless $self->{types};
+
+  my %t = %{GDBType->ops($self->{types})};
+  my $def = sub { $_[1]->{name} = $_[0]; $self->{types}->{$_[0]} = $_[1]; return $_[1]; };
+
+  my $eval = $self->run_command("py print print_type('$name')");
+
+  return $self if $eval eq "";
+
+  my $t = eval $eval;
+
+  die $@ if $@;
+
+  print $t->describe;
+
+  return $self;
+}
+
+sub read_type_expression
+{
+  my($self, $name) = @_;
+
+  $self->{types} = {} unless $self->{types};
+
+  my $expr = sub { $_[1]->{name} = $_[0]; $self->{types}->{$_[0]} = $_[1]; return $_[1]; };
+
+  my %e = (OP_TYPE => sub { $_[0]->{type} });
+  my %t = %{GDBType->ops($self->{types})};
+  my $def = sub { $_[1]->{name} = $_[0]; $self->{types}->{$_[0]} = $_[1]; return $_[1]; };
+
+  my $eval = $self->run_command("py print print_expression('$name')");
+
+  return $self if $eval eq "";
+
+  my $t = eval $eval;
+
+  die $@ if $@;
+
+  print $t->describe;
+
+  return $self;
+}
+
 sub guess_macro_type
 {
   my ($self, $macro, $linespec, $input_type) = @_;
@@ -801,10 +849,13 @@ sub guess_macro_type
 
 sub handle_macro
 {
-  my ($self, $linespec, $macro, $input_type) = @_;
+  my ($self, $macro, $linespec, $input_type) = @_;
 
-  $self->run_command("l $linespec"); # sets scope to the right linespec
+  my $expr = $self->run_command("py print print_macro('$macro', '$linespec')");
 
+  return $self if $expr eq "";
+
+  eval $expr;
 }
 
 sub new {
