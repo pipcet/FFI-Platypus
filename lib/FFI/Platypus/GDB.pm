@@ -1,3 +1,281 @@
+package PartialType;
+use strict;
+use warnings;
+use 5.008001;
+use Carp qw(croak);
+use Carp::Always;
+
+sub new {
+  my($class, $type) = @_;
+  my $self = bless {}, $class;
+
+  return $self unless defined $type;
+
+  $self->{type} = $type;
+
+  return $self;
+}
+
+sub describe {
+  my($self,$seen,$indent) = @_;
+  my $ret = "";
+
+  $indent = "" unless defined $indent;
+  $seen = {} unless $seen;
+
+  if($self->{name}) {
+    $ret .= $indent . "partial type " . $self->{name};
+  } else {
+    $ret .= $indent . "anonymous partial type $self";
+  }
+  $ret .=  ($indent eq "" ? ":": ", which:") . "\n";
+
+  $indent .= "  ";
+
+  if($seen->{$self}++) {
+    $ret .= $indent . "was seen before\n";
+  } else {
+    if($self->{is_pointer}) {
+      $ret .= $indent . "is a pointer to:\n";
+
+      $ret .= $self->{target}->describe($seen, $indent . "  ");
+    }
+    for my $field (keys %{$self->{fields}}) {
+      $ret .= $indent . "has a field named $field of type:\n";
+      $ret .= $self->{fields}->{$field}->describe($seen, $indent . "  ");
+    }
+    if($self->{type}) {
+      $ret .= $indent . "is known exactly to be:\n";
+      $ret .= $self->{type}->describe($seen, $indent . "  ");
+    }
+    for my $cast (values %{$self->{casts_to}}) {
+      $ret .= $indent . "casts to:\n";
+      $ret .= $cast->describe($seen, $indent . "  ");
+    }
+    for my $cast (values %{$self->{casts_from}}) {
+      $ret .= $indent . "casts from:\n";
+      $ret .= $cast->describe($seen, $indent . "  ");
+    }
+  }
+
+  return $ret;
+}
+
+sub casts_to {
+  my($self, $cast) = @_;
+
+  $self->{casts_to}->{$cast} = $cast;
+  $cast->{casts_from}->{$self} = $self;
+}
+
+sub intersection_type_cast {
+  my($self,$other) = @_;
+  my $ret = PartialType->new();
+
+  $self->casts_to($ret);
+  $other->casts_to($ret);
+
+  return $ret;
+}
+
+sub intersection_type_nocast {
+  my($self,$other) = @_;
+
+  return $self unless $other;
+
+  my $ret = PartialType->new();
+
+  if($self->{type} and $other->{type}) {
+    warn "I hope they match!";
+    $ret->{type} = $self->{type};
+  } else {
+    $ret->{type} = $self->{type} if $self->{type};
+    $ret->{type} = $other->{type} if $other->{type};
+  }
+
+  for my $cast (values %{$self->{casts_to}}) {
+    $ret->{casts_to}->{$cast} = $cast;
+  }
+
+  for my $cast (values %{$self->{casts_from}}) {
+    $ret->{casts_from}->{$cast} = $cast;
+  }
+
+  if ($self->{fields}) {
+    for my $field (keys %{$self->{fields}}) {
+      $ret->{fields}->{$field} = $self->{fields}->{$field};
+    }
+  }
+
+  if ($other->{fields} and $self->{fields}) {
+    for my $field (keys %{$other->{fields}}) {
+      $ret->{fields}->{$field} = $other->{fields}->{$field}->intersection_type_nocast($self->{fields}->{$field});
+    }
+  }
+
+  if (defined($self->{is_pointer})) {
+    $ret->{is_pointer} = $self->{is_pointer};
+  }
+
+  if (defined($other->{is_pointer})) {
+    $ret->{is_pointer} = $other->{is_pointer};
+  }
+
+  return $ret;
+}
+
+sub deref {
+  my($self) = @_;
+
+  if($self->{target}) {
+    # nothing to do
+  } elsif($self->{type}) {
+    $self->{target} = PartialType->new($self->{type}->{target});
+  } else {
+    $self->{is_pointer} = 1;
+    $self->{target} = PartialType->new();
+  }
+
+  return $self->{target};
+}
+
+sub field_must_exist
+{
+  my($self, $name) = @_;
+
+  $self->{fields}->{$name} = PartialType->new($self->{type} ? $self->{type}->{fields}->{$name} : undef);
+}
+
+sub field_type
+{
+  my($self, $name) = @_;
+
+  $self->field_must_exist($name);
+
+  return $self->{fields}->{$name};
+}
+
+my $expr_ops = {
+  TERNOP_COND => sub {
+    my ($attr) = @_;
+    my @subexps = @{$attr->{subexps}};
+
+    # $subexps[0]->casts_to($bool);
+
+    return $subexps[1]->intersection_type_cast($subexps[2]);
+  },
+
+  STRUCTOP_PTR => sub {
+    my ($attr) = @_;
+    my $value = $attr->{value};
+    my @subexps = @{$attr->{subexps}};
+
+    my $type = $subexps[0]->deref;
+
+    $type->field_must_exist($value);
+    return $type->field_type($value);
+  },
+
+  STRUCTOP_STRUCT => sub {
+    my ($attr) = @_;
+    my $value = $attr->{value};
+    my @subexps = @{$attr->{subexps}};
+
+    my $type = $subexps[0];
+
+    $type->field_must_exist($value);
+    return $type->field_type($value);
+  },
+
+  OP_INTERNALVAR => sub {
+    my ($attr) = @_;
+    my $value = $attr->{value};
+    my $type = PartialType->new;
+
+    return $type;
+  },
+
+  UNOP_CAST_TYPE => sub {
+    my ($attr) = @_;
+    my @subexps = @{$attr->{subexps}};
+    my $cast_type = $subexps[0];
+    my $type = $subexps[1];
+
+    $type->casts_to($cast_type);
+
+    return $cast_type;
+  },
+
+  OP_TYPE => sub {
+    my ($attr) = @_;
+
+    return PartialType->new($attr->{type});
+  },
+
+  OP_LONG => sub {
+    my ($attr) = @_;
+
+    return PartialType->new($attr->{type});
+  },
+};
+
+sub ops {
+  my($class, $internals) = @_;
+
+  my %ops = %$expr_ops;
+
+  $ops{OP_INTERNALVAR} = sub {
+    my ($attr) = @_;
+    my $value = $attr->{value};
+    my $type = PartialType->new;
+
+    $type->{name} = $value;
+    $internals->{$value} = $type;
+
+    return $type;
+  };
+
+  return \%ops;
+}
+
+sub match {
+  my($self,$type,$mapping) = @_;
+
+  if ($mapping->{$self}) {
+    return $type->match($mapping->{$self});
+  }
+
+  $mapping->{$self} = $type;
+
+  if($self->{type}) {
+    my $matches = $self->{type}->match($type);
+
+    return $matches if defined $matches;
+  }
+
+  if($self->{fields} and $type->{fields}) {
+    for my $field (keys %{$self->{fields}}) {
+      return 0 unless $type->{fields}->{$field};
+    }
+  }
+
+  if($self->{is_pointer}) {
+    if($type->{kind} eq 'name') {
+      return;
+    }
+
+    if($type->{kind} ne 'PTR') {
+      return 0;
+    }
+
+    my $matches = $self->{target}->match($type->{target});
+
+    return $matches if defined $matches;
+  }
+
+  return;
+}
+
 package FFI::Platypus::GDB;
 
 use strict;
