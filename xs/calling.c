@@ -171,7 +171,7 @@ int
 ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
   void *ptr;
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   int count = type->extra[0].array.element_count;
   int n;
 
@@ -416,28 +416,37 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, S
   return i - orig_i;
 }
 
-int ffi_pl_prepare_ffi(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_ffi(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
-  ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV*)SvRV(arg_type)));
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = INT2PTR(ffi_type *, SvIV((SV*)SvRV(arg_type)));
+  else
+    return -1;
 
   return 1;
 }
 
-int ffi_pl_prepare_array(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_array(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
-  ffi_argument_types[n] = &ffi_type_pointer;
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = &ffi_type_pointer;
+  else
+    return -1;
 
   return 1;
 }
 
-int ffi_pl_prepare_generic(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_generic(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
-  ffi_argument_types[n] = SV2ffi_pl_type(arg_type)->ffi_type;
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = SV2ffi_pl_type(arg_type)->ffi_type;
+  else
+    return -1;
 
   return 1;
 }
 
-int (*ffi_pl_prepare(SV *arg_type))(ffi_pl_getter *, int , ffi_type **, int, SV *)
+int (*ffi_pl_prepare(SV *arg_type))(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
   dSP;
 
@@ -466,12 +475,12 @@ int (*ffi_pl_prepare(SV *arg_type))(ffi_pl_getter *, int , ffi_type **, int, SV 
   return out_arg;
 }
 
-int ffi_pl_prepare_any(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_any(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
-  return ffi_pl_prepare(arg_type)(getters, i, ffi_argument_types, n, arg_type);
+  return ffi_pl_prepare(arg_type)(getters, getters_limit, ffi_argument_types, ffi_argument_types_limit, arg_type);
 }
 
-int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argument_types, int n, SV *arg_type)
+int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
   HV *hv = (HV*)SvRV(arg_type);
   SV **svp;
@@ -497,24 +506,23 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
     svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
     av = (AV *)SvRV(*svp);
     svp = av_fetch(av, perl_j, 0);
-    int d2 = ffi_pl_prepare_any(NULL, 0, ffi_argument_types, n+j, *svp);
+    int d2 = ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+j, ffi_argument_types_limit, *svp);
     d += d2-1;
     j += d2-1;
-
   }
 
-  if(getters)
+  if(getters != getters_limit)
   {
-    getters[i].native_args = d+1;
+    getters->native_args = d+1;
 
     svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
     if(svp)
     {
-      getters[i].perl_args = SvIV(*svp);
+      getters->perl_args = SvIV(*svp);
     }
     else
     {
-      getters[i].perl_args = 1;
+      getters->perl_args = 1;
     }
   }
 
@@ -524,7 +532,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, int i, ffi_type **ffi_argu
 int
 ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr;
   STRLEN size;
   int expected;
@@ -546,9 +554,17 @@ ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, SV 
 }
 
 int
+ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  ffi_pl_arguments_set_string(arguments, i, SvOK(arg) ? SvPV_nolen(arg) : NULL);
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
 
   switch(type->extra[0].string.platypus_string_type)
   {
@@ -574,9 +590,34 @@ ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv
 }
 
 int
+ffi_pl_arguments_set_ref_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  ffi_pl_argument *ptrarg = arguments->pointers[i];
+  ffi_pl_argument *stackarg = ptrarg + 1;
+
+  ffi_pl_arguments_set_pointer(arguments, i, NULL);
+
+  if(SvROK(arg)) /* TODO: and a scalar ref */
+  {
+    SV *arg2 = SvRV(arg);
+    if(SvTYPE(arg2) < SVt_PVAV)
+    {
+      stackarg->sint32 = SvOK(arg2) ? SvUV(arg2) : 0;
+      ffi_pl_arguments_set_pointer(arguments, i, &stackarg->sint32);
+    }
+    else
+    {
+      warn("argument type not a reference to scalar (%d)", i);
+    }
+  }
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr;
 
   if(SvROK(arg)) /* TODO: and a scalar ref */
@@ -763,7 +804,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 int
 ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
 
   switch(type->ffi_type->type)
   {
@@ -854,9 +895,24 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 }
 
 int
+ffi_pl_arguments_set_ref_post_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
+  if(ptr != NULL)
+  {
+    if(!SvREADONLY(SvRV(arg)))
+    {
+      sv_setiv(SvRV(arg), *((int32_t*)ptr));
+    }
+  }
+
+  return 1;
+}
+
+int
 ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   if(ptr != NULL)
   {
@@ -927,7 +983,7 @@ ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, S
 int
 ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   int count = type->extra[0].array.element_count;
   int n;
@@ -1055,7 +1111,7 @@ ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *ty
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
   SV *arg2 = NULL;
-  int native_count;
+  int native_count=0;
   int n;
 
   {
@@ -1239,6 +1295,19 @@ ffi_pl_native_to_perl_void(ffi_pl_result *result, SV *return_type)
 }
 
 SV *
+ffi_pl_native_to_perl_string_variable(ffi_pl_result *result, SV *return_type)
+{
+  if(result->pointer == NULL)
+  {
+    return NULL;
+  }
+  else
+  {
+    return sv_2mortal(newSVpv(result->pointer, 0));
+  }
+}
+
+SV *
 ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
 {
   if(result->pointer == NULL)
@@ -1247,7 +1316,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
   }
   else
   {
-    ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+    ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
 
     if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
     {
@@ -1257,7 +1326,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
     }
     else
     {
-      return newSVpv(result->pointer, 0);
+      return sv_2mortal(newSVpv(result->pointer, 0));
     }
   }
 }
@@ -1265,7 +1334,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1347,7 +1416,7 @@ ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer != NULL)
   {
     SV *value = sv_newmortal();
@@ -1372,7 +1441,7 @@ ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1495,7 +1564,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
   STRLEN len;
   const char *name;
   ffi_type *ffi;
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
 
   svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
   av = (AV *)SvRV(*svp);
@@ -1537,7 +1606,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type(return_type);
+  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
   switch(pl_return_type->ffi_type->type)
   {
 #ifdef FFI_PL_PROBE_LONGDOUBLE

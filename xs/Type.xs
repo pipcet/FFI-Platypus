@@ -233,7 +233,8 @@ _new_struct_type(class, types)
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
-      j += ffi_pl_prepare_any(NULL, 0, ffi_children, j, *svp);
+      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp);
+      SPAGAIN;
     }
 
     ffi_children[ffi_n] = NULL;
@@ -295,7 +296,7 @@ _new_closure(class, return_type_arg, ...)
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      i += ffi_pl_prepare_any(NULL, 0, ffi_argument_types, i, arg);
+      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg);
       SPAGAIN;
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
@@ -540,7 +541,10 @@ void *
 perl_to_native_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_ref;
+    if(self->ffi_type->type == FFI_TYPE_SINT32)
+      RETVAL = ffi_pl_arguments_set_ref_sint32;
+    else
+      RETVAL = ffi_pl_arguments_set_ref;
   OUTPUT:
     RETVAL
 
@@ -548,7 +552,10 @@ void *
 perl_to_native_post_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_ref_post;
+    if(self->ffi_type->type == FFI_TYPE_SINT32)
+      RETVAL = ffi_pl_arguments_set_ref_post_sint32;
+    else
+      RETVAL = ffi_pl_arguments_set_ref_post;
   OUTPUT:
     RETVAL
 
@@ -592,7 +599,12 @@ void *
 perl_to_native_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_perl_string;
+    if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
+       self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
+      RETVAL = ffi_pl_arguments_set_perl_string_variable;
+    } else {
+      RETVAL = ffi_pl_arguments_set_perl_string;
+    }
   OUTPUT:
     RETVAL
 
@@ -608,7 +620,12 @@ void *
 native_to_perl_pointer(self)
     ffi_pl_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_string;
+    if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
+       self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
+      RETVAL = ffi_pl_native_to_perl_string_variable;
+    } else {
+      RETVAL = ffi_pl_native_to_perl_string;
+    }
   OUTPUT:
     RETVAL
 
@@ -694,7 +711,7 @@ native_to_perl_pointer(ffi)
   CODE:
     switch(ffi->type) {
     case FFI_TYPE_VOID:
-      RETVAL = ffi_pl_native_to_perl_void;
+      RETVAL = NULL;
       break;
     case FFI_TYPE_UINT8:
       RETVAL = ffi_pl_native_to_perl_ffi_uint8;

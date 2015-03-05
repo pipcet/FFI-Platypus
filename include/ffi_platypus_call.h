@@ -1,25 +1,35 @@
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void *argument_pointers[self->ffi_cif.nargs];
-    ffi_pl_argument argument_slots[self->ffi_cif.nargs];
+    ffi_pl_argument argument_slots[self->ffi_cif.nargs+self->stack_args];
 #else
     Newx(argument_pointers, self->ffi_cif.nargs, void *);
-    Newx(argument_slots, self->ffi_cif.nargs, ffi_pl_argument);
+    Newx(argument_slots, self->ffi_cif.nargs+self->stack_args, ffi_pl_argument);
 #endif
     arguments.pointers = (ffi_pl_argument **)argument_pointers;
     current_argv = &arguments;
 
     arguments.count = self->ffi_cif.nargs;
 
-    for(i=0; i<self->ffi_cif.nargs; i++)
+    int pointer_index;
+    int slot_index;
+
+    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_arg_index++)
     {
-      argument_pointers[i] = &argument_slots[i];
+      int j;
+
+      for(j=0; j<self->argument_getters[perl_type_index].native_args; j++)
+      {
+	argument_pointers[pointer_index++] = &argument_slots[slot_index++];
+      }
+
+      slot_index += self->argument_getters[perl_type_index].stack_args;
     }
 
     /*
      * ARGUMENT IN
      */
 
-    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; i++, perl_type_index++)
+    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; perl_type_index++)
     {
       SV *type_sv = self->argument_getters[perl_type_index].sv;
       int perl_args = self->argument_getters[perl_type_index].perl_args;
@@ -41,10 +51,8 @@
       }
 
       count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
-
-      for(n=0; n<count-1; n++) {
-        i++;
-      }
+      SPAGAIN;
+      i += count;
     }
 
   /*
@@ -99,15 +107,7 @@
 
   current_argv = NULL;
 
-  if(self->address != NULL)
-  {
-    ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
-  }
-  else
-  {
-    void *address = self->ffi_cif.nargs > 0 ? (void*) &cast1 : (void*) &cast0;
-    ffi_call(&self->ffi_cif, address, &result, (void **)arguments.pointers);
-  }
+  ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
 
   /*
    * ARGUMENT OUT
@@ -115,56 +115,65 @@
 
   current_argv = &arguments;
 
-  for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
+  if(self->any_post)
   {
-    if(self->argument_getters[perl_type_index].perl_to_native_post)
+    for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
     {
-      SV *type_sv = self->argument_getters[perl_type_index].sv;
-      int perl_args = self->argument_getters[perl_type_index].perl_args;
-      int native_args = self->argument_getters[perl_type_index].native_args;
-      int count;
+      if(self->argument_getters[perl_type_index].perl_to_native_post)
+      {
+	SV *type_sv = self->argument_getters[perl_type_index].sv;
+	int perl_args = self->argument_getters[perl_type_index].perl_args;
+	int native_args = self->argument_getters[perl_type_index].native_args;
+	int count;
 
-      if(perl_args == 1)
-      {
-	arg = perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef;
-	perl_arg_index--;
-      }
-      else
-      {
-	arg = (SV*)newAV();
-	av_unshift((AV *)arg, perl_args);
-	for(n=0; n<perl_args; n++)
+	if(perl_args == 1)
 	{
-	  /* XXX isn't this reversed for the perl_args > 1 case? We're
-	     not testing that one yet ... */
-	  av_store((AV *)arg, n, perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef);
+	  arg = perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef;
 	  perl_arg_index--;
 	}
+	else
+	{
+	  arg = (SV*)newAV();
+	  av_unshift((AV *)arg, perl_args);
+	  for(n=0; n<perl_args; n++)
+	  {
+	    /* XXX isn't this reversed for the perl_args > 1 case? We're
+	       not testing that one yet ... */
+	    av_store((AV *)arg, n, perl_arg_index < items ? SvREFCNT_inc(ST(perl_arg_index)) : &PL_sv_undef);
+	    perl_arg_index--;
+	  }
+	}
+	count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, arg, &freeme);
+	SPAGAIN;
+
+	SvREFCNT_dec(arg);
+
+	i -= count;
+      } else {
+	perl_arg_index--;
+	i--;
       }
-      count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, arg, &freeme);
-
-      SvREFCNT_dec(arg);
-
-      i -= count;
-    } else {
-      perl_arg_index--;
-      i--;
     }
-
   }
 
   /*
    * RETURN VALUE
    */
 
-  SV *perl_return = self->native_to_perl(&result, self->return_type);
+  SV *perl_return = NULL;
+
+  if(self->native_to_perl)
+  {
+    perl_return = self->native_to_perl(&result, self->return_type);
+    SPAGAIN;
+  }
 
   if(freeme)
   {
     SvREFCNT_dec(freeme);
   }
 
-#ifndef HAVE_ALLOCA
+#ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
   Safefree(argument_pointers);
   Safefree(argument_slots);
 #endif

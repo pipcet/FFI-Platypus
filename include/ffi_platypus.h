@@ -103,6 +103,7 @@ typedef struct _ffi_pl_getter {
   void *sv; /* type object */
   int perl_args;
   int native_args;
+  int stack_args;
   perl_to_native_pointer_t perl_to_native;
   perl_to_native_pointer_t perl_to_native_post;
 } ffi_pl_getter;
@@ -112,7 +113,11 @@ typedef struct _ffi_pl_function {
   void *platypus_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
+  int stack_args;
   void *return_type;       /* really SV* */
+
+  int any_post;
+
   native_to_perl_pointer_t native_to_perl;
   ffi_pl_getter argument_getters[0];
 } ffi_pl_function;
@@ -210,15 +215,22 @@ typedef struct _ffi_pl_record_member {
 #define ffi_pl_arguments_set_double(arguments, i, value)  ((arguments)->pointers[i]->xdouble  = value)
 #define ffi_pl_arguments_get_double(arguments, i)         ((arguments)->pointers[i]->xdouble)
 
-#ifdef HAVE_ALLOCA
+#if defined(_MSC_VER)
+#define Newx_or_alloca(ptr, count, type) ptr = _alloca(sizeof(type)*count)
+#define Safefree_or_alloca(ptr) 
+#define HAVE_ALLOCA 1
+#elif defined(HAVE_ALLOCA)
 #define Newx_or_alloca(ptr, count, type) ptr = alloca(sizeof(type)*count)
+#define Safefree_or_alloca(ptr) 
 #else
 #define Newx_or_alloca(ptr, count, type) Newx(ptr, count, type)
+#define Safefree_or_alloca(ptr) Safefree(ptr)
 #endif
 
 ffi_type *ffi_pl_name_to_type(const char *);
 
 ffi_pl_type *SV2ffi_pl_type(void *sv);
+ffi_pl_type *SV2ffi_pl_type_nocheck(void *sv);
 
 #ifdef __cplusplus
 }

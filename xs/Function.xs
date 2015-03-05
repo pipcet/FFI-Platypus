@@ -19,6 +19,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
     ffi_pl_type *tmp;
     ffi_abi ffi_abi;
     int extra_arguments;
+    int stack_args;
   CODE:
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
@@ -58,8 +59,13 @@ new(class, platypus, address, abi, return_type_arg, ...)
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
     self->address = address;
+    if(self->address == NULL)
+    {
+      self->address = (items-5+extra_arguments != 0) ? (void *)&cast1 : (void *)&cast0;
+    }
     self->return_type = SvREFCNT_inc(return_type_arg);
     self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type);
+    self->any_post = 0;
     SPAGAIN;
     
     if(sv_isobject(self->return_type) && sv_derived_from(self->return_type, "FFI::Platypus::Type::FFI"))
@@ -108,18 +114,26 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
+      self->argument_getters[i].stack_args = 0;
       self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg);
       self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg);
+      self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
-      if (sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
+      if(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
       {
         ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
       }
       else
       {
-	if (sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
+	if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_getters, i, ffi_argument_types, n, arg) - 1;
+	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg) - 1;
+	  if(d < 0) {
+	    Safefree(self);
+	    Safefree(ffi_argument_types);
+	    croak("prepare_customperl failed");
+	  }
+	    
 	  n += d;
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
@@ -135,12 +149,56 @@ new(class, platypus, address, abi, return_type_arg, ...)
       SPAGAIN;
     }
 
+    if(n < items-5+extra_arguments)
+    {
+      int stack_args = 0;
+      for(i=0; i<(items-5); i++)
+      {
+	arg = ST(i+5);
+
+	dSP;
+	int count;
+	
+	if(!(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type")))
+	{
+	  croak("non-type parameter passed in as type");
+	}
+	
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(arg);
+	PUTBACK;
+	
+	count = call_method("count_native_arguments", G_SCALAR);
+
+	SPAGAIN;
+
+	if(count == 1)
+	{
+	  int local_stack_args = POPi - self->argument_getters[i].native_args;
+
+	  self->argument_getters[i].stack_args = local_stack_args;
+	  stack_args += local_stack_args;
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+      }
+      self->stack_args = stack_args;
+    } else {
+      self->stack_args = 0;
+    }
+    SPAGAIN;
+
+
     self->nargs_perl = i;
     
     ffi_status = ffi_prep_cif(
       &self->ffi_cif,            /* ffi_cif     | */
       ffi_abi,                   /* ffi_abi     | */
-      items-5+extra_arguments,   /* int         | argument count */
+      n,                         /* int         | argument count */
       ffi_return_type,           /* ffi_type *  | return type */
       ffi_argument_types         /* ffi_type ** | argument types */
     );
@@ -167,8 +225,6 @@ void
 call(self, ...)
     ffi_pl_function *self
   PREINIT:
-    char *buffer;
-    size_t buffer_size;
     int i, n, perl_arg_index, perl_type_index;
     SV *arg;
     ffi_pl_result result;
