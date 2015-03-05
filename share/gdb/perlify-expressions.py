@@ -34,21 +34,22 @@ def print_expression_inner(t):
     return ret
 
 def print_expression_rec(t):
-    return "$" + opcode_string(t) + "->(" + print_expression_inner(t) + ")"
+    return "$e{" + opcode_string(t) + "}->(" + print_expression_inner(t) + ")"
 
 def print_expression(expr):
     t = gdb.parse_expression(expr)
     return "$expr->('" + expr + "', " + print_expression_rec(t.opcodes()[0]) + ");\n"
 
+# this is C-specific. Most other languages do not have tags, though.
 def real_name(t):
     if t.name:
         return t.name
     elif t.tag:
-        return type_code_string(t) + " " + t.tag
+        return type_code_string(t).lower() + " " + t.tag
 
 def type_code_string(t):
     s = gdb.typecodes[t.code]
-    s.replace("TYPE_CODE_", "")
+    s = s.replace("TYPE_CODE_", "")
     return s
 
 def print_field(f, show):
@@ -93,9 +94,9 @@ def print_type_inner(t, show):
 def print_type_rec(t, show):
     name = real_name(t)
     if name and not show:
-        return "'" + name + "'"
+        return "$t{name}->('" + name + "')"
     else:
-        return "$" + type_code_string(t) + "->(" + print_type_inner(t, show) + ")"
+        return "$t{" + type_code_string(t) + "}->(" + print_type_inner(t, show) + ")"
 
 def print_symbol_type(name):
     o = gdb.lookup_global_symbol(name)
@@ -107,3 +108,24 @@ def print_symbol_type(name):
 def print_type(name):
     t = gdb.lookup_type(name)
     return "$def->('" + real_name(t) + "', " + print_type_rec(t, True) + ");\n"
+
+def print_macro(name, linespec):
+    macros = gdb.macros(gdb.decode_line(linespec)[1][0])
+    args = []
+    m = macros[name]
+    for i in range(m.argc()):
+        args.append("$x" + str(i))
+    s = m.expand(args, gdb.decode_line(linespec)[1][0])
+    exp = gdb.parse_expression(s);
+    return print_expression_rec(exp.opcodes()[0])
+
+def print_macro_type(name, linespec):
+    macros = gdb.macros(gdb.decode_line(linespec)[1][0])
+    args = []
+    m = macros[name]
+    for i in range(m.argc()):
+        args.append("$x" + str(i))
+    s = m.expand(args, gdb.decode_line(linespec)[1][0])
+    exp = gdb.parse_expression(s);
+    t = exp.evaluate_type()
+    return print_type_rec(t, True) + "\n"
