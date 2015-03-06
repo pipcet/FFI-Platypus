@@ -1045,7 +1045,7 @@ my @types = keys %{$gdb->{types}};
 for my $type (@types) {
   $gdb->read_type($type);
 }
-$gdb->guess_macro_type('TYPE_OBJFILE', 'python.c:1000');
+$gdb->guess_macro_type('TYPE_OBJFILE', $main::PERL_LINESPEC);
 
 # $gdb->handle_symbol('ffi_pl_closure_call', 1);
 # $gdb->handle_symbol('ffi_pl_record_accessor_uint8', 1);
