@@ -74,10 +74,9 @@ new(class, platypus, address, abi, return_type_arg, ...)
     }
     else
     {
-      ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
-
       if (sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
       {
+	ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
         SV *ret_in=NULL, *ret_out;
 	AV *av;
 	SV **svp;
@@ -100,6 +99,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
       }
       else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::ExoticFloat"))
       {
+	ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
+
 	ffi_return_type = return_type->ffi_type;
       }
       else

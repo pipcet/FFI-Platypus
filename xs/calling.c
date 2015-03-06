@@ -722,8 +722,6 @@ ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *ar
 int
 ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
-
   if(!SvROK(arg))
   {
     ffi_pl_arguments_set_pointer(arguments, i, SvOK(arg) ? INT2PTR(void*, SvIV(arg)) : NULL);
@@ -734,6 +732,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
   {
     ffi_pl_closure *closure;
     ffi_status ffi_status;
+    ffi_pl_type *type = SV2ffi_pl_type(type_sv);
 
     SvREFCNT_inc(arg);
 
