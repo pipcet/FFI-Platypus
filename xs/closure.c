@@ -92,17 +92,24 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     av = (AV*)SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
+      native_to_perl_pointer_t f;
       SV *arg_type_sv;
       SV *arg;
 
       svp = av_fetch(av, i, 0);
       arg_type_sv = *svp;
 
+      PUTBACK;
+      f = ffi_pl_arguments_native_to_perl(arg_type_sv);
+      SPAGAIN;
 
-      arg = ffi_pl_arguments_native_to_perl(arg_type_sv)((ffi_pl_result *)arguments[i], arg_type_sv);
+      arg = f((ffi_pl_result *)arguments[i], arg_type_sv);
+      SPAGAIN;
+      arg = newSVsv(arg);
+      SvREFCNT_inc(arg);
       XPUSHs(arg);
+      PUTBACK;
     }
-    PUTBACK;
   }
 
   svp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "code", 4, 0);
@@ -140,7 +147,9 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     SV *ret_sv = *svp;
 
     perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv);
+    SPAGAIN;
     int count2 = perl_to_native(&arguments, 0, ret_sv, sv, &freeme);
+    SPAGAIN;
 
     if (count2 > 1)
     {
