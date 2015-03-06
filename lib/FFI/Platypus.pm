@@ -1447,8 +1447,17 @@ sub perl_to_native_pointer {
 
     print STDERR "argument is $arg\n";
 
-    my $f = $type_sv->{ffi}->function($address => ['long', 'int', 'SV', 'SV', 'long'] => 'int');
+    my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'SV', 'opaque'] => 'int');
     my $ret = $f->call($arguments, $i, $type_sv, $arg, $freeme);
+
+    my $arguments_ptr = unpack 'P16', pack 'Q', $arguments;
+    my ($arguments_count, $arguments_reserved, $arguments_pointers) = unpack 'llq', $arguments_ptr;
+    my $ppointers = unpack 'P' . (8*$arguments_count), pack 'Q', $arguments_pointers;
+    for (my $j = 0; $j < $ret; $j++) {
+      my $argument = unpack 'P8', substr($ppointers, ($i+$j)*8, 8);
+      my $argument_hex = sprintf("%016x", unpack 'Q', $argument);
+      warn "argument $i+$j encoded as $argument_hex..."; # it might be longer than that
+    }
 
     return $ret;
   };
@@ -1457,7 +1466,7 @@ sub perl_to_native_pointer {
 
   $self->{perl_to_native_closure} = $closure;
 
-  $self->{perl_to_native_pointer} = $self->{ffi}->cast('(long, int, SV, SV, long)->int', 'opaque', $closure);
+  $self->{perl_to_native_pointer} = $self->{ffi}->cast('(opaque, int, SV, SV, opaque)->int', 'opaque', $closure);
 
   return $self->{perl_to_native_pointer};
 }
@@ -1477,7 +1486,7 @@ sub perl_to_native_post_pointer {
   my $sub = sub {
     my($arguments, $i, $type_sv, $arg, $freeme) = @_;
 
-    my $f = $type_sv->{ffi}->function($address => ['long', 'int', 'SV', 'long', 'long'] => 'int');
+    my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'opaque', 'opaque'] => 'int');
     my $ret = $f->call($arguments, $i, $type_sv, $arg, $freeme);;
 
     return $ret;
@@ -1486,7 +1495,7 @@ sub perl_to_native_post_pointer {
 
   $self->{perl_to_native_post_closure} = $closure;
 
-  my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(long, int, SV, long, long)->int', 'opaque', $closure);
+  my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(opaque, int, SV, long, long)->int', 'opaque', $closure);
 
   return $ret;
 }
@@ -1505,6 +1514,11 @@ sub native_to_perl_pointer {
 
   my $sub = sub {
     my($resultp, $return_type) = @_;
+
+    my $result = unpack 'P' . (8), pack 'Q', $resultp;
+    my $result_hex = sprintf("%016x", unpack 'Q', $result);
+
+    warn "result encoded as $result_hex..."; # it might be longer than that.
 
     my $ret = $return_type->{ffi}->function($address => ['long', 'SV'] => 'SV')->call($resultp, $return_type);
 
