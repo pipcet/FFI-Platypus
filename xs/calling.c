@@ -880,7 +880,7 @@ ffi_pl_arguments_perl_to_native(SV *type_sv)
   SPAGAIN;
 
   if(count == 1)
-    out_arg = INT2PTR(void *, SvRV(POPs));
+    out_arg = INT2PTR(void *, SvIVX(POPs));
   else
     out_arg = NULL;
 
@@ -1202,7 +1202,7 @@ ffi_pl_arguments_perl_to_native_post(SV *type_sv)
   SPAGAIN;
 
   if(count == 1)
-    out_arg = INT2PTR(void *, SvRV(POPs));
+    out_arg = INT2PTR(void *, SvIVX(POPs));
   else
     out_arg = NULL;
 
@@ -1681,7 +1681,7 @@ ffi_pl_arguments_native_to_perl(SV *type_sv)
   SPAGAIN;
 
   if(count == 1)
-    out_arg = INT2PTR(void *, SvRV(POPs));
+    out_arg = INT2PTR(void *, SvIVX(POPs));
   else
     out_arg = NULL;
 
