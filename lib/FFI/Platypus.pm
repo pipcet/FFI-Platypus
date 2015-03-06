@@ -238,6 +238,7 @@ sub _type_map
     $type_map{$_} = $_ for grep { _have_type($_) } 
       qw( void sint8 uint8 sint16 uint16 sint32 uint32 sint64 uint64 float double string opaque
           longdouble complex_float complex_double );
+    $type_map{SV} = 'SV';
     $type_map{pointer} = 'opaque';
     $self->{type_map} = \%type_map;
   }
@@ -398,6 +399,10 @@ sub type
     # closure type if you do not spell it exactly the same each time.
     # Recommended that you use an alias for a closure type anyway.
     $self->{types}->{$name} ||= FFI::Platypus::Type->new($name, $self);
+  }
+  elsif ($name =~ /^wrap\((.*)\)$/)
+  {
+    $self->{types}->{$name} ||= FFI::Platypus::Type::Wrap->new($self->_type_lookup($1));
   }
   else
   {
@@ -1278,6 +1283,10 @@ sub new
     $platypus_type = 'Array';
     $size = $1 ? $1 : 0;
   }
+  elsif($type eq "SV")
+  {
+    return FFI::Platypus::Type::SV->new;
+  }
   else
   {
     $ffi_type = $type;
@@ -1396,7 +1405,171 @@ package FFI::Platypus::Type::FFI;
 use parent -norequire, 'FFI::Platypus::Type';
 use Carp qw(croak);
 
+package FFI::Platypus::Type::SV;
+use parent -norequire, 'FFI::Platypus::Type::FFI';
 
+sub new {
+  my($class) = @_;
+
+  # we know what we're doing.
+  return bless(FFI::Platypus::Type::FFI->new('opaque'), $class);
+}
+
+package FFI::Platypus::Type::Wrap;
+use parent -norequire, 'FFI::Platypus::Type';
+use FFI::Platypus::Declare;
+
+# this type demonstrates that we can implement a type purely in Perl
+# even though it needs to return C closures for some of its
+# operations.
+
+sub new {
+  my($class, $basetype) = @_;
+
+  return bless { underlying_types => [$basetype], ffi => FFI::Platypus->new }, $class;
+}
+
+use Data::Dumper;
+
+sub perl_to_native_pointer {
+  my($self) = @_;
+
+  return $self->{perl_to_native_pointer} if exists $self->{perl_to_native_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->perl_to_native_pointer;
+
+  undef $underlying_type;
+
+  return 0 unless $address;
+
+  my $sub = sub {
+    my($arguments, $i, $type_sv, $extra_data, $arg, $freeme) = @_;
+
+    print STDERR "argument is $arg\n";
+
+    my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'opaque', 'SV', 'opaque'] => 'int');
+    my $ret = $f->call($arguments, $i, $type_sv, $extra_data, $arg, $freeme);
+
+    my $arguments_ptr = unpack 'P16', pack 'Q', $arguments;
+    my ($arguments_count, $arguments_reserved, $arguments_pointers) = unpack 'llq', $arguments_ptr;
+    my $ppointers = unpack 'P' . (8*$arguments_count), pack 'Q', $arguments_pointers;
+    for (my $j = 0; $j < $ret; $j++) {
+      my $argument = unpack 'P8', substr($ppointers, ($i+$j)*8, 8);
+      my $argument_hex = sprintf("%016x", unpack 'Q', $argument);
+      warn "argument $i+$j encoded as $argument_hex..."; # it might be longer than that
+    }
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{perl_to_native_closure} = $closure;
+
+  $self->{perl_to_native_pointer} = $self->{ffi}->cast('(opaque, int, SV, opaque, SV, opaque)->int', 'opaque', $closure);
+
+  return $self->{perl_to_native_pointer};
+}
+
+sub perl_to_native_post_pointer {
+  my($self) = @_;
+
+  return $self->{perl_to_native_post_pointer} if exists $self->{perl_to_native_post_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->perl_to_native_post_pointer;
+
+  return 0 unless $address;
+
+  undef $underlying_type;
+
+  my $sub = sub {
+    my($arguments, $i, $type_sv, $extra_data, $arg, $freeme) = @_;
+
+    my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'opaque', 'opaque', 'opaque'] => 'int');
+    my $ret = $f->call($arguments, $i, $type_sv, $extra_data, $arg, $freeme);
+
+    return $ret;
+  };
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{perl_to_native_post_closure} = $closure;
+
+  my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(opaque, int, SV, opaque, long, long)->int', 'opaque', $closure);
+
+  return $ret;
+}
+
+sub native_to_perl_pointer {
+  my($self) = @_;
+
+  return $self->{native_to_perl_pointer} if exists $self->{native_to_perl_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->native_to_perl_pointer;
+
+  return 0 unless $address;
+
+  undef $underlying_type;
+
+  my $sub = sub {
+    my($resultp, $return_type, $extra_data) = @_;
+
+    my $result = unpack 'P' . (8), pack 'Q', $resultp;
+    my $result_hex = sprintf("%016x", unpack 'Q', $result);
+
+    warn "result encoded as $result_hex..."; # it might be longer than that.
+
+    my $ret = $return_type->{ffi}->function($address => ['long', 'SV', 'opaque'] => 'SV')->call($resultp, $return_type, $extra_data);
+
+    warn "return value is $ret";
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{native_to_perl_closure} = $closure;
+
+  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, SV, opaque)->SV', 'opaque', $closure);
+  return $ret;
+}
+
+sub prepare_pointer {
+  my($self) = @_;
+
+  return $self->{prepare_pointer} if exists $self->{prepare_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $underlying_extra_data = $underlying_type->extra_data;
+  my $address = $underlying_type->prepare_pointer;
+
+  my $sub = sub {
+    my ($getter_pointers, $getter_limits, $ffi_pointers, $ffi_limits, $type, $extra_data) = @_;
+
+    my $ret = $type->{ffi}->function($address => ['opaque', 'opaque', 'opaque', 'opaque', 'SV', 'opaque'] => 'int')->call(undef, undef, $ffi_pointers, $ffi_limits, $underlying_type, $underlying_extra_data);
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{prepare_closure} = $closure;
+
+  my $ret = $self->{prepare_pointer} = $self->{ffi}->cast('(opaque, opaque, opaque, opaque, SV, opaque)->int', 'opaque', $closure);
+  return $ret;
+}
+
+sub extra_data {
+  return 0;
+}
+
+sub count_native_arguments {
+  my($self) = @_;
+
+  return $self->{underlying_types}->[0]->count_native_arguments;
+}
 
 1;
 

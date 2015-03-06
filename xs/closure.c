@@ -67,15 +67,15 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   dSP;
 
   ffi_pl_closure *closure = (ffi_pl_closure*) user;
-  ffi_pl_type *type = SV2ffi_pl_type((SV*)closure->type);
   int flags;
   int i;
   int count;
   SV *sv;
   SV **svp;
   AV *av;
+  HV *hv = (HV*)SvRV((SV*)closure->type);
 
-  svp = hv_fetch(type->hv, "flags", strlen("flags"), 0);
+  svp = hv_fetch(hv, "flags", strlen("flags"), 0);
   flags = SvIV(*svp);
 
   if(!(flags & G_NOARGS))
@@ -88,24 +88,31 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   if(!(flags & G_NOARGS))
   {
-    svp = hv_fetch(type->hv, "argument_types", strlen("argument_types"), 0);
+    svp = hv_fetch(hv, "argument_types", strlen("argument_types"), 0);
     av = (AV*)SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
+      native_to_perl_pointer_t f;
       SV *arg_type_sv;
       SV *arg;
 
       svp = av_fetch(av, i, 0);
       arg_type_sv = *svp;
 
+      PUTBACK;
+      f = ffi_pl_arguments_native_to_perl(arg_type_sv, ffi_pl_extra_data(arg_type_sv));
+      SPAGAIN;
 
-      arg = ffi_pl_arguments_native_to_perl(arg_type_sv)((ffi_pl_result *)arguments[i], arg_type_sv);
+      arg = f((ffi_pl_result *)arguments[i], arg_type_sv, ffi_pl_extra_data(arg_type_sv));
+      SPAGAIN;
+      arg = newSVsv(arg);
+      SvREFCNT_inc(arg);
       XPUSHs(arg);
+      PUTBACK;
     }
-    PUTBACK;
   }
 
-  svp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "code", 4, 0);
+  svp = hv_fetch((HV *)closure->coderef, "code", 4, 0);
   if (svp)
     count = call_sv(*svp, flags | G_EVAL);
   else
@@ -136,11 +143,13 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     else
       sv = POPs;
 
-    svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
+    svp = hv_fetch(hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
 
-    perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv);
-    int count2 = perl_to_native(&arguments, 0, ret_sv, sv, &freeme);
+    perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv, ffi_pl_extra_data(ret_sv));
+    SPAGAIN;
+    int count2 = perl_to_native(&arguments, 0, ret_sv, ffi_pl_extra_data(ret_sv), sv, &freeme);
+    SPAGAIN;
 
     if (count2 > 1)
     {

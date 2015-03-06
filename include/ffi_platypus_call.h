@@ -32,6 +32,7 @@
     for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; perl_type_index++)
     {
       SV *type_sv = self->argument_getters[perl_type_index].sv;
+      void *extra_data = self->argument_getters[perl_type_index].extra_data;
       int perl_args = self->argument_getters[perl_type_index].perl_args;
       int native_args = self->argument_getters[perl_type_index].native_args;
       int count;
@@ -50,7 +51,7 @@
         }
       }
 
-      count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, arg, &freeme);
+      count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, extra_data, arg, &freeme);
       SPAGAIN;
       i += count;
     }
@@ -122,6 +123,7 @@
       if(self->argument_getters[perl_type_index].perl_to_native_post)
       {
 	SV *type_sv = self->argument_getters[perl_type_index].sv;
+	void *extra_data = self->argument_getters[perl_type_index].extra_data;
 	int perl_args = self->argument_getters[perl_type_index].perl_args;
 	int native_args = self->argument_getters[perl_type_index].native_args;
 	int count;
@@ -143,7 +145,7 @@
 	    perl_arg_index--;
 	  }
 	}
-	count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, arg, &freeme);
+	count = self->argument_getters[perl_type_index].perl_to_native_post(&arguments, i, type_sv, extra_data, arg, &freeme);
 	SPAGAIN;
 
 	SvREFCNT_dec(arg);
@@ -164,7 +166,7 @@
 
   if(self->native_to_perl)
   {
-    perl_return = self->native_to_perl(&result, self->return_type);
+    perl_return = self->native_to_perl(&result, self->return_type, self->extra_data);
     SPAGAIN;
   }
 

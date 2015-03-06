@@ -89,7 +89,7 @@ _accessor(perl_name, path_name, typesv, offset)
     }
     else
     {
-      ffi_pl_type *type = SV2ffi_pl_type(typesv);
+      ffi_pl_type *type = ffi_pl_extra_data(typesv);
       if(sv_derived_from(typesv, "FFI::Platypus::Type::Array"))
       {
         member->count = type->extra[0].array.element_count;

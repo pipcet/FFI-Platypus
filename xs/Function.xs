@@ -64,7 +64,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->address = (items-5+extra_arguments != 0) ? (void *)&cast1 : (void *)&cast0;
     }
     self->return_type = SvREFCNT_inc(return_type_arg);
-    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type);
+    self->extra_data = ffi_pl_extra_data(return_type_arg);
+    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type, self->extra_data);
     self->any_post = 0;
     SPAGAIN;
     
@@ -74,10 +75,9 @@ new(class, platypus, address, abi, return_type_arg, ...)
     }
     else
     {
-      ffi_pl_type *return_type = SV2ffi_pl_type(self->return_type);
-
       if (sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
       {
+	ffi_pl_type *return_type = self->extra_data;
         SV *ret_in=NULL, *ret_out;
 	AV *av;
 	SV **svp;
@@ -93,13 +93,16 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	} else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array")) {
 	  ffi = &ffi_type_pointer;
 	} else {
-	  ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	  ffi_pl_type *svp_type = ffi_pl_extra_data(*svp);
+	  ffi = svp_type->ffi_type;
 	}
 
         ffi_return_type = ffi;
       }
       else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::ExoticFloat"))
       {
+	ffi_pl_type *return_type = self->extra_data;
+
 	ffi_return_type = return_type->ffi_type;
       }
       else
@@ -115,8 +118,10 @@ new(class, platypus, address, abi, return_type_arg, ...)
       self->argument_getters[i].perl_args = 1;
       self->argument_getters[i].native_args = 1;
       self->argument_getters[i].stack_args = 0;
-      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg);
-      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg);
+      
+      self->argument_getters[i].extra_data = ffi_pl_extra_data(arg);
+      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg, ffi_pl_extra_data(arg));
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg, ffi_pl_extra_data(arg));
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       if(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
@@ -127,7 +132,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
       {
 	if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg) - 1;
+	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
 	  if(d < 0) {
 	    Safefree(self);
 	    Safefree(ffi_argument_types);
@@ -136,9 +141,20 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	    
 	  n += d;
         }
+	else if (sv_derived_from(arg, "FFI::Platypus::Type::Wrap"))
+	{
+	  int d = ffi_pl_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
+	  if(d < 0) {
+	    Safefree(self);
+	    Safefree(ffi_argument_types);
+	    croak("prepare_any failed");
+	  }
+
+	  n += d;
+	}
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
-	  tmp = SV2ffi_pl_type(arg);
+	  tmp = ffi_pl_extra_data(arg);
           ffi_argument_types[n] = tmp->ffi_type;
         }
         else
