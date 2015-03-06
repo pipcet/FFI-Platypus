@@ -988,17 +988,13 @@ sub guess_macro_type
     }
 
     for my $type (@potential_types) {
-      # this looks C-specific, but it's actually not.
+      # this looks C-specific, but it's actually not, as long as we
+      # set language to c and back afterwards. A better solution is on
+      # its way, though.
       $self->run_command("p \$"."$internal = typeof(" . $type->{name}. ")");
-
-      $self->run_command("ptype \$x0");
-      $self->run_command("ptype 0 ? \$x0 : (void *)0");
-      $self->run_command("ptype 1 ? \$x0 : (void *)0");
-
 
       my $expr = $self->run_command("py print print_macro_type('$macro', '$linespec')");
 
-      die $expr;
     }
   }
 
