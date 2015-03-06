@@ -137,6 +137,17 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	    
 	  n += d;
         }
+	else if (sv_derived_from(arg, "FFI::Platypus::Type::Wrap"))
+	{
+	  int d = ffi_pl_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg) - 1;
+	  if(d < 0) {
+	    Safefree(self);
+	    Safefree(ffi_argument_types);
+	    croak("prepare_any failed");
+	  }
+
+	  n += d;
+	}
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
 	  tmp = SV2ffi_pl_type(arg);

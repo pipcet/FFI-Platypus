@@ -1538,9 +1538,34 @@ sub native_to_perl_pointer {
 sub prepare_pointer {
   my($self) = @_;
 
-  return 0;
+  return $self->{prepare_pointer} if exists $self->{prepare_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->prepare_pointer;
+
+  my $sub = sub {
+    my ($getter_pointers, $getter_limits, $ffi_pointers, $ffi_limits, $type) = @_;
+
+    my $ret = $type->{ffi}->function($address => ['opaque', 'opaque', 'opaque', 'opaque', 'SV'] => 'int')->call(undef, undef, $ffi_pointers, $ffi_limits, $underlying_type);
+
+    warn "ret $ret $address $ffi_pointers $ffi_limits";
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{prepare_closure} = $closure;
+
+  my $ret = $self->{prepare_pointer} = $self->{ffi}->cast('(opaque, opaque, opaque, opaque, SV)->int', 'opaque', $closure);
+  return $ret;
 }
 
+sub count_native_arguments {
+  my($self) = @_;
+
+  return $self->{underlying_types}->[0]->count_native_arguments;
+}
 
 1;
 

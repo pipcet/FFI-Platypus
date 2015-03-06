@@ -1116,7 +1116,6 @@ ffi_pl_arguments_set_closure_post(ffi_pl_arguments *arguments, int i, SV *type_s
 int
 ffi_pl_arguments_set_custom_perl_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type(type_sv);
   HV *hv = (HV*)SvRV(type_sv);
   SV **svp;
   SV *arg2 = NULL;
