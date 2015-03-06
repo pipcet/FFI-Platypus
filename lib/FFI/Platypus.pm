@@ -1455,7 +1455,7 @@ sub perl_to_native_pointer {
 
   $self->{make_immortal} = \$self;
 
-  $self->{perl_to_native_closure} = \$closure;
+  $self->{perl_to_native_closure} = $closure;
 
   $self->{perl_to_native_pointer} = $self->{ffi}->cast('(long, int, SV, SV, long)->int', 'opaque', $closure);
 
@@ -1482,7 +1482,7 @@ sub perl_to_native_post_pointer {
   };
   my $closure = $self->{ffi}->closure($sub);
 
-  $self->{perl_to_native_post_closure} = \$closure;
+  $self->{perl_to_native_post_closure} = $closure;
 
   my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(long, int, SV, long, long)->int', 'opaque', $closure);
 
@@ -1510,7 +1510,7 @@ sub native_to_perl_pointer {
 
   my $closure = $self->{ffi}->closure($sub);
 
-  $self->{native_to_perl_closure} = \$closure;
+  $self->{native_to_perl_closure} = $closure;
 
   my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, long)->SV', 'opaque', $closure);
   return $ret;

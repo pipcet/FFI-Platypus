@@ -112,7 +112,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     }
   }
 
-  svp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "code", 4, 0);
+  svp = hv_fetch((HV *)closure->coderef, "code", 4, 0);
   if (svp)
     count = call_sv(*svp, flags | G_EVAL);
   else

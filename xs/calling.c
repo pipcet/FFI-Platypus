@@ -783,10 +783,10 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, SV
 	  const char *key;
 	  STRLEN len;
 
-	  closure->coderef = arg;
+	  closure->coderef = SvRV(arg);
 	  keysv = ffi_pl_closure_add_data(arg, closure);
 	  key = SvPV(keysv, len);
-	  hvp = hv_fetch((HV *)SvRV((SV *)closure->coderef), "cbdata", 6, 0);
+	  hvp = hv_fetch((HV *)closure->coderef, "cbdata", 6, 0);
 	  if (!hvp)
 	    croak("couldn't create closure type hash");
 	  svp = hv_fetch((HV *)SvRV(*hvp), key, len, 0);
