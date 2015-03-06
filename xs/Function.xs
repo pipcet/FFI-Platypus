@@ -93,7 +93,8 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	} else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array")) {
 	  ffi = &ffi_type_pointer;
 	} else {
-	  ffi = SV2ffi_pl_type(*svp)->ffi_type;
+	  ffi_pl_type *svp_type = ffi_pl_extra_data(*svp);
+	  ffi = svp_type->ffi_type;
 	}
 
         ffi_return_type = ffi;
@@ -153,7 +154,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
 	}
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
         {
-	  tmp = SV2ffi_pl_type(arg);
+	  tmp = ffi_pl_extra_data(arg);
           ffi_argument_types[n] = tmp->ffi_type;
         }
         else

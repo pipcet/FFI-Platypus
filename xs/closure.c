@@ -67,15 +67,15 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
   dSP;
 
   ffi_pl_closure *closure = (ffi_pl_closure*) user;
-  ffi_pl_type *type = SV2ffi_pl_type((SV*)closure->type);
   int flags;
   int i;
   int count;
   SV *sv;
   SV **svp;
   AV *av;
+  HV *hv = (HV*)SvRV((SV*)closure->type);
 
-  svp = hv_fetch(type->hv, "flags", strlen("flags"), 0);
+  svp = hv_fetch(hv, "flags", strlen("flags"), 0);
   flags = SvIV(*svp);
 
   if(!(flags & G_NOARGS))
@@ -88,7 +88,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
 
   if(!(flags & G_NOARGS))
   {
-    svp = hv_fetch(type->hv, "argument_types", strlen("argument_types"), 0);
+    svp = hv_fetch(hv, "argument_types", strlen("argument_types"), 0);
     av = (AV*)SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
@@ -143,7 +143,7 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     else
       sv = POPs;
 
-    svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
+    svp = hv_fetch(hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
 
     perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv, ffi_pl_extra_data(ret_sv));

@@ -377,7 +377,7 @@ int
 sizeof(selfsv)
     SV *selfsv
   CODE:
-    RETVAL = ffi_pl_sizeof(selfsv, SV2ffi_pl_type(selfsv));
+    RETVAL = ffi_pl_sizeof(selfsv, ffi_pl_extra_data(selfsv));
   OUTPUT:
     RETVAL
 
