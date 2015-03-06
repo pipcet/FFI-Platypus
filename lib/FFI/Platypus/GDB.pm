@@ -1027,6 +1027,8 @@ sub new {
   $self->{out} = "";
   $self->run_command("py exec file('/home/pip/git/FFI-Platypus/share/gdb/perlify-expressions.py')");
 
+  FFI::Platypus::GDB::GDBExpression->init($self);
+
   return $self;
 }
 
