@@ -399,6 +399,10 @@ sub type
     # Recommended that you use an alias for a closure type anyway.
     $self->{types}->{$name} ||= FFI::Platypus::Type->new($name, $self);
   }
+  elsif ($name =~ /^wrap\((.*)\)$/)
+  {
+    $self->{types}->{$name} ||= FFI::Platypus::Type::Wrap->new($self->_type_lookup($1));
+  }
   else
   {
     my $basic = $name;
@@ -1410,6 +1414,116 @@ sub new {
   return bless(FFI::Platypus::Type::FFI->new('opaque'), $class);
 }
 
+package FFI::Platypus::Type::Wrap;
+use parent -norequire, 'FFI::Platypus::Type';
+use FFI::Platypus::Declare;
+
+# this type demonstrates that we can implement a type purely in Perl
+# even though it needs to return C closures for some of its
+# operations.
+
+sub new {
+  my($class, $basetype) = @_;
+
+  return bless { underlying_types => [$basetype], ffi => FFI::Platypus->new }, $class;
+}
+
+use Data::Dumper;
+
+sub perl_to_native_pointer {
+  my($self) = @_;
+
+  return $self->{perl_to_native_pointer} if exists $self->{perl_to_native_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->perl_to_native_pointer;
+
+  undef $underlying_type;
+
+  my $sub = sub {
+    my($arguments, $i, $type_sv, $arg, $freeme) = @_;
+
+    print STDERR "argument is $arg\n";
+
+    my $f = $type_sv->{ffi}->function($address => ['long', 'int', 'SV', 'SV', 'long'] => 'int');
+    my $ret = $f->call($arguments, $i, $type_sv, $arg, $freeme);
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{make_immortal} = \$self;
+
+  $self->{perl_to_native_closure} = $closure;
+
+  $self->{perl_to_native_pointer} = $self->{ffi}->cast('(long, int, SV, SV, long)->int', 'long', $closure);
+
+  return $self->{perl_to_native_pointer};
+}
+
+sub perl_to_native_post_pointer {
+  my($self) = @_;
+
+  return $self->{perl_to_native_post_pointer} if exists $self->{perl_to_native_post_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->perl_to_native_post_pointer;
+
+  undef $underlying_type;
+
+  my $sub = sub {
+    my($arguments, $i, $type_sv, $arg, $freeme) = @_;
+
+    my $f = $type_sv->{ffi}->function($address => ['long', 'int', 'SV', 'long', 'long'] => 'int');
+    my $ret = $f->call($arguments, $i, $type_sv, $arg, $freeme);;
+
+    return $ret;
+  };
+  my $closure = $self->{ffi}->closure($sub);
+  $self->{perl_to_native_post_closure} = $closure;
+
+  $self->{make_immortal} = \$self;
+
+  my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(long, int, SV, long, long)->int', 'long', $closure);
+
+  return $ret;
+}
+
+use Devel::FindRef;
+
+sub native_to_perl_pointer {
+  my($self) = @_;
+
+  return $self->{native_to_perl_pointer} if exists $self->{native_to_perl_pointer};
+
+  my $underlying_type = $self->{underlying_types}->[0];
+  my $address = $underlying_type->native_to_perl_pointer;
+
+  undef $underlying_type;
+
+  my $sub = sub {
+    my($resultp, $return_type) = @_;
+
+    my $rtype = $self->{ffi}->cast('long' => 'SV', $return_type);
+    my $ret = $rtype->{ffi}->function($address => ['long', 'long'] => 'SV')->call($resultp, $return_type);
+
+    return $ret;
+  };
+
+  my $closure = $self->{ffi}->closure($sub);
+
+  $self->{native_to_perl_closure} = $closure;
+  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, long)->SV', 'long', $closure);
+
+  return $ret;
+}
+
+sub prepare_pointer {
+  my($self) = @_;
+
+  return 0;
+}
 
 
 1;
