@@ -1659,7 +1659,7 @@ ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
 SV *
 ffi_pl_sv_native_to_perl(ffi_pl_result *result, SV *return_type)
 {
-  return SvREFCNT_inc(newSVsv(result->pointer));
+  return SvREFCNT_inc(result->pointer);
 }
 
 native_to_perl_pointer_t

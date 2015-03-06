@@ -1440,6 +1440,8 @@ sub perl_to_native_pointer {
 
   undef $underlying_type;
 
+  return 0 unless $address;
+
   my $sub = sub {
     my($arguments, $i, $type_sv, $arg, $freeme) = @_;
 
@@ -1452,8 +1454,6 @@ sub perl_to_native_pointer {
   };
 
   my $closure = $self->{ffi}->closure($sub);
-
-  $self->{make_immortal} = \$self;
 
   $self->{perl_to_native_closure} = $closure;
 
@@ -1469,6 +1469,8 @@ sub perl_to_native_post_pointer {
 
   my $underlying_type = $self->{underlying_types}->[0];
   my $address = $underlying_type->perl_to_native_post_pointer;
+
+  return 0 unless $address;
 
   undef $underlying_type;
 
@@ -1497,13 +1499,14 @@ sub native_to_perl_pointer {
   my $underlying_type = $self->{underlying_types}->[0];
   my $address = $underlying_type->native_to_perl_pointer;
 
+  return 0 unless $address;
+
   undef $underlying_type;
 
   my $sub = sub {
     my($resultp, $return_type) = @_;
 
-    my $rtype = $self->{ffi}->cast('long' => 'SV', $return_type);
-    my $ret = $rtype->{ffi}->function($address => ['long', 'long'] => 'SV')->call($resultp, $return_type);
+    my $ret = $return_type->{ffi}->function($address => ['long', 'long'] => 'SV')->call($resultp, $return_type);
 
     return $ret;
   };
@@ -1512,7 +1515,7 @@ sub native_to_perl_pointer {
 
   $self->{native_to_perl_closure} = $closure;
 
-  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, long)->SV', 'opaque', $closure);
+  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, SV)->SV', 'opaque', $closure);
   return $ret;
 }
 
