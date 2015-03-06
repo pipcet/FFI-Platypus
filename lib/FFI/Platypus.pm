@@ -1506,7 +1506,9 @@ sub native_to_perl_pointer {
   my $sub = sub {
     my($resultp, $return_type) = @_;
 
-    my $ret = $return_type->{ffi}->function($address => ['long', 'long'] => 'SV')->call($resultp, $return_type);
+    my $ret = $return_type->{ffi}->function($address => ['long', 'SV'] => 'SV')->call($resultp, $return_type);
+
+    warn "return value is $ret";
 
     return $ret;
   };
