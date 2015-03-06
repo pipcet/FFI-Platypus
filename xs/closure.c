@@ -100,10 +100,10 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
       arg_type_sv = *svp;
 
       PUTBACK;
-      f = ffi_pl_arguments_native_to_perl(arg_type_sv, NULL);
+      f = ffi_pl_arguments_native_to_perl(arg_type_sv, ffi_pl_extra_data(arg_type_sv));
       SPAGAIN;
 
-      arg = f((ffi_pl_result *)arguments[i], arg_type_sv, NULL);
+      arg = f((ffi_pl_result *)arguments[i], arg_type_sv, ffi_pl_extra_data(arg_type_sv));
       SPAGAIN;
       arg = newSVsv(arg);
       SvREFCNT_inc(arg);
@@ -146,9 +146,9 @@ ffi_pl_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, void *user
     svp = hv_fetch(type->hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
 
-    perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv, NULL);
+    perl_to_native_pointer_t perl_to_native = ffi_pl_arguments_perl_to_native(ret_sv, ffi_pl_extra_data(ret_sv));
     SPAGAIN;
-    int count2 = perl_to_native(&arguments, 0, ret_sv, NULL, sv, &freeme);
+    int count2 = perl_to_native(&arguments, 0, ret_sv, ffi_pl_extra_data(ret_sv), sv, &freeme);
     SPAGAIN;
 
     if (count2 > 1)

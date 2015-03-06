@@ -171,7 +171,7 @@ int
 ffi_pl_arguments_set_array(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
   void *ptr;
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
   int count = type->extra[0].array.element_count;
   int n;
 
@@ -349,11 +349,11 @@ ffi_pl_arguments_set_customperl(ffi_pl_arguments *arguments, int i, SV *type_sv,
 	  perl_j++;
 	}
 	perl_j--;
-	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, NULL, (SV*)av, freeme);
+	i += ffi_pl_arguments_set_customperl(arguments, i, type2_sv, ffi_pl_extra_data(type2_sv), (SV*)av, freeme);
       } else {
 	svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
 	arg3 = *svp;
-	i += ffi_pl_arguments_set_any(arguments, i, type2_sv, NULL, arg3, freeme);
+	i += ffi_pl_arguments_set_any(arguments, i, type2_sv, ffi_pl_extra_data(type2_sv), arg3, freeme);
       }
     }
 
@@ -404,7 +404,7 @@ ffi_pl_arguments_set_constant(ffi_pl_arguments *arguments, int i, SV *type_sv, v
   svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
   type_av = (AV *)SvRV(*svp);
   svp = av_fetch(type_av, j, 0);
-  i += ffi_pl_arguments_set_any(arguments, i, *svp, value, NULL, freeme);
+  i += ffi_pl_arguments_set_any(arguments, i, *svp, ffi_pl_extra_data(*svp), value, freeme);
 
   if (!*freeme)
   {
@@ -449,7 +449,7 @@ int ffi_pl_prepare_sv(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_
 int ffi_pl_prepare_generic(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data)
 {
   if(ffi_argument_types != ffi_argument_types_limit)
-    *ffi_argument_types = SV2ffi_pl_type(arg_type)->ffi_type;
+    *ffi_argument_types = ((ffi_pl_type *)extra_data)->ffi_type;
   else
     return -1;
 
@@ -497,7 +497,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_lim
   int d=0;
   int j;
   int perl_j;
-  ffi_pl_type *tmp = SV2ffi_pl_type(arg_type);
+  ffi_pl_type *tmp = extra_data;
 
   svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
   if (svp) {
@@ -516,7 +516,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_lim
     svp = hv_fetch(tmp->hv, "underlying_types", strlen("underlying_types"), 0);
     av = (AV *)SvRV(*svp);
     svp = av_fetch(av, perl_j, 0);
-    int d2 = ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+j, ffi_argument_types_limit, *svp, NULL);
+    int d2 = ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+j, ffi_argument_types_limit, *svp, ffi_pl_extra_data(*svp));
     d += d2-1;
     j += d2-1;
   }
@@ -542,7 +542,7 @@ int ffi_pl_prepare_customperl(ffi_pl_getter *getters, ffi_pl_getter *getters_lim
 int
 ffi_pl_arguments_set_record(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
   void *ptr;
   STRLEN size;
   int expected;
@@ -574,7 +574,7 @@ ffi_pl_arguments_set_perl_string_variable(ffi_pl_arguments *arguments, int i, SV
 int
 ffi_pl_arguments_set_perl_string(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
 
   switch(type->extra[0].string.platypus_string_type)
   {
@@ -627,7 +627,7 @@ ffi_pl_arguments_set_ref_sint32(ffi_pl_arguments *arguments, int i, SV *type_sv,
 int
 ffi_pl_arguments_set_ref(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
   void *ptr;
 
   if(SvROK(arg)) /* TODO: and a scalar ref */
@@ -732,7 +732,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, vo
   {
     ffi_pl_closure *closure;
     ffi_status ffi_status;
-    ffi_pl_type *type = SV2ffi_pl_type(type_sv);
+    ffi_pl_type *type = extra_data;
 
     SvREFCNT_inc(arg);
 
@@ -813,7 +813,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, vo
 int
 ffi_pl_arguments_set_exoticfloat(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
 
   switch(type->ffi_type->type)
   {
@@ -900,7 +900,7 @@ ffi_pl_arguments_set_any(ffi_pl_arguments *arguments, int i, SV *type_sv, void *
   getter.native_args = 1;
   getter.perl_to_native = ffi_pl_arguments_perl_to_native(type_sv, extra_data);
 
-  return getter.perl_to_native(arguments, i, type_sv, NULL, arg, freeme);
+  return getter.perl_to_native(arguments, i, type_sv, ffi_pl_extra_data(type_sv), arg, freeme);
 }
 
 int
@@ -921,7 +921,7 @@ ffi_pl_arguments_set_ref_post_sint32(ffi_pl_arguments *arguments, int i, SV *typ
 int
 ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   if(ptr != NULL)
   {
@@ -992,7 +992,7 @@ ffi_pl_arguments_set_ref_post(ffi_pl_arguments *arguments, int i, SV *type_sv, v
 int
 ffi_pl_arguments_set_array_post(ffi_pl_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_type *type = SV2ffi_pl_type_nocheck(type_sv);
+  ffi_pl_type *type = extra_data;
   void *ptr = ffi_pl_arguments_get_pointer(arguments, i-1);
   int count = type->extra[0].array.element_count;
   int n;
@@ -1342,7 +1342,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type, void *extra
   }
   else
   {
-    ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+    ffi_pl_type *pl_return_type = extra_data;
 
     if(pl_return_type->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
     {
@@ -1360,7 +1360,7 @@ ffi_pl_native_to_perl_string(ffi_pl_result *result, SV *return_type, void *extra
 SV *
 ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type, void *extra_data)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+  ffi_pl_type *pl_return_type = extra_data;
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1442,7 +1442,7 @@ ffi_pl_native_to_perl_pointer(ffi_pl_result *result, SV *return_type, void *extr
 SV *
 ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type, void *extra_data)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+  ffi_pl_type *pl_return_type = extra_data;
   if(result->pointer != NULL)
   {
     SV *value = sv_newmortal();
@@ -1467,7 +1467,7 @@ ffi_pl_native_to_perl_record(ffi_pl_result *result, SV *return_type, void *extra
 SV *
 ffi_pl_native_to_perl_array(ffi_pl_result *result, SV *return_type, void *extra_data)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+  ffi_pl_type *pl_return_type = extra_data;
   if(result->pointer == NULL)
   {
     return NULL;
@@ -1590,13 +1590,13 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type, void *e
   STRLEN len;
   const char *name;
   ffi_type *ffi;
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+  ffi_pl_type *pl_return_type = extra_data;
 
   svp = hv_fetch(pl_return_type->hv, "underlying_types", strlen("underlying_types"), 0);
   av = (AV *)SvRV(*svp);
   svp = av_fetch(av, 0, 0);
 
-  ret_in = SvREFCNT_inc(ffi_pl_arguments_native_to_perl(*svp, NULL)(result, *svp, NULL));
+  ret_in = SvREFCNT_inc(ffi_pl_arguments_native_to_perl(*svp, ffi_pl_extra_data(*svp))(result, *svp, ffi_pl_extra_data(*svp)));
 
   {
     HV *hv = (HV*)SvRV(return_type);
@@ -1632,7 +1632,7 @@ ffi_pl_native_to_perl_customperl(ffi_pl_result *result, SV *return_type, void *e
 SV *
 ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type, void *extra_data)
 {
-  ffi_pl_type *pl_return_type = SV2ffi_pl_type_nocheck(return_type);
+  ffi_pl_type *pl_return_type = extra_data;
   switch(pl_return_type->ffi_type->type)
   {
 #ifdef FFI_PL_PROBE_LONGDOUBLE

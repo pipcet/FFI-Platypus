@@ -233,7 +233,7 @@ _new_struct_type(class, types)
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
-      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp, NULL);
+      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp, ffi_pl_extra_data(*svp));
       SPAGAIN;
     }
 
@@ -296,7 +296,7 @@ _new_closure(class, return_type_arg, ...)
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg, NULL);
+      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg, ffi_pl_extra_data(arg));
       SPAGAIN;
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);

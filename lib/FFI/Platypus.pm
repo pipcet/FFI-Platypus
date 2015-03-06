@@ -1448,7 +1448,7 @@ sub perl_to_native_pointer {
     print STDERR "argument is $arg\n";
 
     my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'opaque', 'SV', 'opaque'] => 'int');
-    my $ret = $f->call($arguments, $i, $type_sv, undef, $arg, $freeme);
+    my $ret = $f->call($arguments, $i, $type_sv, $extra_data, $arg, $freeme);
 
     my $arguments_ptr = unpack 'P16', pack 'Q', $arguments;
     my ($arguments_count, $arguments_reserved, $arguments_pointers) = unpack 'llq', $arguments_ptr;
@@ -1487,7 +1487,7 @@ sub perl_to_native_post_pointer {
     my($arguments, $i, $type_sv, $extra_data, $arg, $freeme) = @_;
 
     my $f = $type_sv->{ffi}->function($address => ['opaque', 'int', 'SV', 'opaque', 'opaque', 'opaque'] => 'int');
-    my $ret = $f->call($arguments, $i, $type_sv, undef, $arg, $freeme);
+    my $ret = $f->call($arguments, $i, $type_sv, $extra_data, $arg, $freeme);
 
     return $ret;
   };
@@ -1520,7 +1520,7 @@ sub native_to_perl_pointer {
 
     warn "result encoded as $result_hex..."; # it might be longer than that.
 
-    my $ret = $return_type->{ffi}->function($address => ['long', 'SV', 'opaque'] => 'SV')->call($resultp, $return_type, undef);
+    my $ret = $return_type->{ffi}->function($address => ['long', 'SV', 'opaque'] => 'SV')->call($resultp, $return_type, $extra_data);
 
     warn "return value is $ret";
 
@@ -1541,12 +1541,13 @@ sub prepare_pointer {
   return $self->{prepare_pointer} if exists $self->{prepare_pointer};
 
   my $underlying_type = $self->{underlying_types}->[0];
+  my $underlying_extra_data = $underlying_type->extra_data;
   my $address = $underlying_type->prepare_pointer;
 
   my $sub = sub {
     my ($getter_pointers, $getter_limits, $ffi_pointers, $ffi_limits, $type, $extra_data) = @_;
 
-    my $ret = $type->{ffi}->function($address => ['opaque', 'opaque', 'opaque', 'opaque', 'SV', 'opaque'] => 'int')->call(undef, undef, $ffi_pointers, $ffi_limits, $underlying_type, undef);
+    my $ret = $type->{ffi}->function($address => ['opaque', 'opaque', 'opaque', 'opaque', 'SV', 'opaque'] => 'int')->call(undef, undef, $ffi_pointers, $ffi_limits, $underlying_type, $underlying_extra_data);
 
     return $ret;
   };
