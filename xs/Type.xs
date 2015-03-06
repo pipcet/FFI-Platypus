@@ -762,6 +762,40 @@ native_to_perl_pointer(ffi)
   OUTPUT:
     RETVAL
 
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::SV
+
+void *
+prepare_pointer(self)
+    void *self
+  CODE:
+    RETVAL = ffi_pl_prepare_sv;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_pointer(svraw)
+    void *svraw
+  CODE:
+    RETVAL = ffi_pl_sv_perl_to_native;
+  OUTPUT:
+    RETVAL
+
+void *
+perl_to_native_post_pointer(svraw)
+    void *svraw
+  CODE:
+    RETVAL = ffi_pl_sv_perl_to_native_post;
+  OUTPUT:
+    RETVAL
+
+void *
+native_to_perl_pointer(svraw)
+    void *svraw
+  CODE:
+    RETVAL = ffi_pl_sv_native_to_perl;
+  OUTPUT:
+    RETVAL
+
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::C
 
 void

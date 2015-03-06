@@ -238,6 +238,7 @@ sub _type_map
     $type_map{$_} = $_ for grep { _have_type($_) } 
       qw( void sint8 uint8 sint16 uint16 sint32 uint32 sint64 uint64 float double string opaque
           longdouble complex_float complex_double );
+    $type_map{SV} = 'SV';
     $type_map{pointer} = 'opaque';
     $self->{type_map} = \%type_map;
   }
@@ -1277,6 +1278,10 @@ sub new
     $platypus_type = 'Array';
     $size = $1 ? $1 : 0;
   }
+  elsif($type eq "SV")
+  {
+    return FFI::Platypus::Type::SV->new;
+  }
   else
   {
     $ffi_type = $type;
@@ -1394,6 +1399,16 @@ use parent -norequire, 'FFI::Platypus::Type';
 package FFI::Platypus::Type::FFI;
 use parent -norequire, 'FFI::Platypus::Type';
 use Carp qw(croak);
+
+package FFI::Platypus::Type::SV;
+use parent -norequire, 'FFI::Platypus::Type::FFI';
+
+sub new {
+  my($class) = @_;
+
+  # we know what we're doing.
+  return bless(FFI::Platypus::Type::FFI->new('opaque'), $class);
+}
 
 
 

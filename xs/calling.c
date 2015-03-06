@@ -436,6 +436,16 @@ int ffi_pl_prepare_array(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, f
   return 1;
 }
 
+int ffi_pl_prepare_sv(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
+{
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = &ffi_type_pointer;
+  else
+    return -1;
+
+  return 1;
+}
+
 int ffi_pl_prepare_generic(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type)
 {
   if(ffi_argument_types != ffi_argument_types_limit)
@@ -1156,6 +1166,24 @@ ffi_pl_arguments_set_exoticfloat_post(ffi_pl_arguments *arguments, int i, SV *ty
   return 1;
 }
 
+int
+ffi_pl_sv_perl_to_native(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  SvREFCNT_inc(arg);
+
+  arguments->pointers[i]->pointer = arg;
+
+  return 1;
+}
+
+int
+ffi_pl_sv_perl_to_native_post(ffi_pl_arguments *arguments, int i, SV *type_sv, SV *arg, SV **freeme)
+{
+  SvREFCNT_inc(arg);
+
+  return 1;
+}
+
 perl_to_native_pointer_t
 ffi_pl_arguments_perl_to_native_post(SV *type_sv)
 {
@@ -1627,6 +1655,12 @@ ffi_pl_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type)
     }
 #endif
   }
+}
+
+SV *
+ffi_pl_sv_native_to_perl(ffi_pl_result *result, SV *return_type)
+{
+  return SvREFCNT_inc(newSVsv(result->pointer));
 }
 
 native_to_perl_pointer_t
