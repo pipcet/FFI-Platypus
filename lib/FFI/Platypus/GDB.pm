@@ -437,6 +437,162 @@ sub ops {
   return \%ops;
 }
 
+package FFI::Platypus::GDB::GDBExpression;
+use FFI::Platypus::GDB::Fragment;
+
+sub new {
+  my($class, $opcode, @children) = @_;
+
+  my $self = bless { opcode => $opcode, subexps => \@children }, $class;
+
+  return $self;
+}
+
+sub n {
+  my($self) = @_;
+  return scalar @{$self->{subexps}};
+}
+
+sub subexp {
+  my($self, $i) = @_;
+
+  return $self->{subexps}->[$i];
+}
+
+sub c_emit {
+  my($self) = @_;
+
+  my $prefix = $self->c_prefix;
+  my $suffix = $self->c_suffix;
+
+  if($self->n == 1 and
+     defined($prefix) and
+     defined($suffix)) {
+    return $prefix . $self->child(0)->c_emit . $suffix;
+  }
+}
+
+sub emit {
+  my($self, @languages) = @_;
+
+  for my $language (@languages) {
+    my $ret = $self->emit($language);
+
+    return $ret if defined $ret;
+  }
+
+  return undef;
+}
+
+my %gdb_opcode_to_code;
+my @gdb_opcodes;
+
+sub init {
+  my($class, $gdb) = @_;
+
+  my $output = $gdb->run_command('py print gdb.opcodes');
+  $output =~ s/, <NULL>//g;
+  my $i = 0;
+  my @opcodes = @{eval fragment $output};
+
+  for my $opcode (@opcodes) {
+    my $frag = qq{
+package FFI::Platypus::GDB::GDBExpression::$opcode;
+use parent -norequire, 'FFI::Platypus::GDB::GDBExpression';
+};
+
+    if ($opcode =~ /^UNOP/) {
+      $frag .= "use parent -norequire, 'FFI::Platypus::GDB::GDBExpression::UnaryOperator';\n";
+    } elsif ($opcode =~ /^BINOP/) {
+      $frag .= "use parent -norequire, 'FFI::Platypus::GDB::GDBExpression::BinaryOperator';\n";
+    } elsif ($opcode =~ /^TERNOP/) {
+      $frag .= "use parent -norequire, 'FFI::Platypus::GDB::GDBExpression::TernaryOperator';\n";
+    }
+
+    $frag .= "\n";
+
+    $frag .= qq{
+sub c_prefix {
+}
+
+sub c_suffix {
+}
+
+};
+
+    if ($opcode =~ /^BINOP/) {
+      $frag .= qq{
+sub c_infix {
+}
+
+};
+    } elsif ($opcode =~ /^TERNOP/) {
+      $frag .= qq{
+sub c_infix {
+}
+
+sub c_infix2 {
+}
+
+};
+    }
+
+    $frag .= qq{
+sub opcode {
+  return $i; # expanded before we eval
+}
+};
+
+
+    eval fragment $frag;
+
+    $gdb_opcodes[$i] = $opcode;
+    $gdb_opcode_to_code{$opcode} = $i;
+
+    $i++;
+  }
+}
+
+package FFI::Platypus::GDBExpression::UnaryOperator;
+use parent -norequire, 'FFI::Platypus::GDBExpression';
+
+sub c_emit {
+  my($self) = @_;
+
+  if($self->n == 1 and
+     $self->can('c_prefix') and
+     $self->can('c_suffix')) {
+    return $self->c_prefix . $self->child(0)->c_emit . $self->c_suffix;
+  }
+}
+
+package FFI::Platypus::GDBExpression::BinaryOperator;
+use parent -norequire, 'FFI::Platypus::GDBExpression';
+
+sub c_emit {
+  my($self) = @_;
+
+  if($self->n == 1 and
+     $self->can('c_prefix') and
+     $self->can('c_infix') and
+     $self->can('c_suffix')) {
+    return $self->c_prefix . $self->child(0)->c_emit . $self->c_infix . $self->child(1)->c_emit . $self->c_suffix;
+  }
+}
+
+package FFI::Platypus::GDBExpression::TernaryOperator;
+use parent -norequire, 'FFI::Platypus::GDBExpression';
+
+sub c_emit {
+  my($self) = @_;
+
+  if($self->n == 1 and
+     $self->can('c_prefix') and
+     $self->can('c_infix') and
+     $self->can('c_suffix')) {
+    return $self->c_prefix . $self->child(0)->c_emit . $self->c_infix . $self->child(1)->c_emit . $self->c_infix2 . $self->child(2)->c_emit . $self->c_suffix;
+  }
+}
 
 package FFI::Platypus::GDB;
 
