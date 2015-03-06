@@ -96,11 +96,12 @@ typedef struct _ffi_pl_type {
 typedef struct _ffi_pl_arguments ffi_pl_arguments;
 typedef union _ffi_pl_result ffi_pl_result;
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_arguments *arguments, int i, void *type_sv, void *arg, void *freeme);
-typedef void *(*native_to_perl_pointer_t)(ffi_pl_result *result, void *return_type);
+typedef int (*perl_to_native_pointer_t)(ffi_pl_arguments *arguments, int i, void *type_sv, void *extra_data, void *arg, void *freeme);
+typedef void *(*native_to_perl_pointer_t)(ffi_pl_result *result, void *return_type, void *extra_data);
 
 typedef struct _ffi_pl_getter {
   void *sv; /* type object */
+  void *extra_data;
   int perl_args;
   int native_args;
   int stack_args;
@@ -115,6 +116,7 @@ typedef struct _ffi_pl_function {
   int nargs_perl;
   int stack_args;
   void *return_type;       /* really SV* */
+  void *extra_data;
 
   int any_post;
 

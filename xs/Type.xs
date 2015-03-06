@@ -233,7 +233,7 @@ _new_struct_type(class, types)
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
-      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp);
+      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp, NULL);
       SPAGAIN;
     }
 
@@ -296,7 +296,7 @@ _new_closure(class, return_type_arg, ...)
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg);
+      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg, NULL);
       SPAGAIN;
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
@@ -378,6 +378,14 @@ sizeof(selfsv)
     SV *selfsv
   CODE:
     RETVAL = ffi_pl_sizeof(selfsv, SV2ffi_pl_type(selfsv));
+  OUTPUT:
+    RETVAL
+
+void *
+extra_data(ffi)
+    ffi_pl_type *ffi
+  CODE:
+    RETVAL = ffi;
   OUTPUT:
     RETVAL
 
@@ -765,6 +773,14 @@ native_to_perl_pointer(ffi)
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::SV
 
 void *
+extra_data(self)
+    void *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
 prepare_pointer(self)
     void *self
   CODE:
@@ -862,6 +878,14 @@ native_to_perl_xs(pointer)
     }
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::FFI
+
+void *
+extra_data(self)
+    void *self
+  CODE:
+    RETVAL = NULL;
+  OUTPUT:
+    RETVAL
 
 ffi_type*
 new(class, name)
