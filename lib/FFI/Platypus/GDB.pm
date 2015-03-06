@@ -601,6 +601,8 @@ use warnings;
 use 5.008001;
 use Carp qw(croak);
 #use Carp::Always;
+use FFI::Platypus::GDB::Fragment;
+
 
 =head1 SYNOPSIS
 
@@ -732,7 +734,7 @@ sub realize_pretype {
 	return "record(Record::$qname)";
       } else {
 	warn "{ package Record::$qname; use FFI::Platypus::Record; " . 'record_layout($self->{ffi}, @record_definition); }';
-	eval "{ package Record::$qname; use FFI::Platypus::Record; " . 'record_layout($self->{ffi}, @record_definition); }';
+	eval fragment "{ package Record::$qname; use FFI::Platypus::Record; " . 'record_layout($self->{ffi}, @record_definition); }';
 
 	die $@ if $@;
 
@@ -911,7 +913,7 @@ sub read_type
 
   return $self if $eval eq "";
 
-  my $t = eval $eval;
+  my $t = eval fragment $eval;
 
   die $@ if $@;
 
@@ -936,7 +938,7 @@ sub read_type_expression
 
   return $self if $eval eq "";
 
-  my $t = eval $eval;
+  my $t = eval fragment $eval;
 
   die $@ if $@;
 
@@ -957,7 +959,7 @@ sub guess_macro_type
 
   return $self if $expr eq "";
 
-  my $partial_type = eval $expr;
+  my $partial_type = eval fragment $expr;
 
   die $@ if $@;
 
@@ -1011,7 +1013,7 @@ sub handle_macro
 
   return $self if $expr eq "";
 
-  eval $expr;
+  eval fragment $expr;
 }
 
 sub new {
@@ -1048,4 +1050,7 @@ $gdb->guess_macro_type('TYPE_OBJFILE', 'python.c:1000');
 # $gdb->handle_symbol('ffi_pl_closure_call', 1);
 # $gdb->handle_symbol('ffi_pl_record_accessor_uint8', 1);
 # $gdb->handle_symbol('ffi_pl_closure');
-die 'success';
+
+FFI::Platypus::GDB::Fragment::show_fragments();
+
+1;
