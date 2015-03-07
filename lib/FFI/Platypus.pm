@@ -417,17 +417,14 @@ sub type
   croak "alias conflicts with existing type" if defined $alias && (defined $type_map->{$alias} || defined $self->{types}->{$alias});
 
   if($name =~ /-\>/ || $name =~ /^record\s*\([0-9A-Z:a-z_]+\)$/
-  || $name =~ /^string(_rw|_ro|\s+rw|\s+ro|\s*\([0-9]+\))$/)
+  || $name =~ /^string(_rw|_ro|\s+rw|\s+ro|\s*\([0-9]+\))$/
+  || $name =~ /^(debug|wrap)\(.*\)$/)
   {
     # for closure and record types we do not try to convet into the
     # basic type so you can have many many many copies of a given
     # closure type if you do not spell it exactly the same each time.
     # Recommended that you use an alias for a closure type anyway.
-    $self->{types}->{$name} ||= FFI::Platypus::Type->new($name, $self);
-  }
-  elsif ($name =~ /^wrap\((.*)\)$/)
-  {
-    $self->{types}->{$name} ||= FFI::Platypus::Type::Wrap->new($self->_type_lookup($1));
+    $self->{types}->{$name} ||= $self->impl_new_type($name);
   }
   else
   {
@@ -439,7 +436,7 @@ sub type
     }
   
     croak "unknown type: $basic" unless defined $type_map->{$basic};
-    $self->{types}->{$name} = $self->{types}->{$type_map->{$basic}.$extra} ||= FFI::Platypus::Type->new($type_map->{$basic}.$extra, $self);
+    $self->{types}->{$name} = $self->{types}->{$type_map->{$basic}.$extra} ||= $self->impl_new_type($type_map->{$basic}.$extra);
   }
   
   if(defined $alias)
