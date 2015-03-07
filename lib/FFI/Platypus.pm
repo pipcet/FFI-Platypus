@@ -806,27 +806,6 @@ Examples:
 
 my $inner_counter=0;
 
-sub _make_attach_method
-{
-  my($object, $other_methods) = @_;
-  my $key = refaddr($object) || "$object";
-  my $entry = $other_methods->{$key};
-
-  if(!$entry or !defined $entry->{weakref} and exists $entry->{weakref})
-  {
-    croak("attached method called for invalid object");
-  }
-
-  if(exists $entry->{argument})
-  {
-    return ($entry->{body}, $entry->{function}, $entry->{argument});
-  }
-  else
-  {
-    return ($entry->{body}, $entry->{function});
-  }
-}
-
 sub attach
 {
   my $wrapper;
@@ -901,6 +880,27 @@ argument. If you need such a wrapper, you might as well handle the
 object detection in the wrapper sub.
 
 =cut
+
+sub _make_attach_method
+{
+  my($object, $other_methods) = @_;
+  my $key = refaddr($object) || "$object";
+  my $entry = $other_methods->{$key};
+
+  if(!$entry or !defined $entry->{weakref} and exists $entry->{weakref})
+  {
+    croak("attached method called for invalid object");
+  }
+
+  if(exists $entry->{argument})
+  {
+    return ($entry->{body}, $entry->{function}, $entry->{argument});
+  }
+  else
+  {
+    return ($entry->{body}, $entry->{function});
+  }
+}
 
 sub attach_method
 {

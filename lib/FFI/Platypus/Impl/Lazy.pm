@@ -37,4 +37,11 @@ sub impl_new_function
   return FFI::Platypus::Function::Lazy->new($self->{impl_base}, $address, $ret, @args);
 }
 
+sub impl_new_type
+{
+  my($self, $name) = @_;
+
+  return FFI::Platypus::Type->new($name);
+}
+
 1;

@@ -82,4 +82,11 @@ sub impl_new_function
   FFI::Platypus::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
+sub impl_new_type
+{
+  my($self, $name) = @_;
+
+  return FFI::Platypus::Type->new($name);
+}
+
 1;
