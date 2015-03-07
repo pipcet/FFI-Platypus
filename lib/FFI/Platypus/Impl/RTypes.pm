@@ -89,6 +89,28 @@ sub impl_new_type
   return FFI::Platypus::Type->new($name, $self);
 }
 
+sub impl_find_symbol
+{
+  my($self, $name, $path, $mangler) = @_;
+  my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::dl::dlopen($path);
+  unless($handle)
+  {
+    warn "error loading $path: ", FFI::Platypus::dl::dlerror()
+	if $ENV{FFI_PLATYPUS_DLERROR};
+    return;
+  }
+  my $address = FFI::Platypus::dl::dlsym($handle, $mangler->($name));
+  if($address)
+  {
+    $self->{handles}->{$path||0} = $handle;
+    return $address;
+  }
+  else
+  {
+    warn "no address for $name";
+    FFI::Platypus::dl::dlclose($handle) unless $self->{handles}->{$path||0};
+    return;
+  }
 }
 
 1;

@@ -1111,23 +1111,9 @@ sub find_symbol
 
   foreach my $path (@{ $self->{lib} })
   {
-    my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::dl::dlopen($path);
-    unless($handle)
-    {
-      warn "error loading $path: ", FFI::Platypus::dl::dlerror()
-        if $ENV{FFI_PLATYPUS_DLERROR};
-      next;
-    }
-    my $address = FFI::Platypus::dl::dlsym($handle, $self->{mangler}->($name));
-    if($address)
-    {
-      $self->{handles}->{$path||0} = $handle;
-      return $address;
-    }
-    else
-    {
-      FFI::Platypus::dl::dlclose($handle) unless $self->{handles}->{$path||0};
-    }
+    my $address = $self->impl_find_symbol($name, $path, $self->{mangler});
+
+    return $address if $address;
   }
   return;
 }

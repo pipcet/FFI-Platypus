@@ -44,6 +44,11 @@ sub impl_new_type
   return FFI::Platypus::Type->new($name, $self);
 }
 
+sub impl_find_symbol
+{
+  my($self, $name, $path, $mangler) = @_;
+
+  return $self->{impl_base}->impl_find_symbol($name, $path, $mangler);
 }
 
 1;
