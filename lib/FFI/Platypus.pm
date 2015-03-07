@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use 5.008001;
 use Carp qw( croak );
+use Scalar::Util qw( refaddr weaken );
 
 # ABSTRACT: Write Perl bindings to non-Perl libraries with FFI. No XS required.
 # VERSION
@@ -781,6 +782,27 @@ Examples:
 
 my $inner_counter=0;
 
+sub _make_attach_method
+{
+  my($object, $other_methods) = @_;
+  my $key = refaddr($object) || "$object";
+  my $entry = $other_methods->{$key};
+
+  if(!$entry or !defined $entry->{weakref} and exists $entry->{weakref})
+  {
+    croak("attached method called for invalid object");
+  }
+
+  if(exists $entry->{argument})
+  {
+    return ($entry->{function}, $entry->{argument});
+  }
+  else
+  {
+    return $entry->{function};
+  }
+}
+
 sub attach
 {
   my $wrapper;
@@ -818,6 +840,76 @@ sub attach
     }
   }
   
+  $self;
+}
+
+=head2 attach_method
+
+ $ffi->attach_method($object, $name => \@argument_types => $return_type);
+ $ffi->attach_method([$object=>$replacement], [$c_name => $perl_name] => \@argument_types => $return_type);
+ $ffi->attach_method($object, [$address => $perl_name] => ['void',...] => $return_type);
+
+Like L<attach|/attach>, but the Perl xsub that is being created
+behaves like an object method of I<$object>.  If the first argument
+passed to the Perl xsub is I<$object>, the C function is called using
+the I<$ffi> object whose attach_method method was called; if it isn't,
+an error is thrown. A replacement argument for the object can be
+specified, or the object dropped entirely by specifying the first
+argument type to be void.
+
+There is machinery behind the scenes to allow several objects in one
+class, potentially with different I<$ffi> objects, to share the xsub
+without interfering with each other's bindings.  However, it is only
+when one object is used primarily that performance will be almost as
+good as that of L<attach|/attach>.
+
+The current implementation locks the function and the L<FFI::Platypus>
+instance into memory permanently; this is fixable, in theory.
+
+If just one I<$name> is given, then the function will be attached in
+Perl with the same name as it has in C.  The second form allows you to
+give the Perl function a different name.  You can also provide an
+address (the third form), just like with the L<function|/function>
+method.
+
+Unlike L<attach|/attach>, there is no way to specify a I<$wrapper>
+argument. If you need such a wrapper, you might as well handle the
+object detection in the wrapper sub.
+
+=cut
+
+sub attach_method
+{
+  my($self, $object, $name, $args, $ret, $proto) = @_;
+  my($in_object, $out_object) = (ref($object) eq 'ARRAY') ? @$object : ($object, $object);
+  my($c_name, $perl_name) = (ref($name) eq 'ARRAY') ? @$name : ($name, $name);
+  my $drop_first_argument = 0;
+
+  # handle this as a special case for now.
+  if($args->[0] eq 'void')
+  {
+    my @args = @$args;
+    shift @args;
+    $args = \@args;
+    $drop_first_argument = 1;
+  }
+
+  croak "you tried to provide a perl name that looks like an address"
+    if $perl_name =~ /^-?[0-9]+$/;
+
+  my $function = $self->function($c_name, $args, $ret);
+
+  if(defined $function)
+  {
+    my($caller, $filename, $line) = caller;
+    $perl_name = join '::', $caller, $perl_name
+      unless $perl_name =~ /::/;
+
+    my $attach_name = $perl_name;
+
+    $function->attach_method($self, $in_object, refaddr($in_object) || "$in_object", $out_object, $drop_first_argument, $attach_name, "$filename:$line", $proto);
+  }
+
   $self;
 }
 

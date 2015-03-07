@@ -135,6 +135,13 @@ int ffi_pl_prepare_sv(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_
 
 int ffi_pl_prepare_any(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
 
+typedef struct _ffi_pl_cached_method {
+  SV *weakref;
+  HV *other_methods;
+  ffi_pl_function *function;
+  SV *argument;
+} ffi_pl_cached_method;
+
 #ifdef __cplusplus
 }
 #endif
