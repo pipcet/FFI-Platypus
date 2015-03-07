@@ -11,6 +11,7 @@ use strict;
 use warnings;
 
 use FFI::Platypus::Function::Lazy;
+use FFI::Platypus::Type::Lazy;
 
 sub new
 {
@@ -52,6 +53,17 @@ sub impl_new_type
   my($self, $name) = @_;
 
   return FFI::Platypus::Type->new($name, $self);
+}
+
+sub impl_new_custom_type
+{
+  my($self, $types, @args) = @_;
+
+  return FFI::Platypus::Type::Lazy->new(
+    sub {
+      my @types = map { $_->can('realize') ? $_->realize : $_ } @$types;
+      return($self->{impl_base}->impl_new_custom_type(\@types, @args)); }
+  );
 }
 
 sub impl_find_symbol

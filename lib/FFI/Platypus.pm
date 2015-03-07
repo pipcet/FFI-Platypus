@@ -554,7 +554,7 @@ sub custom_type
     $size += $type->sizeof;
   }
 
-  $self->{types}->{$name} = FFI::Platypus::Type::CustomPerl->_new_custom_perl(
+  $self->{types}->{$name} = $self->impl_new_custom_type(
     \@types,
     $size,
     $cb->{perl_to_native},

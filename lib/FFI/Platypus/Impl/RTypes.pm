@@ -89,6 +89,22 @@ sub impl_new_type
   return FFI::Platypus::Type->new($name, $self);
 }
 
+sub impl_new_custom_type
+{
+  my($self, $types, $size,     $perl_to_native, $native_to_perl, $perl_to_native_post,
+     $in_argument_count, $out_argument_count) = @_;
+
+  return FFI::Platypus::Type::CustomPerl->_new_custom_perl(
+    $types,
+    $size,
+    $perl_to_native,
+    $native_to_perl,
+    $perl_to_native_post,
+    $in_argument_count,
+    $out_argument_count,
+  );
+}
+
 sub impl_find_symbol
 {
   my($self, $name, $path, $mangler) = @_;

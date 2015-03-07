@@ -23,6 +23,13 @@ sub realize
 
   return $self->{base} if $self->{realized};
 
+  $self->{address} = $self->{address}->realize
+      if ref $self->{address} and $self->{address}->can('realize');
+  $self->{return_type} = $self->{return_type}->realize
+      if $self->{return_type}->can('realize');
+  my @args = map { $_->can('realize') ? $_->realize : $_ } @{$self->{argument_types}};
+  $self->{argument_types} = \@args;
+
   $self->{base} = $self->{ffi}->impl_new_function($self->{address}, $self->{return_type}, @{$self->{argument_types}});
   $self->{realized} = 1;
 
