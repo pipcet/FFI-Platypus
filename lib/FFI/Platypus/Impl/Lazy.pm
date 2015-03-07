@@ -12,6 +12,7 @@ use warnings;
 
 use FFI::Platypus::Function::Lazy;
 use FFI::Platypus::Type::Lazy;
+use FFI::Platypus::Address::Lazy;
 
 sub new
 {
@@ -71,6 +72,38 @@ sub impl_find_symbol
   my($self, $name, $path, $mangler) = @_;
 
   return $self->{impl_base}->impl_find_symbol($name, $path, $mangler);
+}
+
+sub find_symbol
+{
+  my($self, $name) = @_;
+
+  my @lib = @{$self->{lib}};
+
+  unless(defined $self->{mangler})
+  {
+    my $class = FFI::Platypus::_lang_class($self->{lang});
+    if($class->can('mangler'))
+    {
+      $self->{mangler} = $class->mangler($self->lib);
+    }
+    else
+    {
+      $self->{mangler} = sub { $_[0] };
+    }
+  }
+
+  my $mangler = $self->{mangler};
+
+  return FFI::Platypus::Address::Lazy->new(sub
+  {
+    foreach my $path (@lib)
+    {
+      my $address = $self->impl_find_symbol($name, $path, $mangler);
+
+      return $address if $address;
+    }
+  });
 }
 
 1;
