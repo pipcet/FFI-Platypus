@@ -107,7 +107,6 @@ sub impl_find_symbol
   }
   else
   {
-    warn "no address for $name";
     FFI::Platypus::dl::dlclose($handle) unless $self->{handles}->{$path||0};
     return;
   }
