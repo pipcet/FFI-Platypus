@@ -1,4 +1,5 @@
 package FFI::Platypus::Impl::RTypes;
+use parent 'FFI::Platypus';
 
 use strict;
 use warnings;
@@ -7,35 +8,39 @@ use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
-require XSLoader;
-XSLoader::load(
-  'FFI::Platypus::Impl::RTypes', eval q{ $VERSION } || do {
-    # this is for testing without dzil
-    # it expects MYMETA.json for FFI::Platypus
-    # to be in the current working directory.
-    require JSON::PP;
-    my $fh;
-    open($fh, '<', 'MYMETA.json') || die "unable to read MYMETA.json";
-    my $config = JSON::PP::decode_json(do { local $/; <$fh> });
-    close $fh;
-    $config->{version};
-  }
-);
+# for now, we link Rtypes.o into Platypus.so rather than haing a
+# per-implementation library.
+
+
+# require XSLoader;
+# XSLoader::load(
+#   'FFI::Platypus::Impl::RTypes', eval q{ $VERSION } || do {
+#     # this is for testing without dzil
+#     # it expects MYMETA.json for FFI::Platypus
+#     # to be in the current working directory.
+#     require JSON::PP;
+#     my $fh;
+#     open($fh, '<', 'MYMETA.json') || die "unable to read MYMETA.json";
+#     my $config = JSON::PP::decode_json(do { local $/; <$fh> });
+#     close $fh;
+#     $config->{version};
+#   }
+# );
 
 sub new
 {
   my($class, %args) = @_;
-  my $self = bless {}, $class;
-
   my $abi = delete $args{abi};
+
+  my $self = $class->SUPER::base_new(%args);
 
   if(defined $abi)
   {
-    $self->{abi} = $abi;
+    $self->{impl_abi} = $abi;
   }
   else
   {
-    $self->{abi} = -1;
+    $self->{impl_abi} = -1;
   }
 
   return $self;
@@ -55,25 +60,26 @@ those ABIs.
 
 =cut
 
-sub abis
+sub impl_abis
 {
   require FFI::Platypus::ConfigData;
   FFI::Platypus::ConfigData->config("abi");
 }
 
-sub abi
+sub impl_abi
 {
   my($self, $abi) = @_;
 
-  $self->{abi} = $abi;
+  $self->{impl_abi} = $abi;
 
   $self;
 }
 
-sub new_function
+sub impl_new_function
 {
   my($self, $address, $ret, @args) = @_;
 
-  warn "address $address";
-  FFI::Platypus::Function->new($self, $address, $self->{abi}, $ret, @args);
+  FFI::Platypus::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
+
+1;

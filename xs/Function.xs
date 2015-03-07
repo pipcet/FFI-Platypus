@@ -347,9 +347,9 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
       croak("ffi_pl_method_implementation failed");
 
     sv = POPs;
-    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(sv), 0);
-    sv = POPs;
     hv_store((HV*)SvRV(value), "body", strlen("body"), SvREFCNT_inc(sv), 0);
+    sv = POPs;
+    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(sv), 0);
 
     if(SvROK(object))
     {
@@ -361,6 +361,10 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     }
 
     hv_store_ent(method->other_methods, object_key, value, 0);
+
+    /* we might have replaced a previous attachment to the same
+       object. This could be optimized. */
+    method->weakref = NULL;
 
 void
 attach(self, perl_name, path_name, proto)

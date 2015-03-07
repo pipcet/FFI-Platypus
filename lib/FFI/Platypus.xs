@@ -76,12 +76,10 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
   {
     *first_argument = SvREFCNT_inc(POPs);
   }
-  body_object = POPs;
   function_object = POPs;
+  body_object = POPs;
 
-  if(!function_object || !SvROK(function_object)
-  || !sv_derived_from(function_object, "FFI::Platypus::Function")
-  || !body_object || !SvIOK(body_object))
+  if(!body_object || !SvIOK(body_object))
   {
     croak("make_attach_method failed");
   }
@@ -115,7 +113,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
 }
 
 /* this code is specific to one implementation */
-static void ffi_pl_method_call_body(void *self_ptr)
+static void ffi_pl_method_call_body(void *self_ptr, int extra_args)
 {
   ffi_pl_function *self;
   char *buffer;
@@ -128,10 +126,11 @@ static void ffi_pl_method_call_body(void *self_ptr)
   SV *freeme = NULL;
 
   dVAR; dXSARGS;
+  PUTBACK;
 
   self = self_ptr;
 
-#define EXTRA_ARGS (0)
+#define EXTRA_ARGS (extra_args)
 #include "ffi_platypus_call.h"
 }
 
@@ -139,7 +138,7 @@ static void ffi_pl_method_call_body(void *self_ptr)
 XS(ffi_pl_method_call)
 {
   ffi_pl_cached_method *cached;
-  void (*body)(void *self);
+  void (*body)(void *self, int extra_args);
   void *self;
   SV *first_argument = NULL;
 
@@ -180,17 +179,14 @@ XS(ffi_pl_method_call)
     }
   }
 
-  /* we manipulate the Perl stack to make the first argument go away
-   * if required, and replace it otherwise. */
-  if(first_argument == NULL)
-    MARK++;
-  else
+  if(first_argument != NULL)
     ST(0) = first_argument;
 
   PUTBACK;
   PUSHMARK(MARK);
+  PUTBACK;
 
-  body(self);
+  body(self, first_argument == NULL);
 }
 
 /*
@@ -236,7 +232,85 @@ _have_type(name)
   OUTPUT:
     RETVAL
 
+void
+_attach_body_data(ffi, object, key, argument, drop_first_argument, perl_name, path_name, proto, body, data)
+    SV *ffi
+    SV *object
+    SV *key
+    SV *argument
+    int drop_first_argument
+    const char *perl_name
+    ffi_pl_string path_name
+    ffi_pl_string proto
+    SV *body
+    SV *data
+  PREINIT:
+    CV *cv;
+    ffi_pl_cached_method *method;
+    SV *value;
+  CODE:
+    cv = get_cv(perl_name, 0);
 
+    if(cv == NULL
+    || CvXSUB(cv) != ffi_pl_method_call)
+    {
+      Newx(method, 1, ffi_pl_cached_method);
+      method->body = NULL;
+      method->function = NULL;
+      method->weakref = NULL; /* create on first call */
+      method->argument = NULL;
+      method->other_methods = newHV();
+
+      if(proto == NULL)
+	cv = newXS(perl_name, ffi_pl_method_call, path_name);
+      else
+      {
+	/*
+	 * this ifdef is needed for Perl 5.8.8 support.
+	 * once we don't need to support 5.8.8 we can
+	 * remove this workaround (the ndef'd branch)
+	 */
+#ifdef newXS_flags
+	cv = newXSproto(perl_name, ffi_pl_method_call, path_name, proto);
+#else
+	newXSproto(perl_name, ffi_pl_method_call, path_name, proto);
+	cv = get_cv(perl_name,0);
+#endif
+      }
+      CvXSUBANY(cv).any_ptr = (void *) method;
+      /*
+       * No coresponding decrement !!
+       * once attached, you can never free the function object, or the FFI::Platypus
+       * it was created from.
+       */
+      SvREFCNT_inc(ffi);
+    }
+    else
+    {
+      /*
+       * Ideally, we should check here that the prototype of the
+       * existing CV matches the one we request. However, I don't know
+       * how to do that.
+       */
+      method = CvXSUBANY(cv).any_ptr;
+    }
+
+    value = newRV_noinc((SV*)newHV());
+    hv_store((HV*)SvRV(value), "ffi", strlen("ffi"), SvREFCNT_inc(ffi), 0);
+    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(data), 0);
+    hv_store((HV*)SvRV(value), "body", strlen("body"), SvREFCNT_inc(body), 0);
+    if(SvROK(object))
+    {
+      hv_store((HV*)SvRV(value), "weakref", strlen("weakref"), sv_rvweaken(newSVsv(object)), 0);
+    }
+    if(!drop_first_argument)
+    {
+      hv_store((HV*)SvRV(value), "argument", strlen("argument"), SvREFCNT_inc(argument), 0);
+    }
+
+    hv_store_ent(method->other_methods, key, value, 0);
+
+INCLUDE: ../../xs/Lazy.xs
 INCLUDE: ../../xs/dl.xs
 INCLUDE: ../../xs/Type.xs
 INCLUDE: ../../xs/Function.xs

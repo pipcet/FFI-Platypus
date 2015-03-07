@@ -181,6 +181,18 @@ Set the L<lang|/lang> attribute.
 sub new
 {
   my($class, %args) = @_;
+  my $impl = delete $args{impl};
+
+  $impl = 'RTypes' unless defined $impl;
+
+  my $impl_class = _impl_class($impl);
+
+  $impl_class->new(%args);
+}
+
+sub base_new
+{
+  my($class, %args) = @_;
   my @lib;
   if(defined $args{lib})
   {
@@ -202,7 +214,6 @@ sub new
     handles          => {},
     types            => {},
     lang             => $args{lang} || 'C',
-    impl             => _impl_class($args{impl} || 'RTypes')->new,
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
 }
@@ -211,13 +222,13 @@ sub _impl_class ($)
 {
   my($impl) = @_;
   my $class = "FFI::Platypus::Impl::$impl";
-  unless($class->can('new_function'))
+  unless($class->can('impl_new_function'))
   {
     eval qq{ use $class };
     croak "unable to load $class: $@" if $@;
   }
-  croak "$class does not provide new_function method"
-    unless $class->can("new_function");
+  croak "$class does not provide impl_new_function method"
+    unless $class->can("impl_new_function");
   $class;
 }
 
@@ -741,7 +752,7 @@ sub function
   my $address = $name =~ /^-?[0-9]+$/ ? $name : $self->find_symbol($name);
   croak "unable to find $name" unless defined $address || $self->ignore_not_found;
   return unless defined $address;
-  $self->{impl}->new_function($address, $ret, @args);
+  $self->impl_new_function($address, $ret, @args);
 }
 
 =head2 attach
@@ -1189,7 +1200,9 @@ sub abis
 {
   my($self) = @_;
 
-  return $self->{impl}->abis();
+  return $self->impl_abis() if ref $self;
+
+  return _impl_class('RTypes')->impl_abis();
 }
 
 =head2 abi
@@ -1219,7 +1232,7 @@ sub abi
     croak "no such ABI: $newabi";
   }
   
-  $self->{impl}->abi($newabi);
+  $self->impl_abi($newabi);
   
   $self;
 }
