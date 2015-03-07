@@ -7,13 +7,16 @@
 package FFI::Platypus::Impl::Lazy;
 use parent -norequire,'FFI::Platypus';
 
+use strict;
+use warnings;
+
 use FFI::Platypus::Function::Lazy;
 
 sub new
 {
   my($class, %args) = @_;
 
-  my $base = delete $args{$base};
+  my $base = delete $args{base};
   $base = 'RTypes' unless defined $base;
 
   my $self = $class->SUPER::base_new(%args);
