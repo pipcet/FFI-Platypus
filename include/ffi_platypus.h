@@ -111,7 +111,7 @@ typedef struct _ffi_pl_getter {
 
 typedef struct _ffi_pl_function {
   void *address;
-  void *platypus_sv;  /* really a Perl SV* */
+  void *impl_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
   int stack_args;

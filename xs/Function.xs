@@ -1,9 +1,9 @@
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function
 
 ffi_pl_function *
-new(class, platypus, address, abi, return_type_arg, ...)
+new(class, impl, address, abi, return_type_arg, ...)
     const char *class
-    SV *platypus
+    SV *impl
     void *address
     int abi
     SV *return_type_arg
@@ -231,7 +231,7 @@ new(class, platypus, address, abi, return_type_arg, ...)
         croak("unknown error with ffi_prep_cif");
     }
     
-    self->platypus_sv = SvREFCNT_inc(platypus);
+    self->impl_sv = SvREFCNT_inc(impl);
 
     RETVAL = self;
   OUTPUT:
@@ -407,7 +407,7 @@ DESTROY(self)
   PREINIT:
     int i;
   CODE:
-    SvREFCNT_dec(self->platypus_sv);
+    SvREFCNT_dec(self->impl_sv);
     SvREFCNT_dec(self->return_type);
     for (i=0; i<self->nargs_perl; i++) {
       SvREFCNT_dec(self->argument_getters[i].sv);

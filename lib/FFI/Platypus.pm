@@ -202,10 +202,23 @@ sub new
     handles          => {},
     types            => {},
     lang             => $args{lang} || 'C',
-    abi              => -1,
-    impl             => $args{impl} || FFI::Platypus::Impl::RTypes->new;
+    impl             => _impl_class($args{impl} || 'RTypes')->new,
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
+}
+
+sub _impl_class ($)
+{
+  my($impl) = @_;
+  my $class = "FFI::Platypus::Impl::$impl";
+  unless($class->can('new_function'))
+  {
+    eval qq{ use $class };
+    croak "unable to load $class: $@" if $@;
+  }
+  croak "$class does not provide new_function method"
+    unless $class->can("new_function");
+  $class;
 }
 
 sub _lang_class ($)
@@ -728,7 +741,7 @@ sub function
   my $address = $name =~ /^-?[0-9]+$/ ? $name : $self->find_symbol($name);
   croak "unable to find $name" unless defined $address || $self->ignore_not_found;
   return unless defined $address;
-  FFI::Platypus::Function->new($self, $address, $self->{abi}, $ret, @args);
+  $self->{impl}->new_function($address, $ret, @args);
 }
 
 =head2 attach
@@ -1174,8 +1187,9 @@ those ABIs.
 
 sub abis
 {
-  require FFI::Platypus::ConfigData;
-  FFI::Platypus::ConfigData->config("abi");
+  my($self) = @_;
+
+  return $self->{impl}->abis();
 }
 
 =head2 abi
@@ -1205,7 +1219,7 @@ sub abi
     croak "no such ABI: $newabi";
   }
   
-  $self->{abi} = $newabi;
+  $self->{impl}->abi($newabi);
   
   $self;
 }
