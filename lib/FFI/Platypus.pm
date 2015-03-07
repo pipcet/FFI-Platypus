@@ -203,6 +203,7 @@ sub new
     types            => {},
     lang             => $args{lang} || 'C',
     abi              => -1,
+    impl             => $args{impl} || FFI::Platypus::Impl::RTypes->new;
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
 }
