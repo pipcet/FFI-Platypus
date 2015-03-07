@@ -675,15 +675,22 @@ my $inner_counter=0;
 sub _make_attach_method
 {
   my($object, $other_methods) = @_;
-  my $key = refaddr $object;
+  my $key = refaddr($object) || "$object";
   my $entry = $other_methods->{$key};
 
-  if(!$entry or !$entry->{weakref})
+  if(!$entry or !defined $entry->{weakref} and exists $entry->{weakref})
   {
     croak("attached method called for invalid object");
   }
 
-  return $entry->{function};
+  if(exists $entry->{argument})
+  {
+    return ($entry->{function}, $entry->{argument});
+  }
+  else
+  {
+    return $entry->{function};
+  }
 }
 
 sub attach
@@ -729,18 +736,22 @@ sub attach
 =head2 attach_method
 
  $ffi->attach_method($object, $name => \@argument_types => $return_type);
- $ffi->attach_method($object, [$c_name => $perl_name] => \@argument_types => $return_type);
- $ffi->attach_method($object, [$address => $perl_name] => \@argument_types => $return_type);
+ $ffi->attach_method([$object=>$replacement], [$c_name => $perl_name] => \@argument_types => $return_type);
+ $ffi->attach_method($object, [$address => $perl_name] => ['void',...] => $return_type);
 
 Like L<attach|/attach>, but the Perl xsub that is being created
 behaves like an object method of I<$object>.  If the first argument
-passed to the Perl xsub is I<$object>, it is discarded and the C
-function is called; if it isn't, an error is thrown.  There is
-machinery behind the scenes to allow several objects in one class,
-potentially with different I<$ffi> objects, to share the xsub without
-interfering with each other's bindings.  However, it is only when one
-object is used primarily that performance will be almost as good as
-that of L<attach|/attach>.
+passed to the Perl xsub is I<$object>, the C function is called using
+the I<$ffi> object whose attach_method method was called; if it isn't,
+an error is thrown. A replacement argument for the object can be
+specified, or the object dropped entirely by specifying the first
+argument type to be void.
+
+There is machinery behind the scenes to allow several objects in one
+class, potentially with different I<$ffi> objects, to share the xsub
+without interfering with each other's bindings.  However, it is only
+when one object is used primarily that performance will be almost as
+good as that of L<attach|/attach>.
 
 The current implementation locks the function and the L<FFI::Platypus>
 instance into memory permanently; this is fixable, in theory.
@@ -760,7 +771,18 @@ object detection in the wrapper sub.
 sub attach_method
 {
   my($self, $object, $name, $args, $ret, $proto) = @_;
-  my($c_name, $perl_name) = ref($name) ? @$name : ($name, $name);
+  my($in_object, $out_object) = (ref($object) eq 'ARRAY') ? @$object : ($object, $object);
+  my($c_name, $perl_name) = (ref($name) eq 'ARRAY') ? @$name : ($name, $name);
+  my $drop_first_argument = 0;
+
+  # handle this as a special case for now.
+  if($args->[0] eq 'void')
+  {
+    my @args = @$args;
+    shift @args;
+    $args = \@args;
+    $drop_first_argument = 1;
+  }
 
   croak "you tried to provide a perl name that looks like an address"
     if $perl_name =~ /^-?[0-9]+$/;
@@ -775,7 +797,7 @@ sub attach_method
 
     my $attach_name = $perl_name;
 
-    $function->attach_method($self, $object, refaddr $object, $attach_name, "$filename:$line", $proto);
+    $function->attach_method($self, $in_object, refaddr($in_object) || "$in_object", $out_object, $drop_first_argument, $attach_name, "$filename:$line", $proto);
   }
 
   $self;

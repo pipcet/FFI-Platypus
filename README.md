@@ -364,12 +364,14 @@ Examples:
     $ffi->attach_method($object, [$address => $perl_name] => \@argument_types => $return_type);
 
 Like [attach](#attach), but the Perl xsub that is being created
-behaves like an object method of _$object_.  There is machinery
-behind the scenes to allow several objects in one class, potentially
-with different _$ffi_ objects, to share the xsub without interfering
-with each other's bindings.  However, it is only when one object is
-used primarily that performance will be almost as good as that of
-[attach](#attach).
+behaves like an object method of _$object_.  If the first argument
+passed to the Perl xsub is _$object_, it is discarded and the C
+function is called; if it isn't, an error is thrown.  There is
+machinery behind the scenes to allow several objects in one class,
+potentially with different _$ffi_ objects, to share the xsub without
+interfering with each other's bindings.  However, it is only when one
+object is used primarily that performance will be almost as good as
+that of [attach](#attach).
 
 The current implementation locks the function and the [FFI::Platypus](https://metacpan.org/pod/FFI::Platypus)
 instance into memory permanently; this is fixable, in theory.

@@ -121,11 +121,13 @@ call(self, ...)
 #include "ffi_platypus_call.h"
 
 void
-attach_method(self, ffi, object, object_key, perl_name, path_name, proto)
+attach_method(self, ffi, object, object_key, first_argument, drop_first_argument, perl_name, path_name, proto)
     SV *self
     SV *ffi
     SV *object
-    const char *object_key
+    SV *object_key
+    SV *first_argument
+    int drop_first_argument
     const char *perl_name
     ffi_pl_string path_name
     ffi_pl_string proto
@@ -146,9 +148,10 @@ attach_method(self, ffi, object, object_key, perl_name, path_name, proto)
     || CvXSUB(cv) != ffi_pl_method_call)
     {
       Newx(method, 1, ffi_pl_cached_method);
-      method->function = INT2PTR(ffi_pl_function*, SvIV((SV*) SvRV(self)));
+      method->function = NULL;
       method->other_methods = newHV();
       method->weakref = NULL; /* create on first call */
+      method->argument = NULL;
 
       if(proto == NULL)
 	cv = newXS(perl_name, ffi_pl_method_call, path_name);
@@ -187,8 +190,16 @@ attach_method(self, ffi, object, object_key, perl_name, path_name, proto)
     value = newRV_noinc((SV*)newHV());
     hv_store((HV*)SvRV(value), "ffi", strlen("ffi"), SvREFCNT_inc(ffi), 0);
     hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(self), 0);
-    hv_store((HV*)SvRV(value), "weakref", strlen("weakref"), sv_rvweaken(newSVsv(object)), 0);
-    hv_store(method->other_methods, object_key, strlen(object_key), value, 0);
+    if(SvROK(object))
+    {
+      hv_store((HV*)SvRV(value), "weakref", strlen("weakref"), sv_rvweaken(newSVsv(object)), 0);
+    }
+    if(!drop_first_argument)
+    {
+      hv_store((HV*)SvRV(value), "argument", strlen("argument"), SvREFCNT_inc(first_argument), 0);
+    }
+
+    hv_store_ent(method->other_methods, object_key, value, 0);
 
 void
 attach(self, perl_name, path_name, proto)
