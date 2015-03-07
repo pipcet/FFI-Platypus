@@ -33,6 +33,13 @@ sub abi
   $self->{impl_abi} = $abi;
 }
 
+sub impl_abis
+{
+  my($self) = @_;
+
+  return $self->{impl_base}->impl_abis;
+}
+
 sub impl_new_function
 {
   my($self, $address, $ret, @args) = @_;
