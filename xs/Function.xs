@@ -254,6 +254,16 @@ call(self, ...)
 #define EXTRA_ARGS 1
 #include "ffi_platypus_call.h"
 
+
+void
+ffi_pl_method_implementation(self)
+    SV *self
+  PPCODE:
+    XPUSHs(sv_2mortal(SvREFCNT_inc(self)));
+    XPUSHs(sv_2mortal(newSViv(PTR2IV(ffi_pl_method_call_body))));
+    PUTBACK;
+    XSRETURN(2);
+
 void
 attach_method(self, ffi, object, object_key, first_argument, drop_first_argument, perl_name, path_name, proto)
     SV *self
@@ -269,6 +279,8 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     CV *cv;
     ffi_pl_cached_method *method;
     SV *value;
+    int count;
+    SV *sv;
   CODE:
     if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function")))
       croak("self is not of type FFI::Platypus::Function");
@@ -282,10 +294,11 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     || CvXSUB(cv) != ffi_pl_method_call)
     {
       Newx(method, 1, ffi_pl_cached_method);
+      method->body = NULL;
       method->function = NULL;
-      method->other_methods = newHV();
       method->weakref = NULL; /* create on first call */
       method->argument = NULL;
+      method->other_methods = newHV();
 
       if(proto == NULL)
 	cv = newXS(perl_name, ffi_pl_method_call, path_name);
@@ -323,7 +336,21 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
 
     value = newRV_noinc((SV*)newHV());
     hv_store((HV*)SvRV(value), "ffi", strlen("ffi"), SvREFCNT_inc(ffi), 0);
-    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(self), 0);
+
+    PUSHMARK(SP);
+    XPUSHs(self);
+    PUTBACK;
+    count = call_method("ffi_pl_method_implementation", G_ARRAY);
+    SPAGAIN;
+
+    if(count != 2)
+      croak("ffi_pl_method_implementation failed");
+
+    sv = POPs;
+    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(sv), 0);
+    sv = POPs;
+    hv_store((HV*)SvRV(value), "body", strlen("body"), SvREFCNT_inc(sv), 0);
+
     if(SvROK(object))
     {
       hv_store((HV*)SvRV(value), "weakref", strlen("weakref"), sv_rvweaken(newSVsv(object)), 0);

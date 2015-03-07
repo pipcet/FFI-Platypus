@@ -137,9 +137,11 @@ int ffi_pl_prepare_any(ffi_pl_getter *getters, ffi_pl_getter *getters_limit, ffi
 
 typedef struct _ffi_pl_cached_method {
   SV *weakref;
-  HV *other_methods;
-  ffi_pl_function *function;
+  void (*body)(void *);
+  void *function;
   SV *argument;
+
+  HV *other_methods;
 } ffi_pl_cached_method;
 
 #ifdef __cplusplus

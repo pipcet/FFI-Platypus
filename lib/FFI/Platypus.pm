@@ -794,11 +794,11 @@ sub _make_attach_method
 
   if(exists $entry->{argument})
   {
-    return ($entry->{function}, $entry->{argument});
+    return ($entry->{body}, $entry->{function}, $entry->{argument});
   }
   else
   {
-    return $entry->{function};
+    return ($entry->{body}, $entry->{function});
   }
 }
 
