@@ -22,7 +22,7 @@ void *cast1(void *value)
   return value;
 }
 
-XS(ffi_pl_sub_call)
+XS(ffi_pl_rtypes_sub_call)
 {
   ffi_pl_function *self;
   int i,n, perl_arg_index, perl_type_index;
@@ -40,7 +40,7 @@ XS(ffi_pl_sub_call)
   self = (ffi_pl_function*) CvXSUBANY(cv).any_ptr;
 
 #define EXTRA_ARGS 0
-#include "ffi_platypus_call.h"
+#include "ffi_platypus_rtypes_call.h"
 }
 
 /* this code is shared between implementations */
@@ -113,7 +113,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
 }
 
 /* this code is specific to one implementation */
-static void ffi_pl_method_call_body(void *self_ptr, int extra_args)
+static void ffi_pl_rtypes_method_call_body(void *self_ptr, int extra_args)
 {
   ffi_pl_function *self;
   char *buffer;
@@ -131,7 +131,7 @@ static void ffi_pl_method_call_body(void *self_ptr, int extra_args)
   self = self_ptr;
 
 #define EXTRA_ARGS (extra_args)
-#include "ffi_platypus_call.h"
+#include "ffi_platypus_rtypes_call.h"
 }
 
 /* this code is shared between implementations. */

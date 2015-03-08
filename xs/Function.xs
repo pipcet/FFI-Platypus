@@ -252,7 +252,7 @@ call(self, ...)
 #endif
   CODE:
 #define EXTRA_ARGS 1
-#include "ffi_platypus_call.h"
+#include "ffi_platypus_rtypes_call.h"
 
 
 void
@@ -260,7 +260,7 @@ ffi_pl_method_implementation(self)
     SV *self
   PPCODE:
     XPUSHs(sv_2mortal(SvREFCNT_inc(self)));
-    XPUSHs(sv_2mortal(newSViv(PTR2IV(ffi_pl_method_call_body))));
+    XPUSHs(sv_2mortal(newSViv(PTR2IV(ffi_pl_rtypes_method_call_body))));
     PUTBACK;
     XSRETURN(2);
 
@@ -382,7 +382,7 @@ attach(self, perl_name, path_name, proto)
       path_name = "unknown";
 
     if(proto == NULL)
-      cv = newXS(perl_name, ffi_pl_sub_call, path_name);
+      cv = newXS(perl_name, ffi_pl_rtypes_sub_call, path_name);
     else
     {
       /*
@@ -391,9 +391,9 @@ attach(self, perl_name, path_name, proto)
        * remove this workaround (the ndef'd branch)
        */
 #ifdef newXS_flags
-      cv = newXSproto(perl_name, ffi_pl_sub_call, path_name, proto);
+      cv = newXSproto(perl_name, ffi_pl_rtypes_sub_call, path_name, proto);
 #else
-      newXSproto(perl_name, ffi_pl_sub_call, path_name, proto);
+      newXSproto(perl_name, ffi_pl_rtypes_sub_call, path_name, proto);
       cv = get_cv(perl_name,0);
 #endif
     }
