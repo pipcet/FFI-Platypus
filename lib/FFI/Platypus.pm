@@ -1271,7 +1271,7 @@ sub add_data
 {
   my($self, $payload, $type) = @_;
   $self->{cbdata}{refaddr $type} = {
-    closure_data => bless(\$payload, 'FFI::Platypus::ClosureData'),
+    closure_data => $payload,
     type => $type,
   };
 
