@@ -302,7 +302,7 @@ sub _type_map
 
 sub default_impl
 {
-  return $FFI::Platypus::default_impl || 'RTypes';
+  return $FFI::Platypus::default_impl || $ENV{FFI_PLATYPUS_IMPL} || 'RTypes';
 }
 
 =head1 ATTRIBUTES
