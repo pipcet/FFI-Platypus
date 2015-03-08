@@ -194,6 +194,7 @@ sub base_new
 {
   my($class, %args) = @_;
   my @lib;
+  my $types;
   if(defined $args{lib})
   {
     if(!ref($args{lib}))
@@ -212,7 +213,7 @@ sub base_new
   bless {
     lib              => \@lib,
     handles          => {},
-    types            => {},
+    types            => $args{types} || {},
     lang             => $args{lang} || 'C',
     resolver         => $args{resolve} || 'dl',
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
