@@ -3,6 +3,31 @@ use parent -norequire, 'FFI::Platypus::Function';
 use Scalar::Util qw(weaken);
 use Carp qw(croak);
 use Carp::Always;
+use overload
+    bool => sub { my $self = shift; $self->realize },
+    '""' => sub { my $self = shift; $self->realize },
+    '0+' => sub { my $self = shift; $self->realize },
+    'eq' => sub {
+      my($self, $other) = @_;
+      $self->realize eq ($other->can('realize') ? $other->realize : $other);
+    },
+    'cmp' => sub {
+      my($self, $other) = @_;
+      $self->realize cmp ($other->can('realize') ? $other->realize : $other);
+    },
+    '<=>' => sub {
+      my($self, $other) = @_;
+      $self->realize <=> ($other->can('realize') ? $other->realize : $other);
+    },
+    '&{}' => sub {
+      my($self) = @_;
+
+      if($self->realize) {
+	return &{$self->realize};
+      } else {
+	return;
+      }
+    };
 
 sub new
 {
@@ -25,10 +50,18 @@ sub realize
 
   $self->{address} = $self->{address}->realize
       if ref $self->{address} and $self->{address}->can('realize');
+
+  return unless defined $self->{address};
+
   $self->{return_type} = $self->{return_type}->realize
       if $self->{return_type}->can('realize');
+
+  return unless defined $self->{return_type};
+
   my @args = map { $_->can('realize') ? $_->realize : $_ } @{$self->{argument_types}};
   $self->{argument_types} = \@args;
+
+  return if grep { !defined $_ } @args;
 
   $self->{base} = $self->{ffi}->impl_new_function($self->{address}, $self->{return_type}, @{$self->{argument_types}});
   $self->{realized} = 1;
