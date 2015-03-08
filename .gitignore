@@ -25,6 +25,7 @@ core
 /inc/probe/complex
 /inc/probe/longdouble
 /inc/probe/abi
+/inc/probe/runtimesizedarrays
 /inc/probe/*.exe
 *.exp
 *.lib
