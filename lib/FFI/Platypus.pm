@@ -1253,6 +1253,19 @@ use overload '&{}' => sub {
   sub { $ffi->call(@_) };
 }, "fallback" => 1;
 
+sub new
+{
+  my($class, $ffi, $address, $abi, $return_type, @argument_types) = @_;
+  my $oldabi = $ffi->abi;
+  $ffi->abi($abi);
+
+  my $ret = $ffi->impl_new_function($address, $return_type, @argument_types);
+
+  $ffi->abi($oldabi);
+
+  return $ret;
+}
+
 package FFI::Platypus::Closure;
 
 use Scalar::Util qw( refaddr);
