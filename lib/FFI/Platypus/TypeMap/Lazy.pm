@@ -15,18 +15,12 @@ sub STORE
 {
   my($self,$key,$value) = @_;
 
-  $self->[1]->type($value, $key);
+  eval {
+    $self->[1]->type($value, $key);
+  };
+  warn $@ if $@;
 
   $self->SUPER::STORE($self,$key,$value);
-}
-
-sub FETCH
-{
-  my($self,$key) = @_;
-
-  my $ret = $self->SUPER::FETCH($key);
-
-  $ret->can('realize') ? $ret->realize : $ret;
 }
 
 1;

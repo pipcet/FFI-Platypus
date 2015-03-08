@@ -183,7 +183,7 @@ sub new
   my($class, %args) = @_;
   my $impl = delete $args{impl};
 
-  $impl = default_impl unless defined $impl;
+  $impl = default_impl() unless defined $impl;
 
   my $impl_class = _impl_class($impl);
 
@@ -264,7 +264,9 @@ sub _lang_class ($)
 
 sub _new_type_map
 {
-  return {};
+  my($self, $type_map) = @_;
+
+  return $type_map;
 }
 
 sub _type_map
@@ -274,7 +276,7 @@ sub _type_map
   unless(defined $self->{type_map})
   {
     my $class = _lang_class($self->{lang});
-    my $type_map = $self->_new_type_map;
+    my $type_map = {};
     foreach my $key (keys %{ $class->native_type_map  })
     {
       my $value = $class->native_type_map->{$key};
@@ -287,7 +289,7 @@ sub _type_map
           longdouble complex_float complex_double );
     $type_map->{SV} = 'SV';
     $type_map->{pointer} = 'opaque';
-    $self->{type_map} = $type_map;
+    $self->{type_map} = $self->_new_type_map($type_map);
   }
   
   $self->{type_map};

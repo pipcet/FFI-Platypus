@@ -13,6 +13,8 @@ use warnings;
 use FFI::Platypus::Function::Lazy;
 use FFI::Platypus::Type::Lazy;
 use FFI::Platypus::Address::Lazy;
+use FFI::Platypus::Types::Lazy;
+use FFI::Platypus::TypeMap::Lazy;
 
 sub new
 {
@@ -23,9 +25,22 @@ sub new
 
   my $self = $class->SUPER::base_new(%args);
 
-  $self->{impl_base} = FFI::Platypus::_impl_class($base)->new;
+  my %types;
+  tie %types, 'FFI::Platypus::Types::Lazy', $self->{types};
+
+  $self->{impl_base} = FFI::Platypus::_impl_class($base)->new(types => \%types);
 
   return $self;
+}
+
+sub _new_type_map
+{
+  my($self, $ref) = @_;
+  my %hash;
+
+  tie %hash, 'FFI::Platypus::TypeMap::Lazy', $ref, $self->{impl_base};
+
+  return \%hash;
 }
 
 sub abi
