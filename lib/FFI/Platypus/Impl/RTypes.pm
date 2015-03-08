@@ -8,6 +8,10 @@ use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
+use FFI::Platypus::Type::RTypes;
+use FFI::Platypus::Type::RTypes::FFI;
+use FFI::Platypus::Type::RTypes::SV;
+
 # for now, we link Rtypes.o into Platypus.so rather than haing a
 # per-implementation library.
 
@@ -86,14 +90,28 @@ sub impl_new_function
 
 sub impl_new_type
 {
-  my($self, $name) = @_;
+  my($self, $name, $class) = @_;
 
-  return FFI::Platypus::Type::RTypes->new($name, $self);
+  if(!defined($class) or
+     $class eq 'FFI::Platypus::Type')
+  {
+    $class = 'FFI::Platypus::Type::RTypes';
+  }
+  elsif($class->isa('FFI::Platypus::Type::FFI'))
+  {
+    $class = 'FFI::Platypus::Type::RTypes::FFI';
+  }
+  elsif(!$class->isa('FFI::Platypus::Type::RTypes'))
+  {
+    croak "type $class is not usable by the RTypes implementation";
+  }
+
+  return $class->new($name, $self);
 }
 
 sub impl_new_custom_type
 {
-  my($self, $types, $size,     $perl_to_native, $native_to_perl, $perl_to_native_post,
+  my($self, $types, $size, $perl_to_native, $native_to_perl, $perl_to_native_post,
      $in_argument_count, $out_argument_count) = @_;
 
   return FFI::Platypus::Type::RTypes::CustomPerl->_new_custom_perl(

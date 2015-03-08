@@ -1308,6 +1308,20 @@ sub new
 {
   my($class, $type, $platypus) = @_;
 
+  return $platypus->impl_new_type($type, $class);
+}
+
+package FFI::Platypus::Type::RTypes;
+use parent -norequire, 'FFI::Platypus::Type';
+
+use warnings;
+use strict;
+use Carp qw(croak);
+
+sub new
+{
+  my($class, $type, $platypus) = @_;
+
   # the platypus object is only needed for closures, so
   # that it can lookup existing types.
 
@@ -1403,9 +1417,6 @@ sub new
 
   $class->_new($ffi_type, $subtype, $size, $classname, $rw);
 }
-
-package FFI::Platypus::Type::RTypes;
-use parent -norequire, 'FFI::Platypus::Type';
 
 package FFI::Platypus::Type::RTypes::String;
 use parent -norequire, 'FFI::Platypus::Type::RTypes';
