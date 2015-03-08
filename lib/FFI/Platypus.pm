@@ -476,46 +476,7 @@ sub constant_type
 {
   my($self, $name, $cb) = @_;
 
-  my $type = $cb->{native_type};
-  $type ||= 'opaque';
-
-  my $argument_count = $cb->{argument_count} || 1;
-
-  croak "argument_count must be >= 1"
-    unless $argument_count >= 1;
-
-  croak "Usage: \$ffi->constant_type(\$name, { ... })"
-    unless defined $name && ref($cb) eq 'HASH';
-
-  croak "must define a value"
-    unless defined $cb->{value};
-
-  my $value = $cb->{value};
-
-  my $type_map = $self->_type_map;
-  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
-
-  my @types;
-  my $size = 0;
-  if (ref $type eq "ARRAY") {
-    for my $t (@$type) {
-      push @types, $type_map->{$t} || $t;
-    }
-  } else {
-    @types = ($type_map->{$type} || $type) x $argument_count;
-  }
-  @types = map { $self->_type_lookup($_) } @types;
-  for my $type (@types) {
-    $size += $type->sizeof;
-  }
-
-  $self->{types}->{$name} = FFI::Platypus::Type::Constant->_new_constant(
-    \@types,
-    $size,
-    $value,
-  );
-
-  $self;
+  return $self->impl_new_constant_type($name, $cb);
 }
 
 =head2 custom_type
