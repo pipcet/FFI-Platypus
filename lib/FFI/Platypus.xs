@@ -45,7 +45,7 @@ XS(ffi_pl_sub_call)
 
 /* this code is shared between implementations */
 static ffi_pl_function *
-ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(void *), SV **first_argument, SV *object)
+ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(void *, int), SV **first_argument, SV *object)
 {
   dVAR;
   dSP;
