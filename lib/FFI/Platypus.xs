@@ -54,7 +54,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
   SV *body_object;
   SV *function_object;
 
-  void (*body)(void *);
+  void (*body)(void *, int);
   void *function;
 
   ENTER;
@@ -84,7 +84,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
     croak("make_attach_method failed");
   }
 
-  body = INT2PTR(void (*)(void *), SvIV(body_object));
+  body = INT2PTR(void (*)(void *, int), SvIV(body_object));
   function = INT2PTR(ffi_pl_function *, SvIV(SvRV(function_object)));
 
   *bodyp = body;
