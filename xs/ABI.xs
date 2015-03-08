@@ -13,7 +13,11 @@ verify(abi)
      * where 999999 was accepted as a legal ABI, and all the other
      * tests passed
      */
-    if(abi < FFI_FIRST_ABI || abi > FFI_LAST_ABI)
+    if(abi == -1)
+    {
+      RETVAL = 1;
+    }
+    else if(abi < FFI_FIRST_ABI || abi > FFI_LAST_ABI)
     {
       RETVAL = 0;
     }
