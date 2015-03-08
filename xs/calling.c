@@ -784,7 +784,7 @@ ffi_pl_arguments_set_closure(ffi_pl_arguments *arguments, int i, SV *type_sv, vo
 	  STRLEN len;
 
 	  closure->coderef = SvRV(arg);
-	  keysv = ffi_pl_closure_add_data(arg, closure);
+	  keysv = ffi_pl_closure_add_data(arg, closure->type, closure);
 	  key = SvPV(keysv, len);
 	  hvp = hv_fetch((HV *)closure->coderef, "cbdata", 6, 0);
 	  if (!hvp)

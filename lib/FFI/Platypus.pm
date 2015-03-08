@@ -1289,7 +1289,7 @@ sub get_data
   return 0;
 }
 
-package FFI::Platypus::ClosureData;
+package FFI::Platypus::ClosureData::RTypes;
 
 # VERSION
 

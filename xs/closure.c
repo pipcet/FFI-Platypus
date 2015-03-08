@@ -11,17 +11,20 @@
 #endif
 
 SV *
-ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
+ffi_pl_closure_add_data(SV *closure, SV *type, void *closure_pointer)
 {
   dSP;
   SV *sv;
+  SV *closure_data = newSV(0);
+
+  sv_setref_pv(closure_data, "FFI::Platypus::ClosureData::RTypes", closure_pointer);
 
   ENTER;
   SAVETMPS;
   PUSHMARK(SP);
   XPUSHs(closure);
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data))));
-  XPUSHs(closure_data->type);
+  XPUSHs(sv_2mortal(closure_data));
+  XPUSHs(type);
   PUTBACK;
   call_pv("FFI::Platypus::Closure::add_data", G_SCALAR);
   SPAGAIN;
