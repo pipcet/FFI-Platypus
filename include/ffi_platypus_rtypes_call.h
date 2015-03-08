@@ -164,9 +164,14 @@
 
   SV *perl_return = NULL;
 
-  if(self->native_to_perl)
+  if(self->native_to_perl == ffi_pl_rtypes_native_to_perl_ffi_sint32)
   {
-    perl_return = self->native_to_perl(&result, self->return_type, self->extra_data);
+    sv_setiv(targ, (IV)result.sint32);
+    perl_return = targ;
+  }
+  else if(self->native_to_perl)
+  {
+    perl_return = self->native_to_perl(TARG, &result, self->return_type, self->extra_data);
     SPAGAIN;
   }
 
@@ -180,6 +185,14 @@
   Safefree(argument_slots);
 #endif
   current_argv = NULL;
+
+
+  if(perl_return == TARG)
+  {
+    XSprePUSH;
+    PUSHTARG;
+    XSRETURN(1);
+  }
 
   if(perl_return == NULL)
   {

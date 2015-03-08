@@ -98,6 +98,7 @@ ffi_pl_rtypes_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, voi
       native_to_perl_pointer_t f;
       SV *arg_type_sv;
       SV *arg;
+      SV *sv = sv_newmortal();
 
       svp = av_fetch(av, i, 0);
       arg_type_sv = *svp;
@@ -106,7 +107,7 @@ ffi_pl_rtypes_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, voi
       f = ffi_pl_rtypes_arguments_native_to_perl(arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
       SPAGAIN;
 
-      arg = f((ffi_pl_result *)arguments[i], arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
+      arg = f(sv, (ffi_pl_result *)arguments[i], arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
       SPAGAIN;
       arg = newSVsv(arg);
       SvREFCNT_inc(arg);

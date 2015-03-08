@@ -24,6 +24,7 @@ void *cast1(void *value)
 
 XS(ffi_pl_rtypes_sub_call)
 {
+  dVAR; dXSARGS;
   ffi_pl_rtypes_function *self;
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
@@ -35,12 +36,14 @@ XS(ffi_pl_rtypes_sub_call)
   ffi_pl_argument *argument_slots;
 #endif
   
-  dVAR; dXSARGS;
+  {
+  dXSTARG;
   
   self = (ffi_pl_rtypes_function*) CvXSUBANY(cv).any_ptr;
 
 #define EXTRA_ARGS 0
 #include "ffi_platypus_rtypes_call.h"
+  }
 }
 
 /* this code is shared between implementations */
@@ -126,6 +129,7 @@ static void ffi_pl_rtypes_method_call_body(void *self_ptr, int extra_args)
   SV *freeme = NULL;
 
   dVAR; dXSARGS;
+  dXSTARG;
   PUTBACK;
 
   self = self_ptr;

@@ -18,7 +18,7 @@ void ffi_pl_rtypes_perl_complex_double(SV *sv, double *ptr);
 
 int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme);
 int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme);
-SV *ffi_pl_rtypes_any_native_to_perl(ffi_pl_result *, SV *, void *);
+SV *ffi_pl_rtypes_any_native_to_perl(SV *, ffi_pl_result *, SV *, void *);
 
 void *ffi_pl_rtypes_extra_data(SV *);
 perl_to_native_pointer_t ffi_pl_rtypes_arguments_perl_to_native(SV *, void *);
@@ -105,28 +105,28 @@ int ffi_pl_rtypes_arguments_set_ref_post(ffi_pl_rtypes_arguments *arguments, int
 int ffi_pl_rtypes_arguments_set_ref_post_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme);
 int ffi_pl_rtypes_sv_perl_to_native_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme);
 
-SV *ffi_pl_rtypes_native_to_perl_void(ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_void(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
 
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint8(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint8(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint16(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint16(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint32(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint32(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint64(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint64(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_float(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_double(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_pointer(ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_uint8(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_sint8(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_uint16(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_sint16(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_uint32(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_sint32(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_uint64(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_sint64(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_float(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_double(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_ffi_pointer(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
 
-SV *ffi_pl_rtypes_native_to_perl_string_variable(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_string(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_pointer(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_record(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_array(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_customperl(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_exoticfloat(ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_sv_native_to_perl(ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_string_variable(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_string(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_pointer(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_record(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_array(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_customperl(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_native_to_perl_exoticfloat(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
+SV *ffi_pl_rtypes_sv_native_to_perl(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
 int ffi_pl_rtypes_prepare_ffi(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
 int ffi_pl_rtypes_prepare_array(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
 int ffi_pl_rtypes_prepare_customperl(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
