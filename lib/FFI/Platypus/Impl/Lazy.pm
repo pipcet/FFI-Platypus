@@ -53,7 +53,7 @@ sub impl_new_type
 {
   my($self, $name) = @_;
 
-  return FFI::Platypus::Type->new($name, $self);
+  return $self->{impl_base}->impl_new_type($name);
 }
 
 sub impl_new_custom_type
