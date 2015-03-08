@@ -847,6 +847,7 @@ sub attach
 
  $ffi->attach_method($object, $name => \@argument_types => $return_type);
  $ffi->attach_method([$object=>$replacement], [$c_name => $perl_name] => \@argument_types => $return_type);
+ $ffi->attach_method([$object], [$c_name => $perl_name] => \@argument_types => $return_type);
  $ffi->attach_method($object, [$address => $perl_name] => ['void',...] => $return_type);
 
 Like L<attach|/attach>, but the Perl xsub that is being created
@@ -904,7 +905,7 @@ sub attach_method
   my($self, $object, $name, $args, $ret, $proto) = @_;
   my($in_object, $out_object) = (ref($object) eq 'ARRAY') ? @$object : ($object, $object);
   my($c_name, $perl_name) = (ref($name) eq 'ARRAY') ? @$name : ($name, $name);
-  my $drop_first_argument = 0;
+  my $drop_first_argument = (ref($object) eq 'ARRAY') && ($#$object == 0);
 
   # handle this as a special case for now.
   if($args->[0] eq 'void')

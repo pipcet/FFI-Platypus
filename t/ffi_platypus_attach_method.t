@@ -22,7 +22,7 @@ $ffi2->lib(find_lib lib => 'test', symbol => 'my_atoi', libpath => 'libtest');
 my $self2 = bless {}, 'platypus_object';
 
 $ffi2->attach_method($self2, [my_atoi=>'f0'] => ['void', 'string'] => 'int');
-$ffi2->attach_method($self2, [f0=>'f1'] => ['void', 'uint8'] => 'uint8');
+$ffi2->attach_method([$self2], [f0=>'f1'] => ['uint8'] => 'uint8');
 
 # this might look nonsensical, but we want to test that we can switch
 # between methods properly.
