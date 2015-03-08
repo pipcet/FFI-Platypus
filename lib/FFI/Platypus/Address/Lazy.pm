@@ -7,6 +7,10 @@ use overload
     bool => sub { my $self = shift; $self->realize },
     '""' => sub { my $self = shift; $self->realize },
     '0+' => sub { my $self = shift; $self->realize },
+    'eq' => sub {
+      my($self, $other) = @_;
+      $self->realize eq ($other->can('realize') ? $other->realize : $other);
+    },
     'cmp' => sub {
       my($self, $other) = @_;
       $self->realize cmp ($other->can('realize') ? $other->realize : $other);
