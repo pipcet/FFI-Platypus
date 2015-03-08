@@ -23,6 +23,8 @@ sub realize
 
   croak 'failed to realize type' unless $self->{realization};
 
+  delete $self->{sub};
+
   return $self->{realization};
 }
 
