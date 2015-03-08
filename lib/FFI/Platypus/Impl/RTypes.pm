@@ -81,14 +81,14 @@ sub impl_new_function
 {
   my($self, $address, $ret, @args) = @_;
 
-  FFI::Platypus::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
+  FFI::Platypus::Function::RTypes->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
 sub impl_new_type
 {
   my($self, $name) = @_;
 
-  return FFI::Platypus::Type->new($name, $self);
+  return FFI::Platypus::Type::RTypes->new($name, $self);
 }
 
 sub impl_new_custom_type
@@ -96,7 +96,7 @@ sub impl_new_custom_type
   my($self, $types, $size,     $perl_to_native, $native_to_perl, $perl_to_native_post,
      $in_argument_count, $out_argument_count) = @_;
 
-  return FFI::Platypus::Type::CustomPerl->_new_custom_perl(
+  return FFI::Platypus::Type::RTypes::CustomPerl->_new_custom_perl(
     $types,
     $size,
     $perl_to_native,

@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function::RTypes
 
 ffi_pl_function *
 new(class, impl, address, abi, return_type_arg, ...)
@@ -75,7 +75,7 @@ new(class, impl, address, abi, return_type_arg, ...)
     }
     else
     {
-      if (sv_derived_from(self->return_type, "FFI::Platypus::Type::CustomPerl"))
+      if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::CustomPerl"))
       {
 	ffi_pl_type *return_type = self->extra_data;
         SV *ret_in=NULL, *ret_out;
@@ -99,7 +99,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 
         ffi_return_type = ffi;
       }
-      else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::ExoticFloat"))
+      else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::ExoticFloat"))
       {
 	ffi_pl_type *return_type = self->extra_data;
 
@@ -130,7 +130,7 @@ new(class, impl, address, abi, return_type_arg, ...)
       }
       else
       {
-	if(sv_derived_from(arg, "FFI::Platypus::Type::CustomPerl"))
+	if(sv_derived_from(arg, "FFI::Platypus::Type::RTypes::CustomPerl"))
         {
 	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
 	  if(d < 0) {
@@ -141,7 +141,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 	    
 	  n += d;
         }
-	else if (sv_derived_from(arg, "FFI::Platypus::Type::Wrap"))
+	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::Wrap"))
 	{
 	  int d = ffi_pl_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
 	  if(d < 0) {
@@ -152,7 +152,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 
 	  n += d;
 	}
-	else if (sv_derived_from(arg, "FFI::Platypus::Type::ExoticFloat"))
+	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::ExoticFloat"))
         {
 	  tmp = ffi_pl_extra_data(arg);
           ffi_argument_types[n] = tmp->ffi_type;
@@ -282,8 +282,8 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     int count;
     SV *sv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function")))
-      croak("self is not of type FFI::Platypus::Function");
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function::RTypes")))
+      croak("self is not of type FFI::Platypus::Function::RTypes");
 
     if(path_name == NULL)
       path_name = "unknown";
@@ -375,8 +375,8 @@ attach(self, perl_name, path_name, proto)
   PREINIT:
     CV* cv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function")))
-      croak("self is not of type FFI::Platypus::Function");
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function::RTypes")))
+      croak("self is not of type FFI::Platypus::Function::RTypes");
 
     if(path_name == NULL)
       path_name = "unknown";

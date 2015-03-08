@@ -1266,6 +1266,9 @@ sub new
   return $ret;
 }
 
+package FFI::Platypus::Function::RTypes;
+use parent -norequire, 'FFI::Platypus::Function';
+
 package FFI::Platypus::Closure;
 
 use Scalar::Util qw( refaddr);
@@ -1307,7 +1310,10 @@ sub get_data
   return 0;
 }
 
+package FFI::Platypus::ClosureData;
+
 package FFI::Platypus::ClosureData::RTypes;
+use parent -norequire, 'FFI::Platypus::ClosureData';
 
 # VERSION
 
@@ -1405,7 +1411,7 @@ sub new
   }
   elsif($type eq "SV")
   {
-    return FFI::Platypus::Type::SV->new;
+    return FFI::Platypus::Type::RTypes::SV->new;
   }
   else
   {
@@ -1421,7 +1427,7 @@ sub new
     }
     else
     {
-      return FFI::Platypus::Type::FFI->new($type);
+      return FFI::Platypus::Type::RTypes::FFI->new($type);
     }
   }
 
@@ -1432,11 +1438,14 @@ sub new
   $class->_new($ffi_type, $subtype, $size, $classname, $rw);
 }
 
-package FFI::Platypus::Type::String;
+package FFI::Platypus::Type::RTypes;
 use parent -norequire, 'FFI::Platypus::Type';
 
-package FFI::Platypus::Type::Pointer;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::String;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
+
+package FFI::Platypus::Type::RTypes::Pointer;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
 sub count_native_arguments
 {
@@ -1445,11 +1454,11 @@ sub count_native_arguments
   return 2;
 }
 
-package FFI::Platypus::Type::Array;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::Array;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
-package FFI::Platypus::Type::Closure;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::Closure;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
 sub meta {
   my ($self) = @_;
@@ -1467,11 +1476,11 @@ sub meta {
   return $meta;
 }
 
-package FFI::Platypus::Type::Constant;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::Constant;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
-package FFI::Platypus::Type::CustomPerl;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::CustomPerl;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
 sub count_native_arguments
 {
@@ -1512,17 +1521,21 @@ sub meta {
   return $meta;
 }
 
-package FFI::Platypus::Type::Record;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::Record;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
-package FFI::Platypus::Type::Struct;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::Struct;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
-package FFI::Platypus::Type::ExoticFloat;
-use parent -norequire, 'FFI::Platypus::Type';
+package FFI::Platypus::Type::RTypes::ExoticFloat;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
 package FFI::Platypus::Type::FFI;
 use parent -norequire, 'FFI::Platypus::Type';
+use Carp qw(croak);
+
+package FFI::Platypus::Type::RTypes::FFI;
+use parent -norequire, 'FFI::Platypus::Type::FFI';
 use Carp qw(croak);
 
 package FFI::Platypus::Type::SV;
@@ -1535,13 +1548,11 @@ sub new {
   return bless(FFI::Platypus::Type::FFI->new('opaque'), $class);
 }
 
-package FFI::Platypus::Type::Wrap;
-use parent -norequire, 'FFI::Platypus::Type';
-use FFI::Platypus::Declare;
+package FFI::Platypus::Type::RTypes::SV;
+use parent -norequire, 'FFI::Platypus::Type::SV';
 
-# this type demonstrates that we can implement a type purely in Perl
-# even though it needs to return C closures for some of its
-# operations.
+package FFI::Platypus::Type::RTypes::Wrap;
+use parent -norequire, 'FFI::Platypus::Type';
 
 sub new {
   my($class, $basetype) = @_;
@@ -1549,7 +1560,13 @@ sub new {
   return bless { underlying_types => [$basetype], ffi => FFI::Platypus->new }, $class;
 }
 
-use Data::Dumper;
+package FFI::Platypus::Type::RTypes::Wrap;
+use parent -norequire, 'FFI::Platypus::Type::RTypes';
+use FFI::Platypus::Declare;
+
+# this type demonstrates that we can implement a type purely in Perl
+# even though it needs to return C closures for some of its
+# operations.
 
 sub perl_to_native_pointer {
   my($self) = @_;
