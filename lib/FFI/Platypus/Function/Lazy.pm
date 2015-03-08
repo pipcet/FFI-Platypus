@@ -20,10 +20,10 @@ use overload
       $self->realize <=> ($other->can('realize') ? $other->realize : $other);
     },
     '&{}' => sub {
-      my($self) = @_;
+      my $self = shift;
 
       if($self->realize) {
-	return &{$self->realize};
+	return sub { $self->realize->(@_); };
       } else {
 	return;
       }
