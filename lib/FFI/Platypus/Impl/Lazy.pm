@@ -1,8 +1,8 @@
 # WARNING: this implementation of Platypus delays everything it does
-# until the last possible moment. That includes parsing types,
-# defining types, opening libraries, detecting symbols, and even
-# looking up ABIs. Thus, an error early in the program can lead to an
-# error message much later, and that might be confusing.
+# until the last possible moment. That includes parsing types, opening
+# libraries, detecting symbols. Thus, an error early in the program
+# can lead to an error message much later, and that might be
+# confusing.
 
 package FFI::Platypus::Impl::Lazy;
 use parent -norequire,'FFI::Platypus';
