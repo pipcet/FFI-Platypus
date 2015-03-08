@@ -179,10 +179,28 @@ sub impl_new_constant_type
   $self;
 }
 
+sub impl_resolver
+{
+  my ($self, $path, $resolver) = @_;
+  $resolver = $self->{resolver} unless defined $resolver;
+
+  if($resolver =~ /^([^(]*)\((.*)\)$/)
+  {
+    my($layer, $base) = ($1, $2);
+    my $base_resolver = $self->impl_resolver($path, $base);
+    my $layered_resolver = FFI::Platypus::_resolver_class($layer)->new($base_resolver);
+
+    return $layered_resolver;
+  }
+
+  return FFI::Platypus::_resolver_class($resolver)->new($path);
+}
+
 sub impl_find_symbol
 {
   my($self, $name, $path, $mangler) = @_;
-  my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::_resolver_class($self->{resolver})->new($path);
+  my $handle = do { no warnings; $self->{handles}->{$path||0} } || $self->impl_resolver($path);
+
   unless($handle)
   {
     warn "error loading $path: ", FFI::Platypus::dl::dlerror()
