@@ -13,7 +13,7 @@
     int pointer_index;
     int slot_index;
 
-    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_arg_index++)
+    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_type_index++)
     {
       int j;
 
