@@ -200,7 +200,6 @@ sub base_new
 {
   my($class, %args) = @_;
   my @lib;
-  my $types;
   if(defined $args{lib})
   {
     if(!ref($args{lib}))
