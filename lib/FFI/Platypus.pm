@@ -287,6 +287,11 @@ sub _type_map
   $self->{type_map};
 }
 
+sub default_impl
+{
+  return $FFI::Platypus::default_impl || 'RTypes';
+}
+
 =head1 ATTRIBUTES
 
 =head2 lib
@@ -1162,7 +1167,7 @@ sub abis
 
   return $self->impl_abis() if ref $self;
 
-  return _impl_class('RTypes')->impl_abis();
+  return _impl_class(default_impl)->impl_abis();
 }
 
 =head2 abi
