@@ -32,7 +32,8 @@ sub DESTROY
 {
   my($self) = @_;
 
-  FFI::Platypus::dl::dlclose($self->{handle});
+  FFI::Platypus::dl::dlclose($self->{handle})
+      if defined $self->{handle};
 }
 
 1;
