@@ -125,7 +125,7 @@ our @CARP_NOT = qw( FFI::Platypus::Declare );
 
 require XSLoader;
 XSLoader::load(
-  'FFI::Platypus', eval q{ $VERSION } || do {
+  'FFI::Platypus', eval q{ $VERSION } || $ENV{FFI_PLATYPUS_VERSION} || do {
     # this is for testing without dzil
     # it expects MYMETA.json for FFI::Platypus
     # to be in the current working directory.
