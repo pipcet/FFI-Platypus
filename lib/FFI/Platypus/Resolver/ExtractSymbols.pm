@@ -1,5 +1,4 @@
-package FFI::Platypus::Handle::dl;
-use parent 'FFI::Platypus';
+package FFI::Platypus::Resolver::ExtractSymbols;
 
 use strict;
 use warnings;
@@ -35,4 +34,3 @@ sub expensive
 }
 
 1;
-

@@ -1,5 +1,4 @@
-package FFI::Platypus::Handle::dl;
-use parent 'FFI::Platypus';
+package FFI::Platypus::Resolver::dl;
 
 use strict;
 use warnings;
@@ -12,7 +11,7 @@ sub new
 {
   my($class, $path) = @_;
 
-  my $self = bless { handle => FFI::Platypus::dl::dlopen() }, $class;
+  my $self = bless { handle => FFI::Platypus::dl::dlopen($path) }, $class;
 
   return $self;
 }
@@ -21,7 +20,7 @@ sub find_symbol
 {
   my($self, $symbol) = @_;
 
-  return FFI::platypus::dl::dlsym($self->{handle}, $symbol);
+  return FFI::Platypus::dl::dlsym($self->{handle}, $symbol);
 }
 
 sub expensive
@@ -37,4 +36,3 @@ sub DESTROY
 }
 
 1;
-

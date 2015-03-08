@@ -1,5 +1,4 @@
-package FFI::Platypus::Handle::dl;
-use parent 'FFI::Platypus';
+package FFI::Platypus::Resolver::gdb;
 
 use strict;
 use warnings;
@@ -7,12 +6,13 @@ use 5.008001;
 use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
+use IPC::Run;package FFI::Platypus::Handle::dl;
 
 sub new
 {
   my($class, $path) = @_;
 
-  my $self = bless { handle => FFI::Platypus::dl::dlopen() }, $class;
+  my $self = bless { handle => FFI::Platypus::dl::dlopen($path) }, $class;
 
   return $self;
 }
@@ -26,7 +26,7 @@ sub find_symbol
 
 sub expensive
 {
-  0;
+  'very';
 }
 
 sub DESTROY
@@ -37,4 +37,3 @@ sub DESTROY
 }
 
 1;
-
