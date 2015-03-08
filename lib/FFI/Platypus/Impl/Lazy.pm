@@ -71,7 +71,12 @@ sub impl_find_symbol
 {
   my($self, $name, $path, $mangler) = @_;
 
-  return $self->{impl_base}->impl_find_symbol($name, $path, $mangler);
+  return FFI::Platypus::Address::Lazy->new(
+    sub
+    {
+      $self->{impl_base}->impl_find_symbol($name, $path, $mangler);
+    }
+  );
 }
 
 sub find_symbol
