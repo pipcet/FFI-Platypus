@@ -1217,23 +1217,23 @@ value from the L</abis> method above.
 sub abi
 {
   my($self, $newabi) = @_;
-  unless($newabi =~ /^[0-9]+$/)
-  {
-    unless(defined $self->abis->{$newabi})
+  if(defined $newabi) {
+    unless($newabi =~ /^-?[0-9]+$/)
+    {
+      unless(defined $self->abis->{$newabi})
+      {
+	croak "no such ABI: $newabi";
+      }
+      $newabi = $self->abis->{$newabi};
+    }
+
+    unless(FFI::Platypus::ABI::verify($newabi))
     {
       croak "no such ABI: $newabi";
     }
-    $newabi = $self->abis->{$newabi};
   }
-  
-  unless(FFI::Platypus::ABI::verify($newabi))
-  {
-    croak "no such ABI: $newabi";
-  }
-  
+
   $self->impl_abi($newabi);
-  
-  $self;
 }
 
 sub _have_pm

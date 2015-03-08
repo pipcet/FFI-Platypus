@@ -70,9 +70,11 @@ sub impl_abi
 {
   my($self, $abi) = @_;
 
-  $self->{impl_abi} = $abi;
+  if(defined $abi) {
+    $self->{impl_abi} = $abi;
+  }
 
-  $self;
+  $self->{impl_abi};
 }
 
 sub impl_new_function
