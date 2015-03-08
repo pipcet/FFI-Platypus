@@ -1365,6 +1365,15 @@ sub new
     $rw = 1 if $extra =~ /rw$/;
     $size = $1 if $extra =~ /\(([0-9]+)\)$/;
   }
+  elsif($type =~ /^(debug|wrap)\((.*)\)$/)
+  {
+    my $layer = $1;
+    my $basename = $2;
+    my $basetype = $platypus->_type_lookup($2);
+
+    warn $platypus->impl_new_wrapped_type($basetype, $layer);;
+    return $platypus->impl_new_wrapped_type($basetype, $layer);
+  }
   elsif($type =~ /^record\s*\(([0-9:A-Za-z_]+)\)$/)
   {
     $ffi_type = 'pointer';
@@ -1544,17 +1553,17 @@ sub new {
 package FFI::Platypus::Type::RTypes::SV;
 use parent -norequire, 'FFI::Platypus::Type::SV';
 
-package FFI::Platypus::Type::RTypes::Wrap;
+package FFI::Platypus::Type::Wrap;
 use parent -norequire, 'FFI::Platypus::Type';
 
 sub new {
-  my($class, $basetype) = @_;
+  my($class, $ffi, $basetype) = @_;
 
-  return bless { underlying_types => [$basetype], ffi => FFI::Platypus->new }, $class;
+  return bless { underlying_types => [$basetype], ffi => $ffi }, $class;
 }
 
 package FFI::Platypus::Type::RTypes::Wrap;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+use parent -norequire, 'FFI::Platypus::Type::Wrap', 'FFI::Platypus::Type::RTypes';
 use FFI::Platypus::Declare;
 
 # this type demonstrates that we can implement a type purely in Perl

@@ -105,6 +105,18 @@ sub impl_new_type
   return $class->new($name, $self);
 }
 
+sub impl_new_wrapped_type
+{
+  my($self, $type, $layer) = @_;
+
+  if($layer eq 'wrap' or
+     $layer eq 'debug') {
+    return FFI::Platypus::Type::RTypes::Wrap->new($self, $type);
+  } else {
+    croak "cannot wrap type in $layer";
+  }
+}
+
 sub impl_new_custom_type
 {
   my($self, $types, $size, $perl_to_native, $native_to_perl, $perl_to_native_post,
