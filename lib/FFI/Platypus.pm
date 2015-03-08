@@ -440,7 +440,7 @@ sub type
 
   my $type_map = $self->_type_map;
 
-  croak "alias conflicts with existing type" if defined $alias && (defined $type_map->{$alias} || defined $self->{types}->{$alias});
+  croak "alias conflicts with existing type" if defined $alias && (defined $type_map->{$alias} || exists $self->{types}->{$alias});
 
   if($name =~ /-\>/ || $name =~ /^record\s*\([0-9A-Z:a-z_]+\)$/
   || $name =~ /^string(_rw|_ro|\s+rw|\s+ro|\s*\([0-9]+\))$/
@@ -450,7 +450,8 @@ sub type
     # basic type so you can have many many many copies of a given
     # closure type if you do not spell it exactly the same each time.
     # Recommended that you use an alias for a closure type anyway.
-    $self->{types}->{$name} ||= $self->impl_new_type($name);
+    $self->{types}->{$name} = $self->impl_new_type($name)
+	unless exists $self->{types}->{$name};
   }
   else
   {
@@ -462,7 +463,14 @@ sub type
     }
   
     croak "unknown type: $basic" unless defined $type_map->{$basic};
-    $self->{types}->{$name} = $self->{types}->{$type_map->{$basic}.$extra} ||= $self->impl_new_type($type_map->{$basic}.$extra);
+    my $new_type;
+    if(exists $self->{types}->{$type_map->{$basic}.$extra}) {
+      $new_type = $self->{types}->{$type_map->{$basic}.$extra};
+    } else {
+      $new_type = $self->impl_new_type($type_map->{$basic}.$extra);
+      $self->{types}->{$type_map->{$basic}.$extra} = $new_type;
+    }
+    $self->{types}->{$name} = $new_type;
   }
   
   if(defined $alias)
@@ -525,7 +533,7 @@ sub custom_type
     unless defined $cb->{native_to_perl} || defined $cb->{perl_to_native} || defined $cb->{perl_to_native_post};
   
   my $type_map = $self->_type_map;
-  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
+  croak "name conflicts with existing type" if defined $type_map->{$name} || exists $self->{types}->{$name};
 
   my @types;
   my $size = 0;
@@ -571,7 +579,7 @@ sub struct_type
 
   my $type_map = $self->_type_map;
 
-  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
+  croak "name conflicts with existing type" if defined $type_map->{$name} || exists $self->{types}->{$name};
 
   @children = map { $self->_type_lookup($_) } @children;
 
@@ -627,7 +635,7 @@ sub load_custom_type
 sub _type_lookup
 {
   my($self, $name) = @_;
-  $self->type($name) unless defined $self->{types}->{$name};
+  $self->type($name) unless exists $self->{types}->{$name};
   my $ret = $self->{types}->{$name};
   return $ret;
 }
