@@ -1,8 +1,15 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More;
 use FFI::Platypus;
 use FFI::CheckLib;
+
+BEGIN
+{
+  plan skip_all => 'internal APIs changed';
+}
+
+plan tests => 4;
 
 my $ffi = FFI::Platypus->new;
 $ffi->lib(find_lib lib => 'test', symbol => 'f0', libpath => 'libtest');
