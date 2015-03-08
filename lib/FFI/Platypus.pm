@@ -214,6 +214,7 @@ sub base_new
     handles          => {},
     types            => {},
     lang             => $args{lang} || 'C',
+    resolver         => $args{resolve} || 'dl',
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
 }
@@ -229,6 +230,20 @@ sub _impl_class ($)
   }
   croak "$class does not provide impl_new_function method"
     unless $class->can("impl_new_function");
+  $class;
+}
+
+sub _resolver_class ($)
+{
+  my($resolver) = @_;
+  my $class = "FFI::Platypus::Resolver::$resolver";
+  unless($class->can('find_symbol'))
+  {
+    eval qq{ use $class };
+    croak "unable to load $class: $@" if $@;
+  }
+  croak "$class does not provide find_symbol method"
+    unless $class->can("find_symbol");
   $class;
 }
 
