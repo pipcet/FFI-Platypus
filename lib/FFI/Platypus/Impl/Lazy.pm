@@ -51,19 +51,39 @@ sub impl_new_function
 
 sub impl_new_type
 {
-  my($self, $name) = @_;
+  my($self, $name, $class) = @_;
 
-  return $self->{impl_base}->impl_new_type($name);
+  return FFI::Platypus::Type::Lazy->new(
+    sub {
+      $self->{impl_base}->impl_new_type($name, $class);
+    }
+  );
 }
 
 sub impl_new_custom_type
 {
   my($self, $types, @args) = @_;
+  my @types = @$types;
 
   return FFI::Platypus::Type::Lazy->new(
-    sub {
-      my @types = map { $_->can('realize') ? $_->realize : $_ } @$types;
-      return($self->{impl_base}->impl_new_custom_type(\@types, @args)); }
+    sub
+    {
+      @types = map { $_->can('realize') ? $_->realize : $_ } @types;
+      return($self->{impl_base}->impl_new_custom_type(\@types, @args));
+    }
+  );
+}
+
+sub impl_new_constant_type
+{
+  my($self, $type, @args) = @_;
+
+  return FFI::Platypus::Type::Lazy->new(
+    sub
+    {
+      $type = $type->realize if $type->can('realize');
+      return($self->{impl_base}->impl_new_constant_type($type, @args));
+    }
   );
 }
 
