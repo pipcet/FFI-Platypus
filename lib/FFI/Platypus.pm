@@ -1236,17 +1236,6 @@ sub abi
   $self;
 }
 
-sub DESTROY
-{
-  my($self) = @_;
-  foreach my $handle (values %{ $self->{handles} })
-  {
-    next unless $handle;
-    FFI::Platypus::dl::dlclose($handle);
-  }
-  delete $self->{handles};
-}
-
 sub _have_pm
 {
   my($class) = @_;

@@ -108,14 +108,14 @@ sub impl_new_custom_type
 sub impl_find_symbol
 {
   my($self, $name, $path, $mangler) = @_;
-  my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::dl::dlopen($path);
+  my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::_resolver_class($self->{resolver})->new($path);
   unless($handle)
   {
     warn "error loading $path: ", FFI::Platypus::dl::dlerror()
 	if $ENV{FFI_PLATYPUS_DLERROR};
     return;
   }
-  my $address = FFI::Platypus::dl::dlsym($handle, $mangler->($name));
+  my $address = $handle->find_symbol($mangler->($name));
   if($address)
   {
     $self->{handles}->{$path||0} = $handle;
@@ -123,7 +123,6 @@ sub impl_find_symbol
   }
   else
   {
-    FFI::Platypus::dl::dlclose($handle) unless $self->{handles}->{$path||0};
     return;
   }
 }
