@@ -10,7 +10,7 @@
 #include "perl_math_int64.h"
 #endif
 
-ffi_pl_arguments *current_argv = NULL;
+ffi_pl_rtypes_arguments *current_argv = NULL;
 
 void *cast0(void)
 {
@@ -24,11 +24,11 @@ void *cast1(void *value)
 
 XS(ffi_pl_rtypes_sub_call)
 {
-  ffi_pl_function *self;
+  ffi_pl_rtypes_function *self;
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
   ffi_pl_result result;
-  ffi_pl_arguments arguments;
+  ffi_pl_rtypes_arguments arguments;
   SV *freeme = NULL; /* scratch space for custom perl handlers */
 #ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
   void **argument_pointers;
@@ -37,14 +37,14 @@ XS(ffi_pl_rtypes_sub_call)
   
   dVAR; dXSARGS;
   
-  self = (ffi_pl_function*) CvXSUBANY(cv).any_ptr;
+  self = (ffi_pl_rtypes_function*) CvXSUBANY(cv).any_ptr;
 
 #define EXTRA_ARGS 0
 #include "ffi_platypus_rtypes_call.h"
 }
 
 /* this code is shared between implementations */
-static ffi_pl_function *
+static void *
 ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(void *, int), SV **first_argument, SV *object)
 {
   dVAR;
@@ -85,7 +85,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
   }
 
   body = INT2PTR(void (*)(void *, int), SvIV(body_object));
-  function = INT2PTR(ffi_pl_function *, SvIV(SvRV(function_object)));
+  function = INT2PTR(ffi_pl_rtypes_function *, SvIV(SvRV(function_object)));
 
   *bodyp = body;
   *selfp = function;
@@ -115,13 +115,13 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
 /* this code is specific to one implementation */
 static void ffi_pl_rtypes_method_call_body(void *self_ptr, int extra_args)
 {
-  ffi_pl_function *self;
+  ffi_pl_rtypes_function *self;
   char *buffer;
   size_t buffer_size;
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
   ffi_pl_result result;
-  ffi_pl_arguments arguments;
+  ffi_pl_rtypes_arguments arguments;
   SV *first_argument = NULL;
   SV *freeme = NULL;
 

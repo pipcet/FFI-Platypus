@@ -8,38 +8,38 @@ _accessor(perl_name, path_name, typesv, offset)
     int offset
   PROTOTYPE: $$$$
   PREINIT:
-    ffi_pl_record_member *member;
+    ffi_pl_rtypes_record_member *member;
     CV *cv;
     void *function;
     /* not the correct prototype */
-    extern void ffi_pl_record_accessor_bitfield();
-    extern void ffi_pl_record_accessor_uint8();
-    extern void ffi_pl_record_accessor_uint16();
-    extern void ffi_pl_record_accessor_uint32();
-    extern void ffi_pl_record_accessor_uint64();
-    extern void ffi_pl_record_accessor_sint8();
-    extern void ffi_pl_record_accessor_sint16();
-    extern void ffi_pl_record_accessor_sint32();
-    extern void ffi_pl_record_accessor_sint64();
-    extern void ffi_pl_record_accessor_float();
-    extern void ffi_pl_record_accessor_double();
-    extern void ffi_pl_record_accessor_opaque();
-    extern void ffi_pl_record_accessor_uint8_array();
-    extern void ffi_pl_record_accessor_uint16_array();
-    extern void ffi_pl_record_accessor_uint32_array();
-    extern void ffi_pl_record_accessor_uint64_array();
-    extern void ffi_pl_record_accessor_sint8_array();
-    extern void ffi_pl_record_accessor_sint16_array();
-    extern void ffi_pl_record_accessor_sint32_array();
-    extern void ffi_pl_record_accessor_sint64_array();
-    extern void ffi_pl_record_accessor_float_array();
-    extern void ffi_pl_record_accessor_double_array();
-    extern void ffi_pl_record_accessor_opaque_array();
-    extern void ffi_pl_record_accessor_string_ro();
-    extern void ffi_pl_record_accessor_string_rw();
-    extern void ffi_pl_record_accessor_string_fixed();
+    extern void ffi_pl_rtypes_record_accessor_bitfield();
+    extern void ffi_pl_rtypes_record_accessor_uint8();
+    extern void ffi_pl_rtypes_record_accessor_uint16();
+    extern void ffi_pl_rtypes_record_accessor_uint32();
+    extern void ffi_pl_rtypes_record_accessor_uint64();
+    extern void ffi_pl_rtypes_record_accessor_sint8();
+    extern void ffi_pl_rtypes_record_accessor_sint16();
+    extern void ffi_pl_rtypes_record_accessor_sint32();
+    extern void ffi_pl_rtypes_record_accessor_sint64();
+    extern void ffi_pl_rtypes_record_accessor_float();
+    extern void ffi_pl_rtypes_record_accessor_double();
+    extern void ffi_pl_rtypes_record_accessor_opaque();
+    extern void ffi_pl_rtypes_record_accessor_uint8_array();
+    extern void ffi_pl_rtypes_record_accessor_uint16_array();
+    extern void ffi_pl_rtypes_record_accessor_uint32_array();
+    extern void ffi_pl_rtypes_record_accessor_uint64_array();
+    extern void ffi_pl_rtypes_record_accessor_sint8_array();
+    extern void ffi_pl_rtypes_record_accessor_sint16_array();
+    extern void ffi_pl_rtypes_record_accessor_sint32_array();
+    extern void ffi_pl_rtypes_record_accessor_sint64_array();
+    extern void ffi_pl_rtypes_record_accessor_float_array();
+    extern void ffi_pl_rtypes_record_accessor_double_array();
+    extern void ffi_pl_rtypes_record_accessor_opaque_array();
+    extern void ffi_pl_rtypes_record_accessor_string_ro();
+    extern void ffi_pl_rtypes_record_accessor_string_rw();
+    extern void ffi_pl_rtypes_record_accessor_string_fixed();
   CODE:
-    Newx(member, 1, ffi_pl_record_member);
+    Newx(member, 1, ffi_pl_rtypes_record_member);
     member->offset = offset;
     
     if(sv_isobject(typesv) && sv_derived_from(typesv, "FFI::Platypus::Type::FFI"))
@@ -49,37 +49,37 @@ _accessor(perl_name, path_name, typesv, offset)
       switch(ffi->type)
       {
         case FFI_TYPE_UINT8:
-          function = ffi_pl_record_accessor_uint8;
+          function = ffi_pl_rtypes_record_accessor_uint8;
           break;
         case FFI_TYPE_SINT8:
-          function = ffi_pl_record_accessor_sint8;
+          function = ffi_pl_rtypes_record_accessor_sint8;
           break;
         case FFI_TYPE_UINT16:
-          function = ffi_pl_record_accessor_uint16;
+          function = ffi_pl_rtypes_record_accessor_uint16;
           break;
         case FFI_TYPE_SINT16:
-          function = ffi_pl_record_accessor_sint16;
+          function = ffi_pl_rtypes_record_accessor_sint16;
           break;
         case FFI_TYPE_UINT32:
-          function = ffi_pl_record_accessor_uint32;
+          function = ffi_pl_rtypes_record_accessor_uint32;
           break;
         case FFI_TYPE_SINT32:
-          function = ffi_pl_record_accessor_sint32;
+          function = ffi_pl_rtypes_record_accessor_sint32;
           break;
         case FFI_TYPE_UINT64:
-          function = ffi_pl_record_accessor_uint64;
+          function = ffi_pl_rtypes_record_accessor_uint64;
           break;
         case FFI_TYPE_SINT64:
-          function = ffi_pl_record_accessor_sint64;
+          function = ffi_pl_rtypes_record_accessor_sint64;
           break;
         case FFI_TYPE_FLOAT:
-          function = ffi_pl_record_accessor_float;
+          function = ffi_pl_rtypes_record_accessor_float;
           break;
         case FFI_TYPE_DOUBLE:
-          function = ffi_pl_record_accessor_double;
+          function = ffi_pl_rtypes_record_accessor_double;
           break;
         case FFI_TYPE_POINTER:
-          function = ffi_pl_record_accessor_opaque;
+          function = ffi_pl_rtypes_record_accessor_opaque;
           break;
         default:
           Safefree(member);
@@ -89,44 +89,44 @@ _accessor(perl_name, path_name, typesv, offset)
     }
     else
     {
-      ffi_pl_type *type = ffi_pl_extra_data(typesv);
+      ffi_pl_rtypes_type *type = ffi_pl_rtypes_extra_data(typesv);
       if(sv_derived_from(typesv, "FFI::Platypus::Type::RTypes::Array"))
       {
         member->count = type->extra[0].array.element_count;
         switch(type->ffi_type->type)
         {
           case FFI_TYPE_UINT8:
-            function = ffi_pl_record_accessor_uint8_array;
+            function = ffi_pl_rtypes_record_accessor_uint8_array;
             break;
           case FFI_TYPE_SINT8:
-            function = ffi_pl_record_accessor_sint8_array;
+            function = ffi_pl_rtypes_record_accessor_sint8_array;
             break;
           case FFI_TYPE_UINT16:
-            function = ffi_pl_record_accessor_uint16_array;
+            function = ffi_pl_rtypes_record_accessor_uint16_array;
             break;
           case FFI_TYPE_SINT16:
-            function = ffi_pl_record_accessor_sint16_array;
+            function = ffi_pl_rtypes_record_accessor_sint16_array;
             break;
           case FFI_TYPE_UINT32:
-            function = ffi_pl_record_accessor_uint32_array;
+            function = ffi_pl_rtypes_record_accessor_uint32_array;
             break;
           case FFI_TYPE_SINT32:
-            function = ffi_pl_record_accessor_sint32_array;
+            function = ffi_pl_rtypes_record_accessor_sint32_array;
             break;
           case FFI_TYPE_UINT64:
-            function = ffi_pl_record_accessor_uint64_array;
+            function = ffi_pl_rtypes_record_accessor_uint64_array;
             break;
           case FFI_TYPE_SINT64:
-            function = ffi_pl_record_accessor_sint64_array;
+            function = ffi_pl_rtypes_record_accessor_sint64_array;
             break;
           case FFI_TYPE_FLOAT:
-            function = ffi_pl_record_accessor_float_array;
+            function = ffi_pl_rtypes_record_accessor_float_array;
             break;
           case FFI_TYPE_DOUBLE:
-            function = ffi_pl_record_accessor_double_array;
+            function = ffi_pl_rtypes_record_accessor_double_array;
             break;
           case FFI_TYPE_POINTER:
-            function = ffi_pl_record_accessor_opaque_array;
+            function = ffi_pl_rtypes_record_accessor_opaque_array;
             break;
           default:
             Safefree(member);
@@ -140,15 +140,15 @@ _accessor(perl_name, path_name, typesv, offset)
         {
           case FFI_PL_STRING_RO:
             member->count = 1;
-            function = ffi_pl_record_accessor_string_ro;
+            function = ffi_pl_rtypes_record_accessor_string_ro;
             break;
           case FFI_PL_STRING_RW:
             member->count = 1;
-            function = ffi_pl_record_accessor_string_rw;
+            function = ffi_pl_rtypes_record_accessor_string_rw;
             break;
           case FFI_PL_STRING_FIXED:
             member->count = type->extra[0].string.size;
-            function = ffi_pl_record_accessor_string_fixed;
+            function = ffi_pl_rtypes_record_accessor_string_fixed;
             break;
         }
       }
@@ -163,7 +163,7 @@ _accessor(perl_name, path_name, typesv, offset)
 	if (svp)
 	  member->count = SvIV(*svp);
 
-	function = ffi_pl_record_accessor_bitfield;
+	function = ffi_pl_rtypes_record_accessor_bitfield;
       }
       else
       {

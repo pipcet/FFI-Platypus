@@ -6,9 +6,9 @@
 #include "ffi_platypus.h"
 #include "ffi_platypus_guts.h"
 
-XS(ffi_pl_record_accessor_string_ro)
+XS(ffi_pl_rtypes_record_accessor_string_ro)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_rtypes_record_member *member;
   SV *self;
   SV *arg;
   char *ptr1;
@@ -19,7 +19,7 @@ XS(ffi_pl_record_accessor_string_ro)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_rtypes_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -45,9 +45,9 @@ XS(ffi_pl_record_accessor_string_ro)
     XSRETURN_EMPTY;
 }
 
-XS(ffi_pl_record_accessor_string_rw)
+XS(ffi_pl_rtypes_record_accessor_string_rw)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_rtypes_record_member *member;
   SV *self;
   SV *arg;
   char *ptr1;
@@ -60,7 +60,7 @@ XS(ffi_pl_record_accessor_string_rw)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_rtypes_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))
@@ -98,9 +98,9 @@ XS(ffi_pl_record_accessor_string_rw)
     XSRETURN_EMPTY;
 }
 
-XS(ffi_pl_record_accessor_string_fixed)
+XS(ffi_pl_rtypes_record_accessor_string_fixed)
 {
-  ffi_pl_record_member *member;
+  ffi_pl_rtypes_record_member *member;
   SV *self;
   SV *arg;
   SV *value;
@@ -114,7 +114,7 @@ XS(ffi_pl_record_accessor_string_fixed)
   if(items == 0)
     croak("This is a method, you must provide at least the object");
 
-  member = (ffi_pl_record_member*) CvXSUBANY(cv).any_ptr;
+  member = (ffi_pl_rtypes_record_member*) CvXSUBANY(cv).any_ptr;
 
   self = ST(0);
   if(SvROK(self))

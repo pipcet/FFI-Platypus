@@ -7,7 +7,7 @@
 #include "ffi_platypus_guts.h"
 
 SV*
-ffi_pl_custom_perl(SV *subref, SV *in_arg, int i)
+ffi_pl_rtypes_custom_perl(SV *subref, SV *in_arg, int i)
 {
   if(subref == NULL)
   {
@@ -56,7 +56,7 @@ ffi_pl_custom_perl(SV *subref, SV *in_arg, int i)
 }
 
 SV*
-ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
+ffi_pl_rtypes_custom_array_perl(SV *subref, SV *in_arg, int i)
 {
   if(subref == NULL)
   {
@@ -120,7 +120,7 @@ ffi_pl_custom_array_perl(SV *subref, SV *in_arg, int i)
 }
 
 void
-ffi_pl_custom_perl_cb(SV *subref, SV *in_arg, int i)
+ffi_pl_rtypes_custom_perl_cb(SV *subref, SV *in_arg, int i)
 {
   dSP;
   ENTER;

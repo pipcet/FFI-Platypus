@@ -1,6 +1,6 @@
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function::RTypes
 
-ffi_pl_function *
+ffi_pl_rtypes_function *
 new(class, impl, address, abi, return_type_arg, ...)
     const char *class
     SV *impl
@@ -8,15 +8,15 @@ new(class, impl, address, abi, return_type_arg, ...)
     int abi
     SV *return_type_arg
   PREINIT:
-    ffi_pl_function *self;
+    ffi_pl_rtypes_function *self;
     int i,n,j;
     SV* arg;
     void *buffer;
     ffi_type *ffi_return_type;
     ffi_type **ffi_argument_types;
     ffi_status ffi_status;
-    ffi_pl_type *return_type;
-    ffi_pl_type *tmp;
+    ffi_pl_rtypes_type *return_type;
+    ffi_pl_rtypes_type *tmp;
     ffi_abi ffi_abi;
     int extra_arguments;
     int stack_args;
@@ -54,8 +54,8 @@ new(class, impl, address, abi, return_type_arg, ...)
     }
     SPAGAIN;
   
-    Newx(buffer, (sizeof(ffi_pl_function) + sizeof(ffi_pl_getter)*(items-5)), char);
-    self = (ffi_pl_function*)buffer;
+    Newx(buffer, (sizeof(ffi_pl_rtypes_function) + sizeof(ffi_pl_rtypes_getter)*(items-5)), char);
+    self = (ffi_pl_rtypes_function*)buffer;
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
     self->address = address;
@@ -64,8 +64,8 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->address = (items-5+extra_arguments != 0) ? (void *)&cast1 : (void *)&cast0;
     }
     self->return_type = SvREFCNT_inc(return_type_arg);
-    self->extra_data = ffi_pl_extra_data(return_type_arg);
-    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_arguments_native_to_perl(self->return_type, self->extra_data);
+    self->extra_data = ffi_pl_rtypes_extra_data(return_type_arg);
+    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_rtypes_arguments_native_to_perl(self->return_type, self->extra_data);
     self->any_post = 0;
     SPAGAIN;
     
@@ -77,7 +77,7 @@ new(class, impl, address, abi, return_type_arg, ...)
     {
       if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::CustomPerl"))
       {
-	ffi_pl_type *return_type = self->extra_data;
+	ffi_pl_rtypes_type *return_type = self->extra_data;
         SV *ret_in=NULL, *ret_out;
 	AV *av;
 	SV **svp;
@@ -93,7 +93,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 	} else if(sv_derived_from(*svp, "FFI::Platypus::Type::Array")) {
 	  ffi = &ffi_type_pointer;
 	} else {
-	  ffi_pl_type *svp_type = ffi_pl_extra_data(*svp);
+	  ffi_pl_rtypes_type *svp_type = ffi_pl_rtypes_extra_data(*svp);
 	  ffi = svp_type->ffi_type;
 	}
 
@@ -101,7 +101,7 @@ new(class, impl, address, abi, return_type_arg, ...)
       }
       else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::ExoticFloat"))
       {
-	ffi_pl_type *return_type = self->extra_data;
+	ffi_pl_rtypes_type *return_type = self->extra_data;
 
 	ffi_return_type = return_type->ffi_type;
       }
@@ -119,9 +119,9 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->argument_getters[i].native_args = 1;
       self->argument_getters[i].stack_args = 0;
       
-      self->argument_getters[i].extra_data = ffi_pl_extra_data(arg);
-      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native(arg, ffi_pl_extra_data(arg));
-      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_arguments_perl_to_native_post(arg, ffi_pl_extra_data(arg));
+      self->argument_getters[i].extra_data = ffi_pl_rtypes_extra_data(arg);
+      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native(arg, ffi_pl_rtypes_extra_data(arg));
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native_post(arg, ffi_pl_rtypes_extra_data(arg));
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       if(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
@@ -132,7 +132,7 @@ new(class, impl, address, abi, return_type_arg, ...)
       {
 	if(sv_derived_from(arg, "FFI::Platypus::Type::RTypes::CustomPerl"))
         {
-	  int d = ffi_pl_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
+	  int d = ffi_pl_rtypes_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_rtypes_extra_data(arg)) - 1;
 	  if(d < 0) {
 	    Safefree(self);
 	    Safefree(ffi_argument_types);
@@ -143,7 +143,7 @@ new(class, impl, address, abi, return_type_arg, ...)
         }
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::Wrap"))
 	{
-	  int d = ffi_pl_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_extra_data(arg)) - 1;
+	  int d = ffi_pl_rtypes_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_rtypes_extra_data(arg)) - 1;
 	  if(d < 0) {
 	    Safefree(self);
 	    Safefree(ffi_argument_types);
@@ -154,7 +154,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 	}
 	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::ExoticFloat"))
         {
-	  tmp = ffi_pl_extra_data(arg);
+	  tmp = ffi_pl_rtypes_extra_data(arg);
           ffi_argument_types[n] = tmp->ffi_type;
         }
         else
@@ -239,12 +239,12 @@ new(class, impl, address, abi, return_type_arg, ...)
 
 void
 call(self, ...)
-    ffi_pl_function *self
+    ffi_pl_rtypes_function *self
   PREINIT:
     int i, n, perl_arg_index, perl_type_index;
     SV *arg;
     ffi_pl_result result;
-    ffi_pl_arguments arguments;
+    ffi_pl_rtypes_arguments arguments;
     SV *freeme = NULL; /* scratch space for custom perl handlers */
 #ifndef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void **argument_pointers;
@@ -397,7 +397,7 @@ attach(self, perl_name, path_name, proto)
       cv = get_cv(perl_name,0);
 #endif
     }
-    CvXSUBANY(cv).any_ptr = (void *) INT2PTR(ffi_pl_function*, SvIV((SV*) SvRV(self)));
+    CvXSUBANY(cv).any_ptr = (void *) INT2PTR(ffi_pl_rtypes_function*, SvIV((SV*) SvRV(self)));
     /*
      * No coresponding decrement !!
      * once attached, you can never free the function object, or the FFI::Platypus
@@ -407,7 +407,7 @@ attach(self, perl_name, path_name, proto)
 
 void
 DESTROY(self)
-    ffi_pl_function *self
+    ffi_pl_rtypes_function *self
   PREINIT:
     int i;
   CODE:

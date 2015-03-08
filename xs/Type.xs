@@ -9,14 +9,14 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     ffi_pl_string type_classname
     int rw
   PREINIT:
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
     char *buffer;
   CODE:
     self = NULL;
     if(!strcmp(platypus_type, "string"))
     {
-      Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_string), char);
-      self = (ffi_pl_type*) buffer;
+      Newx(buffer, sizeof(ffi_pl_rtypes_type) + sizeof(ffi_pl_rtypes_type_extra_string), char);
+      self = (ffi_pl_rtypes_type*) buffer;
       self->hv = NULL;
       self->ffi_type = NULL;
       self->extra[0].string.size = array_or_record_or_string_size;
@@ -31,7 +31,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     }
     else if(!strcmp(platypus_type, "ffi"))
     {
-      Newx(self, 1, ffi_pl_type);
+      Newx(self, 1, ffi_pl_rtypes_type);
       self->hv = NULL;
       self->ffi_type = NULL;
       if(!strcmp(type, "longdouble"))
@@ -48,22 +48,22 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
     }
     else if(!strcmp(platypus_type, "pointer"))
     {
-      Newx(self, 1, ffi_pl_type);
+      Newx(self, 1, ffi_pl_rtypes_type);
       self->hv = NULL;
       self->ffi_type = NULL;
     }
     else if(!strcmp(platypus_type, "array"))
     {
-      Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_array), char);
-      self = (ffi_pl_type*) buffer;
+      Newx(buffer, sizeof(ffi_pl_rtypes_type) + sizeof(ffi_pl_rtypes_type_extra_array), char);
+      self = (ffi_pl_rtypes_type*) buffer;
       self->hv = NULL;
       self->ffi_type = NULL;
       self->extra[0].array.element_count = array_or_record_or_string_size;
     }
     else if(!strcmp(platypus_type, "record"))
     {
-      Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_record), char);
-      self = (ffi_pl_type*) buffer;
+      Newx(buffer, sizeof(ffi_pl_rtypes_type) + sizeof(ffi_pl_rtypes_type_extra_record), char);
+      self = (ffi_pl_rtypes_type*) buffer;
       self->hv = NULL;
       self->ffi_type = NULL;
       self->extra[0].record.size = array_or_record_or_string_size;
@@ -105,7 +105,7 @@ _new(class, type, platypus_type, array_or_record_or_string_size, type_classname,
   OUTPUT:
     RETVAL
 
-ffi_pl_type *
+ffi_pl_rtypes_type *
 _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_native_post, in_argument_count, out_argument_count)
     const char *class
     SV *types
@@ -117,12 +117,12 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
     int out_argument_count
   PREINIT:
     char *buffer;
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
     ffi_type *ffi_type;
-    ffi_pl_type_extra_custom_perl *custom;
+    ffi_pl_rtypes_type_extra_custom_perl *custom;
   CODE:
-    Newx(buffer, sizeof(ffi_pl_type) + sizeof(ffi_pl_type_extra_custom_perl), char);
-    self = (ffi_pl_type*) buffer;
+    Newx(buffer, sizeof(ffi_pl_rtypes_type) + sizeof(ffi_pl_rtypes_type_extra_custom_perl), char);
+    self = (ffi_pl_rtypes_type*) buffer;
     self->hv = newHV();
     self->ffi_type = NULL;
     hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
@@ -144,18 +144,18 @@ _new_custom_perl(class, types, size, perl_to_native, native_to_perl, perl_to_nat
     RETVAL
 
 
-ffi_pl_type *
+ffi_pl_rtypes_type *
 _new_constant(class, types, size, value)
     const char *class
     SV *types
     size_t size
     SV *value
   PREINIT:
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
     ffi_type *ffi_type;
-    ffi_pl_type_extra_custom_perl *custom;
+    ffi_pl_rtypes_type_extra_custom_perl *custom;
   CODE:
-    Newx(self, 1, ffi_pl_type);
+    Newx(self, 1, ffi_pl_rtypes_type);
     self->hv = newHV();
     self->ffi_type = NULL;
     hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
@@ -168,22 +168,22 @@ _new_constant(class, types, size, value)
     RETVAL
 
 
-ffi_pl_type *
+ffi_pl_rtypes_type *
 _new_struct_type(class, types)
     const char *class
     SV *types
   PREINIT:
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
     SV *ffi_sv;
     SV *ffi_children_sv;
     ffi_type *ffi;
     ffi_type **ffi_children;
-    ffi_pl_type_extra_custom_perl *custom;
+    ffi_pl_rtypes_type_extra_custom_perl *custom;
     int perl_n;
     int ffi_n;
     int i,j;
   CODE:
-    Newx(self, 1, ffi_pl_type);
+    Newx(self, 1, ffi_pl_rtypes_type);
     self->hv = newHV();
 
     hv_store((HV *)self->hv, "underlying_types", strlen("underlying_types"), SvREFCNT_inc(types), 0);
@@ -233,7 +233,7 @@ _new_struct_type(class, types)
       SV **svp;
       svp = av_fetch((AV *)SvRV(types), i, 0);
 
-      j += ffi_pl_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp, ffi_pl_extra_data(*svp));
+      j += ffi_pl_rtypes_prepare_any(NULL, NULL, ffi_children+j, ffi_children+ffi_n, *svp, ffi_pl_rtypes_extra_data(*svp));
       SPAGAIN;
     }
 
@@ -250,12 +250,12 @@ _new_struct_type(class, types)
     RETVAL
 
 
-ffi_pl_type *
+ffi_pl_rtypes_type *
 _new_closure(class, return_type_arg, ...)
     const char *class;
     SV *return_type_arg;
   PREINIT:
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
     int i;
     SV *arg;
     ffi_type *ffi_return_type;
@@ -283,7 +283,7 @@ _new_closure(class, return_type_arg, ...)
       }
     }
     
-    Newx(self, 1, ffi_pl_type);
+    Newx(self, 1, ffi_pl_rtypes_type);
     Newx(ffi_argument_types, items-2, ffi_type*);
     
     self->hv = newHV();
@@ -296,7 +296,7 @@ _new_closure(class, return_type_arg, ...)
       arg = ST(2+i);
       av_push(av, SvREFCNT_inc(arg));
 
-      i += ffi_pl_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg, ffi_pl_extra_data(arg));
+      i += ffi_pl_rtypes_prepare_any(NULL, NULL, ffi_argument_types+i, ffi_argument_types+items-2, arg, ffi_pl_rtypes_extra_data(arg));
       SPAGAIN;
     }
     hv_store(self->hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
@@ -345,15 +345,15 @@ _new_closure(class, return_type_arg, ...)
   OUTPUT:
     RETVAL
 
-ffi_pl_type *
+ffi_pl_rtypes_type *
 _new_bitfield(class,bit_offset,bit_count)
     const char *class
     size_t bit_offset;
     size_t bit_count;
   PREINIT:
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
   CODE:
-    Newx(self, 1, ffi_pl_type);
+    Newx(self, 1, ffi_pl_rtypes_type);
     self->hv = newHV();
     self->ffi_type = NULL;
     hv_store((HV *)self->hv, "bit_offset", strlen("bit_offset"), newSViv(bit_offset), 0);
@@ -368,7 +368,7 @@ meta(self)
   PREINIT:
     HV *meta;
   CODE:
-    meta = ffi_pl_get_type_meta(self);
+    meta = ffi_pl_rtypes_get_type_meta(self);
     RETVAL = newRV_noinc((SV*)meta);
   OUTPUT:
     RETVAL
@@ -377,13 +377,13 @@ int
 sizeof(selfsv)
     SV *selfsv
   CODE:
-    RETVAL = ffi_pl_sizeof(selfsv, ffi_pl_extra_data(selfsv));
+    RETVAL = ffi_pl_rtypes_sizeof(selfsv, ffi_pl_rtypes_extra_data(selfsv));
   OUTPUT:
     RETVAL
 
 void *
 extra_data(ffi)
-    ffi_pl_type *ffi
+    ffi_pl_rtypes_type *ffi
   CODE:
     RETVAL = ffi;
   OUTPUT:
@@ -391,9 +391,9 @@ extra_data(ffi)
 
 void *
 prepare_pointer(ffi)
-    ffi_pl_type *ffi
+    ffi_pl_rtypes_type *ffi
   CODE:
-    RETVAL = ffi_pl_prepare_generic;
+    RETVAL = ffi_pl_rtypes_prepare_generic;
   OUTPUT:
     RETVAL
 
@@ -401,33 +401,33 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::Array
 
 void *
 prepare_pointer(ffi)
-    ffi_pl_type *ffi
+    ffi_pl_rtypes_type *ffi
   CODE:
-    RETVAL = ffi_pl_prepare_array;
+    RETVAL = ffi_pl_rtypes_prepare_array;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_array;
+    RETVAL = ffi_pl_rtypes_arguments_set_array;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_array_post;
+    RETVAL = ffi_pl_rtypes_arguments_set_array_post;
   OUTPUT:
     RETVAL
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_array;
+    RETVAL = ffi_pl_rtypes_native_to_perl_array;
   OUTPUT:
     RETVAL
 
@@ -435,23 +435,23 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::Closure
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_closure;
+    RETVAL = ffi_pl_rtypes_arguments_set_closure;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_closure_post;
+    RETVAL = ffi_pl_rtypes_arguments_set_closure_post;
   OUTPUT:
     RETVAL
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
   OUTPUT:
@@ -461,15 +461,15 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::Constant
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_constant;
+    RETVAL = ffi_pl_rtypes_arguments_set_constant;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
   OUTPUT:
@@ -477,7 +477,7 @@ perl_to_native_post_pointer(self)
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
   OUTPUT:
@@ -487,33 +487,33 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::CustomPerl
 
 void *
 prepare_pointer(ffi)
-    ffi_pl_type *ffi
+    ffi_pl_rtypes_type *ffi
   CODE:
-    RETVAL = ffi_pl_prepare_customperl;
+    RETVAL = ffi_pl_rtypes_prepare_customperl;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_customperl;
+    RETVAL = ffi_pl_rtypes_arguments_set_customperl;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_custom_perl_post;
+    RETVAL = ffi_pl_rtypes_arguments_set_custom_perl_post;
   OUTPUT:
     RETVAL
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_customperl;
+    RETVAL = ffi_pl_rtypes_native_to_perl_customperl;
   OUTPUT:
     RETVAL
 
@@ -521,25 +521,25 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::ExoticFloat
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_exoticfloat;
+    RETVAL = ffi_pl_rtypes_arguments_set_exoticfloat;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_exoticfloat_post;
+    RETVAL = ffi_pl_rtypes_arguments_set_exoticfloat_post;
   OUTPUT:
     RETVAL
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_exoticfloat;
+    RETVAL = ffi_pl_rtypes_native_to_perl_exoticfloat;
   OUTPUT:
     RETVAL
 
@@ -547,31 +547,31 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::Pointer
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     if(self->ffi_type->type == FFI_TYPE_SINT32)
-      RETVAL = ffi_pl_arguments_set_ref_sint32;
+      RETVAL = ffi_pl_rtypes_arguments_set_ref_sint32;
     else
-      RETVAL = ffi_pl_arguments_set_ref;
+      RETVAL = ffi_pl_rtypes_arguments_set_ref;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     if(self->ffi_type->type == FFI_TYPE_SINT32)
-      RETVAL = ffi_pl_arguments_set_ref_post_sint32;
+      RETVAL = ffi_pl_rtypes_arguments_set_ref_post_sint32;
     else
-      RETVAL = ffi_pl_arguments_set_ref_post;
+      RETVAL = ffi_pl_rtypes_arguments_set_ref_post;
   OUTPUT:
     RETVAL
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_pointer;
+    RETVAL = ffi_pl_rtypes_native_to_perl_pointer;
   OUTPUT:
     RETVAL
 
@@ -579,15 +579,15 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::Record
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_arguments_set_record;
+    RETVAL = ffi_pl_rtypes_arguments_set_record;
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
   OUTPUT:
@@ -595,9 +595,9 @@ perl_to_native_post_pointer(self)
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
-    RETVAL = ffi_pl_native_to_perl_record;
+    RETVAL = ffi_pl_rtypes_native_to_perl_record;
   OUTPUT:
     RETVAL
 
@@ -605,20 +605,20 @@ MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::String
 
 void *
 perl_to_native_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
        self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
-      RETVAL = ffi_pl_arguments_set_perl_string_variable;
+      RETVAL = ffi_pl_rtypes_arguments_set_perl_string_variable;
     } else {
-      RETVAL = ffi_pl_arguments_set_perl_string;
+      RETVAL = ffi_pl_rtypes_arguments_set_perl_string;
     }
   OUTPUT:
     RETVAL
 
 void *
 perl_to_native_post_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
   OUTPUT:
@@ -626,13 +626,13 @@ perl_to_native_post_pointer(self)
 
 void *
 native_to_perl_pointer(self)
-    ffi_pl_type *self
+    ffi_pl_rtypes_type *self
   CODE:
     if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_RW ||
        self->extra[0].string.platypus_string_type == FFI_PL_STRING_RO) {
-      RETVAL = ffi_pl_native_to_perl_string_variable;
+      RETVAL = ffi_pl_rtypes_native_to_perl_string_variable;
     } else {
-      RETVAL = ffi_pl_native_to_perl_string;
+      RETVAL = ffi_pl_rtypes_native_to_perl_string;
     }
   OUTPUT:
     RETVAL
@@ -643,7 +643,7 @@ void *
 prepare_pointer(ffi)
     ffi_type *ffi
   CODE:
-    RETVAL = ffi_pl_prepare_ffi;
+    RETVAL = ffi_pl_rtypes_prepare_ffi;
   OUTPUT:
     RETVAL
 
@@ -654,49 +654,49 @@ perl_to_native_pointer(ffi)
     switch(ffi->type)
     {
     case FFI_TYPE_VOID:
-      RETVAL = ffi_pl_arguments_set_ffi_void;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_void;
       break;
     case FFI_TYPE_UINT8:
-      RETVAL = ffi_pl_arguments_set_ffi_uint8;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_uint8;
       break;
     case FFI_TYPE_SINT8:
-      RETVAL = ffi_pl_arguments_set_ffi_sint8;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_sint8;
       break;
     case FFI_TYPE_UINT16:
-      RETVAL = ffi_pl_arguments_set_ffi_uint16;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_uint16;
       break;
     case FFI_TYPE_SINT16:
-      RETVAL = ffi_pl_arguments_set_ffi_sint16;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_sint16;
       break;
     case FFI_TYPE_UINT32:
-      RETVAL = ffi_pl_arguments_set_ffi_uint32;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_uint32;
       break;
     case FFI_TYPE_SINT32:
-      RETVAL = ffi_pl_arguments_set_ffi_sint32;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_sint32;
       break;
 #ifdef HAVE_IV_IS_64
     case FFI_TYPE_UINT64:
-      RETVAL = ffi_pl_arguments_set_ffi_uint64;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_uint64;
       break;
     case FFI_TYPE_SINT64:
-      RETVAL = ffi_pl_arguments_set_ffi_sint64;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_sint64;
       break;
 #else
     case FFI_TYPE_UINT64:
-      RETVAL = ffi_pl_arguments_set_ffi_uint64;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_uint64;
       break;
     case FFI_TYPE_SINT64:
-      RETVAL = ffi_pl_arguments_set_ffi_sint64;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_sint64;
       break;
 #endif
     case FFI_TYPE_FLOAT:
-      RETVAL = ffi_pl_arguments_set_ffi_float;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_float;
       break;
     case FFI_TYPE_DOUBLE:
-      RETVAL = ffi_pl_arguments_set_ffi_double;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_double;
       break;
     case FFI_TYPE_POINTER:
-      RETVAL = ffi_pl_arguments_set_ffi_pointer;
+      RETVAL = ffi_pl_rtypes_arguments_set_ffi_pointer;
       break;
     default:
       croak("argument type not supported (%d)", ffi->type);
@@ -722,46 +722,46 @@ native_to_perl_pointer(ffi)
       RETVAL = NULL;
       break;
     case FFI_TYPE_UINT8:
-      RETVAL = ffi_pl_native_to_perl_ffi_uint8;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_uint8;
       break;
     case FFI_TYPE_SINT8:
-      RETVAL = ffi_pl_native_to_perl_ffi_sint8;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_sint8;
       break;
     case FFI_TYPE_UINT16:
-      RETVAL = ffi_pl_native_to_perl_ffi_uint16;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_uint16;
       break;
     case FFI_TYPE_SINT16:
-      RETVAL = ffi_pl_native_to_perl_ffi_sint16;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_sint16;
       break;
     case FFI_TYPE_UINT32:
-      RETVAL = ffi_pl_native_to_perl_ffi_uint32;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_uint32;
       break;
     case FFI_TYPE_SINT32:
-      RETVAL = ffi_pl_native_to_perl_ffi_sint32;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_sint32;
       break;
 #ifdef HAVE_IV_IS_64
     case FFI_TYPE_UINT64:
-      RETVAL = ffi_pl_native_to_perl_ffi_uint64;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_uint64;
       break;
     case FFI_TYPE_SINT64:
-      RETVAL = ffi_pl_native_to_perl_ffi_sint64;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_sint64;
       break;
 #else
     case FFI_TYPE_UINT64:
-      RETVAL = ffi_pl_native_to_perl_ffi_uint64;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_uint64;
       break;
     case FFI_TYPE_SINT64:
-      RETVAL = ffi_pl_native_to_perl_ffi_sint64;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_sint64;
       break;
 #endif
     case FFI_TYPE_FLOAT:
-      RETVAL = ffi_pl_native_to_perl_ffi_float;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_float;
       break;
     case FFI_TYPE_DOUBLE:
-      RETVAL = ffi_pl_native_to_perl_ffi_double;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_double;
       break;
     case FFI_TYPE_POINTER:
-      RETVAL = ffi_pl_native_to_perl_ffi_pointer;
+      RETVAL = ffi_pl_rtypes_native_to_perl_ffi_pointer;
       break;
     default:
       croak("argument type not supported (%d)", ffi->type);
@@ -784,7 +784,7 @@ void *
 prepare_pointer(self)
     void *self
   CODE:
-    RETVAL = ffi_pl_prepare_sv;
+    RETVAL = ffi_pl_rtypes_prepare_sv;
   OUTPUT:
     RETVAL
 
@@ -792,7 +792,7 @@ void *
 perl_to_native_pointer(svraw)
     void *svraw
   CODE:
-    RETVAL = ffi_pl_sv_perl_to_native;
+    RETVAL = ffi_pl_rtypes_sv_perl_to_native;
   OUTPUT:
     RETVAL
 
@@ -800,7 +800,7 @@ void *
 perl_to_native_post_pointer(svraw)
     void *svraw
   CODE:
-    RETVAL = ffi_pl_sv_perl_to_native_post;
+    RETVAL = ffi_pl_rtypes_sv_perl_to_native_post;
   OUTPUT:
     RETVAL
 
@@ -808,7 +808,7 @@ void *
 native_to_perl_pointer(svraw)
     void *svraw
   CODE:
-    RETVAL = ffi_pl_sv_native_to_perl;
+    RETVAL = ffi_pl_rtypes_sv_native_to_perl;
   OUTPUT:
     RETVAL
 
@@ -819,9 +819,9 @@ DESTROY(self_sv)
     SV *self_sv
   PREINIT:
     int i;
-    ffi_pl_type *self;
+    ffi_pl_rtypes_type *self;
   CODE:
-    self = INT2PTR(ffi_pl_type *, SvIV((SV *)SvRV(self_sv)));
+    self = INT2PTR(ffi_pl_rtypes_type *, SvIV((SV *)SvRV(self_sv)));
 /* XXX
     if(self->platypus_type == FFI_PL_CLOSURE)
     {

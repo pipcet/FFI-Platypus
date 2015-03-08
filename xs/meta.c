@@ -6,7 +6,7 @@
 #include "ffi_platypus.h"
 
 size_t
-ffi_pl_sizeof(SV *selfsv, ffi_pl_type *self)
+ffi_pl_rtypes_sizeof(SV *selfsv, ffi_pl_rtypes_type *self)
 {
   if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::CustomPerl"))
   {
@@ -141,9 +141,9 @@ ffi_pl_ffi_get_type_meta(ffi_type *ffi_type)
 }
 
 HV *
-ffi_pl_get_type_meta(SV *selfsv)
+ffi_pl_rtypes_get_type_meta(SV *selfsv)
 {
-  ffi_pl_type *self;
+  ffi_pl_rtypes_type *self;
   HV *meta;
   const char *string;
 
@@ -154,11 +154,11 @@ ffi_pl_get_type_meta(SV *selfsv)
     SV **svp = hv_fetch(hv, "ffi_pl_type", strlen("ffi_pl_type"), 0);
     if (svp == NULL)
       Perl_croak(aTHX_ "self is missing the ffi_pl_type hash entry");
-    self = INT2PTR(ffi_pl_type *, SvIV((SV*)SvRV(*svp)));
+    self = INT2PTR(ffi_pl_rtypes_type *, SvIV((SV*)SvRV(*svp)));
   } else
     Perl_croak(aTHX_ "self is not of type FFI::Platypus::Type");
 
-  hv_store(meta, "size", 4, newSViv(ffi_pl_sizeof(selfsv, self)), 0);
+  hv_store(meta, "size", 4, newSViv(ffi_pl_rtypes_sizeof(selfsv, self)), 0);
 
   if(sv_derived_from(selfsv, "FFI::Platypus::Type::FFI") || sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::ExoticFloat"))
   {
