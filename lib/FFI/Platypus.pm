@@ -183,7 +183,7 @@ sub new
   my($class, %args) = @_;
   my $impl = delete $args{impl};
 
-  $impl = 'RTypes' unless defined $impl;
+  $impl = default_impl unless defined $impl;
 
   my $impl_class = _impl_class($impl);
 
