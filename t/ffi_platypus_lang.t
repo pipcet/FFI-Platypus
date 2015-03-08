@@ -20,7 +20,7 @@ subtest C => sub {
   eval { $ffi->type('sint16') };
   is $@, '', 'sint16 is an okay type';
 
-  is ''.$ffi->find_symbol('UnMangled::Name(int i)'), '', 'unable to find unmangled name';
+  is !!$ffi->find_symbol('UnMangled::Name(int i)'), '', 'unable to find unmangled name';
 
 };
 
@@ -39,7 +39,7 @@ subtest ASM => sub {
   eval { $ffi->type('sint16') };
   is $@, '', 'sint16 is an okay type';
 
-  is ''.$ffi->find_symbol('UnMangled::Name(int i)'), '', 'unable to find unmangled name';
+  is !!$ffi->find_symbol('UnMangled::Name(int i)'), '', 'unable to find unmangled name';
 
 };
 
