@@ -183,6 +183,12 @@ sub new
   my($class, %args) = @_;
   my $impl = delete $args{impl};
 
+  if(ref $impl eq 'ARRAY')
+  {
+    $args{impl} = [@$impl[1..$#$impl]];
+    $impl = $impl->[0];
+  }
+
   $impl = default_impl() unless defined $impl;
 
   my $impl_class = _impl_class($impl);
