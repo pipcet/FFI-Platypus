@@ -262,6 +262,11 @@ sub _lang_class ($)
   $class;
 }
 
+sub _new_type_map
+{
+  return {};
+}
+
 sub _type_map
 {
   my($self) = @_;
@@ -269,20 +274,20 @@ sub _type_map
   unless(defined $self->{type_map})
   {
     my $class = _lang_class($self->{lang});
-    my %type_map;
+    my $type_map = $self->_new_type_map;
     foreach my $key (keys %{ $class->native_type_map  })
     {
       my $value = $class->native_type_map->{$key};
       next unless _have_type($value);
-      $type_map{$key} = $value;
+      $type_map->{$key} = $value;
     }
     # include the standard libffi types
-    $type_map{$_} = $_ for grep { _have_type($_) } 
+    $type_map->{$_} = $_ for grep { _have_type($_) }
       qw( void sint8 uint8 sint16 uint16 sint32 uint32 sint64 uint64 float double string opaque
           longdouble complex_float complex_double );
-    $type_map{SV} = 'SV';
-    $type_map{pointer} = 'opaque';
-    $self->{type_map} = \%type_map;
+    $type_map->{SV} = 'SV';
+    $type_map->{pointer} = 'opaque';
+    $self->{type_map} = $type_map;
   }
   
   $self->{type_map};
