@@ -8,6 +8,7 @@ use Scalar::Util qw( refaddr weaken );
 
 package FFI::Platypus::Type::RTypes;
 use parent -norequire, 'FFI::Platypus::Type';
+use FFI::Platypus::Type::RTypes::FFI;
 
 use warnings;
 use strict;
@@ -137,6 +138,10 @@ sub count_native_arguments
   return 1;
 }
 
+sub DESTROY
+{
+}
+
 package FFI::Platypus::Type::RTypes::String;
 use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
@@ -227,6 +232,6 @@ package FFI::Platypus::Type::RTypes::ExoticFloat;
 use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
 package FFI::Platypus::Type::RTypes::SV;
-use parent -norequire, 'FFI::Platypus::Type::SV';
+use parent -norequire, 'FFI::Platypus::Type::SV', 'FFI::Platypus::Type::RTypes';
 
 1;

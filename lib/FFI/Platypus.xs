@@ -10,7 +10,7 @@
 #include "perl_math_int64.h"
 #endif
 
-ffi_pl_rtypes_arguments *current_argv = NULL;
+ffi_pl_arguments *current_argv = NULL;
 
 void *cast0(void)
 {
@@ -21,6 +21,36 @@ void *cast1(void *value)
 {
   return value;
 }
+
+XS(ffi_pl_sub_call)
+{
+  ffi_pl_function *self;
+  char *buffer;
+  size_t buffer_size;
+  int i,n, perl_arg_index;
+  SV *arg;
+  ffi_pl_result result;
+  ffi_pl_arguments *arguments;
+  void **argument_pointers;
+  
+  dVAR; dXSARGS;
+  
+  self = (ffi_pl_function*) CvXSUBANY(cv).any_ptr;
+
+#define EXTRA_ARGS 0
+#include "ffi_platypus_call.h"
+}
+
+/*
+ * -1 until we have checked
+ *  0 tried, not there
+ *  1 tried, is there
+ */
+int have_math_longdouble = -1;  /* Math::LongDouble */
+int have_math_complex    = -1;  /* Math::Complex    */
+
+#include "ffi_platypus_rtypes.h"
+#include "ffi_platypus_rtypes_guts.h"
 
 extern XS(ffi_pl_rtypes_sub_call);
 XS(ffi_pl_rtypes_sub_call_old)
@@ -194,14 +224,6 @@ XS(ffi_pl_method_call)
   body(self, first_argument == NULL);
 }
 
-/*
- * -1 until we have checked
- *  0 tried, not there
- *  1 tried, is there
- */
-int have_math_longdouble = -1;  /* Math::LongDouble */
-int have_math_complex    = -1;  /* Math::Complex    */
-
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus
 
 BOOT:
@@ -236,6 +258,11 @@ _have_type(name)
     RETVAL = !strcmp(name, "string") || ffi_pl_name_to_type(name) != NULL;
   OUTPUT:
     RETVAL
+
+BOOT:
+#ifndef HAVE_IV_IS_64
+    PERL_MATH_INT64_LOAD_OR_CROAK;
+#endif
 
 void
 _attach_body_data(ffi, object, key, argument, drop_first_argument, perl_name, path_name, proto, body, data)
@@ -324,3 +351,4 @@ INCLUDE: ../../xs/ClosureData.xs
 INCLUDE: ../../xs/API.xs
 INCLUDE: ../../xs/ABI.xs
 INCLUDE: ../../xs/Record.xs
+INCLUDE: ../../xs/RTypes.xs

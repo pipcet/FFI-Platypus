@@ -36,7 +36,6 @@
     Newx(argument_slots, self->ffi_cif.nargs+self->stack_args, ffi_pl_argument);
 #endif
     arguments.pointers = (ffi_pl_argument **)argument_pointers;
-    current_argv = &arguments;
 
     arguments.count = self->ffi_cif.nargs;
 
@@ -150,15 +149,11 @@
   fflush(stderr);
 #endif
 
-  current_argv = NULL;
-
   ffi_call(&self->ffi_cif, self->address, &result, (void **)arguments.pointers);
 
   /*
    * ARGUMENT OUT
    */
-
-  current_argv = &arguments;
 
   if(__builtin_expect(self->any_post, 0))
   {
@@ -230,8 +225,6 @@
   Safefree(argument_pointers);
   Safefree(argument_slots);
 #endif
-  current_argv = NULL;
-
 
   if(__builtin_expect(perl_return == TARG, 1))
   {

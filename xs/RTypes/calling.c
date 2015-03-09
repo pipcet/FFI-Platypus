@@ -4,7 +4,8 @@
 #include "ppport.h"
 
 #include "ffi_platypus.h"
-#include "ffi_platypus_guts.h"
+#include "ffi_platypus_rtypes.h"
+#include "ffi_platypus_rtypes_guts.h"
 
 extern ffi_pl_rtypes_arguments *current_argv;
 

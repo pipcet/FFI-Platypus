@@ -189,4 +189,3 @@ _accessor(perl_name, path_name, typesv, offset)
 
     CvXSUBANY(cv).any_ptr = (void*) member;
     XSRETURN_EMPTY;
-

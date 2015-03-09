@@ -1,5 +1,5 @@
-#ifndef FFI_PLATYPUS_GUTS_H
-#define FFI_PLATYPUS_GUTS_H
+#ifndef FFI_PLATYPUS_RTYPES_GUTS_H
+#define FFI_PLATYPUS_RTYPES_GUTS_H
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -67,8 +67,6 @@ native_to_perl_pointer_t ffi_pl_rtypes_arguments_native_to_perl(SV *, void *);
   {                                                              \
     sv_setnv(sv, *(ptr));                                        \
   }
-
-extern ffi_pl_rtypes_arguments *current_argv;
 
 int ffi_pl_rtypes_arguments_set_ffi_void(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 int ffi_pl_rtypes_arguments_set_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));

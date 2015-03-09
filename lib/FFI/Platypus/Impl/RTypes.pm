@@ -8,6 +8,9 @@ use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
+use FFI::Platypus::Type::RTypes;
+
+
 # for now, we link Rtypes.o into Platypus.so rather than haing a
 # per-implementation library.
 

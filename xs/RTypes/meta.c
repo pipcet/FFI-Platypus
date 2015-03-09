@@ -4,6 +4,7 @@
 #include "ppport.h"
 
 #include "ffi_platypus.h"
+#include "ffi_platypus_rtypes.h"
 
 size_t
 ffi_pl_rtypes_sizeof(SV *selfsv, ffi_pl_rtypes_type *self)
