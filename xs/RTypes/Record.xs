@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::Record
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Record::RTypes
 
 void
 _accessor(perl_name, path_name, typesv, offset)
@@ -189,4 +189,3 @@ _accessor(perl_name, path_name, typesv, offset)
 
     CvXSUBANY(cv).any_ptr = (void*) member;
     XSRETURN_EMPTY;
-

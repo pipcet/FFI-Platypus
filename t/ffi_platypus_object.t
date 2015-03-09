@@ -1,3 +1,11 @@
+package main;
+use Test::More;
+
+plan skip_all => "no object methods in Libffi"
+  if FFI::Platypus->new->impl eq 'Libffi';
+
+plan tests => 8;
+
 package platypus_object;
 use strict;
 use warnings;
@@ -23,7 +31,6 @@ $ffi->type('opaque' => 'object');
 $ffi->attach_method('platypus_object', [object_new => '_new'], ['void','int','string'] => 'object');
 
 package main;
-use Test::More tests => 8;
 
 my $str1 = 'oxymoron';
 my $str2 = 'rad';

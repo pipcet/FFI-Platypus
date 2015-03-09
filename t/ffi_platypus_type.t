@@ -127,10 +127,12 @@ subtest 'closure types' => sub {
   isnt $@, '', 'inline closure illegal';
   
   eval { $ffi->type('(foo)->int') };
-  is $@, '', 'argument type closure legal';
+  is $@, '', 'argument type closure legal' if $ffi->impl ne 'Libffi';
+  isnt $@, '', 'argument type closure illegal' if $ffi->impl eq 'Libffi';
 
   eval { $ffi->type('(int)->foo') };
-  is $@, '', 'return type closure illegal';
+  is $@, '', 'return type closure legal' if $ffi->impl ne 'Libffi';
+  isnt $@, '', 'return type closure illegal' if $ffi->impl eq 'Libffi';
   
   $ffi->type('(int,int,int,char,string,opaque)->void' => 'baz');
   is $ffi->type_meta('baz')->{type}, 'closure', 'a more complicated closure';

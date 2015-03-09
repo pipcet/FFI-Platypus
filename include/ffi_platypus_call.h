@@ -333,7 +333,7 @@
 
           SvREFCNT_inc(arg);
 
-          closure = ffi_pl_closure_get_data(arg, self->argument_types[i]);
+          closure = ffi_pl_closure_get_data(arg, sv_2mortal(newRV_noinc(newSViv(PTR2IV(self->argument_types[i])))));
           if(closure != NULL)
           {
             ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
@@ -370,7 +370,7 @@
               else
               {
                 closure->coderef = arg;
-                ffi_pl_closure_add_data(arg, closure);
+                ffi_pl_closure_add_data(arg, sv_2mortal(newRV_noinc(newSViv(PTR2IV(self->argument_types[i])))), closure);
                 ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
               }
             }

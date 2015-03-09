@@ -185,6 +185,7 @@ sub new
 
   if(ref $impl eq 'ARRAY')
   {
+    $args{implname} ||= '['.join(',',@$impl).']';
     $args{impl} = [@$impl[1..$#$impl]];
     $impl = $impl->[0];
   }
@@ -193,6 +194,7 @@ sub new
 
   my $impl_class = _impl_class($impl);
 
+  $args{implname} ||= $impl;
   $impl_class->new(%args);
 }
 
@@ -218,11 +220,19 @@ sub base_new
   bless {
     lib              => \@lib,
     handles          => {},
+    implname         => $args{implname},
     types            => $args{types} || {},
     lang             => $args{lang} || 'C',
     resolver         => $args{resolve} || 'dl',
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
+}
+
+sub impl
+{
+  my($self) = @_;
+
+  return $self->{implname};
 }
 
 sub _impl_class ($)

@@ -1,10 +1,15 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More;
 use FFI::Platypus;
-use FFI::Platypus::API qw(arguments_set_sint32);
+use FFI::Platypus::API qw(arguments_set_double);
 
 my $ffi = FFI::Platypus->new;
+
+plan skip_all => 'recursive types not implemented in Libffi'
+  if $ffi->impl eq 'Libffi';
+
+plan tests => 1;
 
 $ffi->load_custom_type('::PointerSizeBuffer' => 'buffer_t');
 $ffi->custom_type('rectangle_t' => {

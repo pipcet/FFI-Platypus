@@ -62,16 +62,19 @@ set_closure_fixed($closure_fixed);
 call_closure("zero one  two  three");
 is $save, "zero ", "save=zero ";
 
-subtest 'custom type input' => sub {
-  plan tests => 1;
-  custom_type type1 => { native_type => 'string', perl_to_native => sub { $_[0] x 3 } };
-  attach_cast custom1 => 'type1' => 'string';
-  is custom1("x"), "xxx";
-};
+SKIP: {
+    skip "no custom strings in Libffi", 2 if FFI::Platypus->new->impl eq 'Libffi';
+  subtest 'custom type input' => sub {
+    plan tests => 1;
+    custom_type type1 => { native_type => 'string', perl_to_native => sub { $_[0] x 3 } };
+    attach_cast custom1 => 'type1' => 'string';
+    is custom1("x"), "xxx";
+  };
 
-subtest 'strings as char arrays' => sub {
-  plan tests => 1;
-  custom_type type2 => { native_type => 'uint8[3]', perl_to_native => sub { return [ map { ord $_ } split('', $_[0]) ] } };
-  attach_cast custom2 => 'type2' => 'uint8[3]';
-  like join(":", map { chr($_) } @{custom2("abc")}), qr{^a:b:c$};
-};
+  subtest 'strings as char arrays' => sub {
+    plan tests => 1;
+    custom_type type2 => { native_type => 'uint8[3]', perl_to_native => sub { return [ map { ord $_ } split('', $_[0]) ] } };
+    attach_cast custom2 => 'type2' => 'uint8[3]';
+    like join(":", map { chr($_) } @{custom2("abc")}), qr{^a:b:c$};
+  };
+}

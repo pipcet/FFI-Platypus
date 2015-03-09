@@ -1,10 +1,16 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More;
 use FFI::Platypus;
 
-my $ffi = FFI::Platypus->new(impl => 'Lazy');
+my $ffi = FFI::Platypus->new;
 
+plan skip_all => "no lazy implementation of Libffi yet"
+  if $ffi->impl eq 'Libffi';
+
+$ffi = FFI::Platypus->new(impl=>'Lazy');
+
+plan tests => 4;
 $ffi->lib(undef);
 $ffi->attach_method('main', 'strstr', ['void', 'string', 'string'] => 'string');
 my $str = 'hi there';

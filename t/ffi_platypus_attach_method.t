@@ -1,11 +1,15 @@
 package platypus_object;
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More;
 use FFI::Platypus;
 use FFI::CheckLib;
 
 my $ffi = FFI::Platypus->new;
+
+plan skip_all => "attach_method not available";
+
+plan tests => 20;
 $ffi->lib(find_lib lib => 'test', symbol => 'f0', libpath => 'libtest');
 
 my $self = bless {}, 'platypus_object';
