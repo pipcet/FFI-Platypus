@@ -1658,14 +1658,14 @@ sub native_to_perl_pointer {
   undef $underlying_type;
 
   my $sub = sub {
-    my($resultp, $return_type, $extra_data) = @_;
+    my($targ, $resultp, $return_type, $extra_data) = @_;
 
     my $result = unpack 'P' . (8), pack 'Q', $resultp;
     my $result_hex = sprintf("%016x", unpack 'Q', $result);
 
     warn "result encoded as $result_hex..."; # it might be longer than that.
 
-    my $ret = $return_type->{ffi}->function($address => ['long', 'SV', 'opaque'] => 'SV')->call($resultp, $return_type, $extra_data);
+    my $ret = $return_type->{ffi}->function($address => ['SV', 'long', 'SV', 'opaque'] => 'SV')->call($targ, $resultp, $return_type, $extra_data);
 
     warn "return value is $ret";
 
@@ -1676,7 +1676,7 @@ sub native_to_perl_pointer {
 
   $self->{native_to_perl_closure} = $closure;
 
-  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(long, SV, opaque)->SV', 'opaque', $closure);
+  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(SV, long, SV, opaque)->SV', 'opaque', $closure);
   return $ret;
 }
 
