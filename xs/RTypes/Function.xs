@@ -138,6 +138,8 @@ new(class, impl, address, abi, return_type_arg, ...)
 	  (self->argument_getters+i, self->argument_getters+(items-5),
 	   ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments),
 	   arg, ffi_pl_rtypes_extra_data(arg));
+
+	self->argument_getters[i].native_args = d;
       }
 
       if(d < 0) {
