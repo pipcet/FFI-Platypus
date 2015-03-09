@@ -1,13 +1,13 @@
 #define PREFETCH1 (void)
 #define PREFETCH2 (void)
-#define PREFETCH3 __builtin_prefetch
+#define PREFETCH3 (void)
 #define PREFETCH4 (void)
 #define PREFETCH5 (void)
 #define PREFETCH6 (void)
 #define PREFETCH7 (void)
 #define PREFETCH8 (void)
-#define PREFETCH9 __builtin_prefetch
-#define PREFETCH10 __builtin_prefetch
+#define PREFETCH9 (void)
+#define PREFETCH10 (void)
 
     PREFETCH10(self);
 
