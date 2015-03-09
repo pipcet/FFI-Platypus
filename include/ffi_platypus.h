@@ -96,7 +96,7 @@ typedef struct _ffi_pl_rtypes_type {
 typedef struct _ffi_pl_rtypes_arguments ffi_pl_rtypes_arguments;
 typedef union _ffi_pl_result ffi_pl_result;
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_rtypes_arguments *arguments, int i, void *type_sv, void *extra_data, void *arg, void *freeme);
+typedef int (*perl_to_native_pointer_t)(ffi_pl_rtypes_arguments *arguments, int i, void *type_sv, void *extra_data, void *arg, void *freeme)  __attribute__((regparm(6)));
 typedef void *(*native_to_perl_pointer_t)(void *targ, ffi_pl_result *result, void *return_type, void *extra_data);
 
 typedef struct _ffi_pl_rtypes_getter {

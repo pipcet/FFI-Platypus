@@ -8,12 +8,14 @@
 
 extern ffi_pl_rtypes_arguments *current_argv;
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_void(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -22,6 +24,7 @@ ffi_pl_rtypes_arguments_set_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i,
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_sint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -30,6 +33,7 @@ ffi_pl_rtypes_arguments_set_ffi_sint8(ffi_pl_rtypes_arguments *arguments, int i,
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_uint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -38,6 +42,7 @@ ffi_pl_rtypes_arguments_set_ffi_uint16(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_sint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -46,6 +51,7 @@ ffi_pl_rtypes_arguments_set_ffi_sint16(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_uint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -54,6 +60,7 @@ ffi_pl_rtypes_arguments_set_ffi_uint32(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -62,6 +69,7 @@ ffi_pl_rtypes_arguments_set_ffi_sint32(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_uint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -74,6 +82,7 @@ ffi_pl_rtypes_arguments_set_ffi_uint64(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_sint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -86,6 +95,7 @@ ffi_pl_rtypes_arguments_set_ffi_sint64(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_float(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -94,6 +104,7 @@ ffi_pl_rtypes_arguments_set_ffi_float(ffi_pl_rtypes_arguments *arguments, int i,
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_double(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -102,6 +113,7 @@ ffi_pl_rtypes_arguments_set_ffi_double(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ffi_pointer(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme)
 {
@@ -167,6 +179,7 @@ ffi_pl_rtypes_arguments_set_ffi(ffi_pl_rtypes_arguments *arguments, int i, SV *a
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_array(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -294,6 +307,7 @@ ffi_pl_rtypes_arguments_set_array(ffi_pl_rtypes_arguments *arguments, int i, SV 
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -385,6 +399,7 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_constant(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -539,6 +554,7 @@ int ffi_pl_rtypes_prepare_customperl(ffi_pl_rtypes_getter *getters, ffi_pl_rtype
   return d+1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_record(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -563,6 +579,7 @@ ffi_pl_rtypes_arguments_set_record(ffi_pl_rtypes_arguments *arguments, int i, SV
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_perl_string_variable(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -571,6 +588,7 @@ ffi_pl_rtypes_arguments_set_perl_string_variable(ffi_pl_rtypes_arguments *argume
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_perl_string(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -599,6 +617,7 @@ ffi_pl_rtypes_arguments_set_perl_string(ffi_pl_rtypes_arguments *arguments, int 
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ref_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -624,6 +643,7 @@ ffi_pl_rtypes_arguments_set_ref_sint32(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ref(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -719,6 +739,7 @@ ffi_pl_rtypes_arguments_set_ref(ffi_pl_rtypes_arguments *arguments, int i, SV *t
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_closure(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -810,6 +831,7 @@ ffi_pl_rtypes_arguments_set_closure(ffi_pl_rtypes_arguments *arguments, int i, S
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_exoticfloat(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -891,6 +913,7 @@ ffi_pl_rtypes_arguments_perl_to_native(SV *type_sv, void *extra_data)
   return out_arg;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -903,6 +926,7 @@ ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *t
   return getter.perl_to_native(arguments, i, type_sv, ffi_pl_rtypes_extra_data(type_sv), arg, freeme);
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ref_post_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -918,6 +942,7 @@ ffi_pl_rtypes_arguments_set_ref_post_sint32(ffi_pl_rtypes_arguments *arguments, 
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_ref_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -989,6 +1014,7 @@ ffi_pl_rtypes_arguments_set_ref_post(ffi_pl_rtypes_arguments *arguments, int i, 
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_array_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -1102,6 +1128,7 @@ ffi_pl_rtypes_arguments_set_array_post(ffi_pl_rtypes_arguments *arguments, int i
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_closure_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -1113,6 +1140,7 @@ ffi_pl_rtypes_arguments_set_closure_post(ffi_pl_rtypes_arguments *arguments, int
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_custom_perl_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -1155,6 +1183,7 @@ ffi_pl_rtypes_arguments_set_custom_perl_post(ffi_pl_rtypes_arguments *arguments,
   return native_count;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_exoticfloat_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -1164,6 +1193,7 @@ ffi_pl_rtypes_arguments_set_exoticfloat_post(ffi_pl_rtypes_arguments *arguments,
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_sv_perl_to_native(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
@@ -1174,6 +1204,7 @@ ffi_pl_rtypes_sv_perl_to_native(ffi_pl_rtypes_arguments *arguments, int i, SV *t
   return 1;
 }
 
+__attribute__((regparm(6)))
 int
 ffi_pl_rtypes_sv_perl_to_native_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
