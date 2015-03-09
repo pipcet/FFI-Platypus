@@ -4,26 +4,15 @@
 extern "C" {
 #endif
 
-void ffi_pl_rtypes_closure_call(ffi_cif *, void *, void **, void *);
-SV *ffi_pl_rtypes_closure_add_data(SV *closure, SV *type, void *closure_data);
-ffi_pl_rtypes_closure *ffi_pl_rtypes_closure_get_data(SV *closure, SV *type);
-SV*  ffi_pl_rtypes_custom_perl(SV*,SV*,int);
-SV*  ffi_pl_rtypes_custom_array_perl(SV*,SV*,int);
-void ffi_pl_rtypes_custom_perl_cb(SV *, SV*, int);
-HV *ffi_pl_rtypes_ffi_get_type_meta(ffi_type *);
-HV *ffi_pl_rtypes_get_type_meta(SV *);
-size_t ffi_pl_rtypes_sizeof(SV *,ffi_pl_rtypes_type *);
-void ffi_pl_rtypes_perl_complex_float(SV *sv, float *ptr);
-void ffi_pl_rtypes_perl_complex_double(SV *sv, double *ptr);
-
-int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
-int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
-SV *ffi_pl_rtypes_any_native_to_perl(SV *, ffi_pl_result *, SV *, void *);
-
-void *ffi_pl_rtypes_extra_data(SV *);
-perl_to_native_pointer_t ffi_pl_rtypes_arguments_perl_to_native(SV *, void *);
-perl_to_native_pointer_t ffi_pl_rtypes_arguments_perl_to_native_post(SV *, void *);
-native_to_perl_pointer_t ffi_pl_rtypes_arguments_native_to_perl(SV *, void *);
+void ffi_pl_closure_call(ffi_cif *, void *, void **, void *);
+void ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data);
+ffi_pl_closure *ffi_pl_closure_get_data(SV *closure, ffi_pl_type *type);
+SV*  ffi_pl_custom_perl(SV*,SV*,int);
+void ffi_pl_custom_perl_cb(SV *, SV*, int);
+HV *ffi_pl_get_type_meta(ffi_pl_type *);
+size_t ffi_pl_sizeof(ffi_pl_type *);
+void ffi_pl_perl_complex_float(SV *sv, float *ptr);
+void ffi_pl_perl_complex_double(SV *sv, double *ptr);
 
 #define ffi_pl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \
@@ -67,83 +56,6 @@ native_to_perl_pointer_t ffi_pl_rtypes_arguments_native_to_perl(SV *, void *);
   {                                                              \
     sv_setnv(sv, *(ptr));                                        \
   }
-
-extern ffi_pl_rtypes_arguments *current_argv;
-
-int ffi_pl_rtypes_arguments_set_ffi_void(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_float(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_double(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_pointer(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-
-int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_array(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_closure(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_constant(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_exoticfloat(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_perl_string(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_perl_string_variable(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_record(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_sv_perl_to_native(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-
-int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_array_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_closure_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_custom_perl_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_exoticfloat_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_post_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_sv_perl_to_native_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-
-SV *ffi_pl_rtypes_native_to_perl_void(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint8(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint8(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint16(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint16(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint32(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint32(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_uint64(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_sint64(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_float(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_double(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_ffi_pointer(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-
-SV *ffi_pl_rtypes_native_to_perl_string_variable(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_string(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_pointer(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_record(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_array(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_customperl(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_native_to_perl_exoticfloat(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-SV *ffi_pl_rtypes_sv_native_to_perl(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
-int ffi_pl_rtypes_prepare_ffi(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-int ffi_pl_rtypes_prepare_array(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-int ffi_pl_rtypes_prepare_customperl(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-int ffi_pl_rtypes_prepare_generic(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-int ffi_pl_rtypes_prepare_sv(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-int ffi_pl_rtypes_prepare_closure(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-
-int ffi_pl_rtypes_prepare_any(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
-
-typedef struct _ffi_pl_cached_method {
-  SV *weakref;
-  void (*body)(void *, int);
-  void *function;
-  SV *argument;
-
-  HV *other_methods;
-} ffi_pl_cached_method;
 
 #ifdef __cplusplus
 }
