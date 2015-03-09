@@ -1302,21 +1302,6 @@ use Carp qw( croak );
 
 # VERSION
 
-sub argument_count
-{
-  my($self) = @_;
-  my $meta = $self->meta;
-
-  return $meta->{argument_count} ? $meta->{argument_count} : 1;
-}
-
-sub count_native_arguments
-{
-  my($self) = @_;
-
-  return 1;
-}
-
 sub new
 {
   my($class, $type, $platypus) = @_;
@@ -1324,32 +1309,6 @@ sub new
   return $platypus->impl_new_type($type, $class);
 }
 
-package FFI::Platypus::Type::FFI;
-use parent -norequire, 'FFI::Platypus::Type';
-use Carp qw(croak);
-
-package FFI::Platypus::Type::RTypes::FFI;
-use parent -norequire, 'FFI::Platypus::Type::FFI';
-use Carp qw(croak);
-
-package FFI::Platypus::Type::SV;
-use parent -norequire, 'FFI::Platypus::Type::FFI';
-
-sub new {
-  my($class) = @_;
-
-  # we know what we're doing.
-  return bless(FFI::Platypus::Type::FFI->new('opaque'), $class);
-}
-
-package FFI::Platypus::Type::Wrap;
-use parent -norequire, 'FFI::Platypus::Type';
-
-sub new {
-  my($class, $ffi, $basetype) = @_;
-
-  return bless { underlying_types => [$basetype], ffi => $ffi }, $class;
-}
 
 1;
 

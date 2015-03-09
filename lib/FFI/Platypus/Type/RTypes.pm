@@ -122,6 +122,21 @@ sub new
   $class->_new($ffi_type, $subtype, $size, $classname, $rw);
 }
 
+sub argument_count
+{
+  my($self) = @_;
+  my $meta = $self->meta;
+
+  return $meta->{argument_count} ? $meta->{argument_count} : 1;
+}
+
+sub count_native_arguments
+{
+  my($self) = @_;
+
+  return 1;
+}
+
 package FFI::Platypus::Type::RTypes::String;
 use parent -norequire, 'FFI::Platypus::Type::RTypes';
 
