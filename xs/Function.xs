@@ -250,6 +250,7 @@ call(self, ...)
     void **argument_pointers;
     ffi_pl_argument *argument_slots;
 #endif
+    dXSTARG;
   CODE:
 #define EXTRA_ARGS 1
 #include "ffi_platypus_rtypes_call.h"
