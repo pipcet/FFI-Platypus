@@ -12,8 +12,25 @@
     PREFETCH10(self);
 
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
+/* This is a workaround for the Debian version of GCC 4.9.2-10. When
+   allocating the runtime-sized arrays the normal way (the #if 0
+   branch), GCC emits two integer divisions, which slow us
+   down. Allocating an aligned char array and setting the pointers by
+   hand works, but might not be extremely portable; also, it assumes
+   that ffi_pl_argument aligns well enough to put the argument
+   pointers right after it.
+
+   All of this probably breaks on Microsoft's compilers. */
+#if 0
     void *argument_pointers[self->ffi_cif.nargs];
     ffi_pl_argument argument_slots[self->stack_plus_native_args];
+#else
+    void **argument_pointers;
+    ffi_pl_argument *argument_slots;
+    char buffer2[self->ffi_cif.nargs * sizeof(void *) + self->stack_plus_native_args * sizeof(ffi_pl_argument)] __attribute__((aligned));
+    argument_slots = (void *)buffer2;
+    argument_pointers = (void *)argument_slots + self->stack_plus_native_args * sizeof(ffi_pl_argument);
+#endif
 #else
     Newx(argument_pointers, self->ffi_cif.nargs, void *);
     Newx(argument_slots, self->ffi_cif.nargs+self->stack_args, ffi_pl_argument);
