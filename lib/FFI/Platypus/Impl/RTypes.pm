@@ -10,6 +10,7 @@ use Carp::Always;
 
 use FFI::Platypus::Type::RTypes;
 use FFI::Platypus::Function::RTypes;
+use FFI::Platypus::Closure::RTypes;
 
 # for now, we link Rtypes.o into Platypus.so rather than haing a
 # per-implementation library.

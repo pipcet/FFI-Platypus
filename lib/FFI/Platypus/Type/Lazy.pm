@@ -36,4 +36,8 @@ sub new
   return bless { sub => $sub }, $class;
 }
 
+sub DESTROY
+{
+}
+
 1;
