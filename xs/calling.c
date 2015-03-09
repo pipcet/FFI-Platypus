@@ -319,42 +319,93 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
     int j, perl_j;
     AV *type_av;
     int type_len, arg2_len;
+    int native_count;
+
     svp = hv_fetch(hv, "underlying_types", strlen("underlying_types"), 0);
     type_av = (AV *)SvRV(*svp);
     type_len = av_len(type_av) + 1;
 
     arg2_len = av_len((AV*)SvRV(arg2)) + 1;
-
     for(j=0,perl_j=0; j<arg2_len; j++,perl_j++) {
+      svp = av_fetch(type_av, perl_j, 0);
+      {
+	dSP;
+	int count;
+
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(*svp);
+	PUTBACK;
+
+	count = call_method("count_native_arguments", G_SCALAR);
+
+	SPAGAIN;
+
+	if(count == 1)
+	  native_count = POPi;
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+      }
+
+#ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
+      ffi_pl_rtypes_getter getters[type_len];
+      ffi_type *ffi[native_count];
+#else
+      ffi_pl_rtypes_getter **getters;
+      ffi_type **ffi;
+
+      Newx(getters, type_len, ffi_pl_rtypes_getter *);
+      Newx(ffi, native_count, ffi_type *);
+#endif
+
+      getters[0].sv = *svp;
+      getters[0].perl_args = 1;
+      getters[0].native_args = 1;
+      getters[0].stack_args = 0;
+
+      getters[0].extra_data = ffi_pl_rtypes_extra_data(*svp);
+      getters[0].perl_to_native = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native(*svp, ffi_pl_rtypes_extra_data(*svp));
+
+      int k = ffi_pl_rtypes_prepare_any(getters, getters+type_len, &ffi[0], &ffi[native_count],
+					*svp, ffi_pl_rtypes_extra_data(*svp));
+
       STRLEN len;
       const char *name;
-      ffi_type *ffi;
       SV *arg3;
       SV *type2_sv;
+      ffi_pl_rtypes_getter *getter;
       /* when not enough return types are present, we assume the last
        * type repeats indefinitely for the remaining arguments. */
+      getter = &getters[j<type_len ? j : type_len - 1, 0];
+
       svp = av_fetch(type_av, j<type_len ? j : type_len - 1, 0);
       type2_sv = *svp;
-      if(sv_derived_from(type2_sv, "FFI::Platypus::Type::CustomPerl")) {
+
+      int in_argument_count = getter->perl_args;
+      if(in_argument_count > 1) {
 	AV *av = newAV();
-	HV *hv = (HV*)SvRV(type2_sv);
-	int in_argument_count = 1;
-	svp = hv_fetch(hv, "in_argument_count", strlen("in_argument_count"), 0);
-	if (svp && SvIV(*svp) != 1) {
-	  in_argument_count = SvIV(*svp);
-	}
+
 	for(n=0; n<in_argument_count; n++) {
 	  svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
 	  av_push(av, SvREFCNT_inc(*svp));
 	  perl_j++;
 	}
 	perl_j--;
-	i += ffi_pl_rtypes_arguments_set_customperl(arguments, i, type2_sv, ffi_pl_rtypes_extra_data(type2_sv), (SV*)av, freeme);
+
+	arg3 = (SV*)av;
       } else {
 	svp = av_fetch((AV*)SvRV(arg2), perl_j, 0);
+
 	arg3 = *svp;
-	i += ffi_pl_rtypes_arguments_set_any(arguments, i, type2_sv, ffi_pl_rtypes_extra_data(type2_sv), arg3, freeme);
       }
+      if(!SvROK(type2_sv)) {
+	croak("oh no");
+      }
+
+      i += getter->perl_to_native(arguments, i, getter->sv, getter->extra_data, arg3, freeme);
     }
 
     if (!*freeme)
@@ -363,12 +414,6 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
     }
 
     av_push((AV*)SvRV(*freeme), arg2);
-    svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
-    if (svp) {
-      i += SvIV(*svp) + 1 - j;
-    } else {
-      i += 1 - j;
-    }
 
     return i - orig_i;
   }
