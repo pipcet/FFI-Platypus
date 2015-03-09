@@ -583,7 +583,8 @@ __attribute__((regparm(6)))
 int
 ffi_pl_rtypes_arguments_set_perl_string_variable(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme)
 {
-  ffi_pl_rtypes_arguments_set_string(arguments, i, SvOK(arg) ? SvPV_nolen(arg) : NULL);
+  char *string = SvOK(arg) ? SvPV_nolen(arg) : NULL;
+  ffi_pl_rtypes_arguments_set_string(arguments, i, string);
 
   return 1;
 }
