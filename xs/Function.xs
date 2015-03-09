@@ -202,9 +202,9 @@ new(class, impl, address, abi, return_type_arg, ...)
 	FREETMPS;
 	LEAVE;
       }
-      self->stack_args = stack_args;
+      self->stack_plus_native_args = stack_args + n;
     } else {
-      self->stack_args = 0;
+      self->stack_plus_native_args = n;
     }
     SPAGAIN;
 

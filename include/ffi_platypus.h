@@ -114,7 +114,7 @@ typedef struct _ffi_pl_rtypes_function {
   void *impl_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
   int nargs_perl;
-  int stack_args;
+  int stack_plus_native_args;
   void *return_type;       /* really SV* */
   void *extra_data;
 

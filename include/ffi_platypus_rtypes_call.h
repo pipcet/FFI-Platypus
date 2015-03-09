@@ -13,7 +13,7 @@
 
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void *argument_pointers[self->ffi_cif.nargs];
-    ffi_pl_argument argument_slots[self->ffi_cif.nargs+self->stack_args];
+    ffi_pl_argument argument_slots[self->stack_plus_native_args];
 #else
     Newx(argument_pointers, self->ffi_cif.nargs, void *);
     Newx(argument_slots, self->ffi_cif.nargs+self->stack_args, ffi_pl_argument);
