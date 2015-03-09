@@ -1,4 +1,4 @@
-package FFI::Platypus;
+package FFI::Platypus::Type::RTypes::SV;
 
 use strict;
 use warnings;
