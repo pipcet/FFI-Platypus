@@ -22,7 +22,8 @@ void *cast1(void *value)
   return value;
 }
 
-XS(ffi_pl_rtypes_sub_call)
+extern XS(ffi_pl_rtypes_sub_call);
+XS(ffi_pl_rtypes_sub_call_old)
 {
   dVAR; dXSARGS;
   ffi_pl_rtypes_function *self;

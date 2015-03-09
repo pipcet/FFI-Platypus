@@ -1,3 +1,16 @@
+#define PREFETCH1 (void)
+#define PREFETCH2 (void)
+#define PREFETCH3 __builtin_prefetch
+#define PREFETCH4 (void)
+#define PREFETCH5 (void)
+#define PREFETCH6 (void)
+#define PREFETCH7 (void)
+#define PREFETCH8 (void)
+#define PREFETCH9 __builtin_prefetch
+#define PREFETCH10 __builtin_prefetch
+
+    PREFETCH10(self);
+
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
     void *argument_pointers[self->ffi_cif.nargs];
     ffi_pl_argument argument_slots[self->ffi_cif.nargs+self->stack_args];
@@ -13,23 +26,30 @@
     int pointer_index;
     int slot_index;
 
-    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_type_index++)
+    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<__builtin_expect(self->ffi_cif.nargs,4); perl_type_index++)
     {
       int j;
 
-      for(j=0; j<self->argument_getters[perl_type_index].native_args; j++)
+      for(j=0; j<__builtin_expect(self->argument_getters[perl_type_index].native_args,1); j++)
       {
 	argument_pointers[pointer_index++] = &argument_slots[slot_index++];
       }
 
-      slot_index += self->argument_getters[perl_type_index].stack_args;
+      slot_index += __builtin_expect(self->argument_getters[perl_type_index].stack_args, 0);
+      PREFETCH1(self->argument_getters[perl_type_index].perl_to_native);
+      PREFETCH2(self->argument_getters[perl_type_index].extra_data);
+      PREFETCH3(ST(perl_type_index));
+      //__builtin_prefetch(self->argument_getters[perl_type_index].perl_to_native);
     }
+
+    PREFETCH6(self->ffi_cif);
+    PREFETCH7(TARG);
 
     /*
      * ARGUMENT IN
      */
 
-    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; perl_type_index++)
+    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < __builtin_expect(self->ffi_cif.nargs, 4); perl_type_index++)
     {
       SV *type_sv = self->argument_getters[perl_type_index].sv;
       void *extra_data = self->argument_getters[perl_type_index].extra_data;
@@ -37,9 +57,13 @@
       int native_args = self->argument_getters[perl_type_index].native_args;
       int count;
 
-      if(perl_args == 1)
+      PREFETCH4(self->argument_getters[perl_type_index].perl_to_native);
+      PREFETCH5(self->argument_getters[perl_type_index].extra_data);
+
+      __builtin_prefetch(self->argument_getters[perl_type_index].perl_to_native);
+      if(__builtin_expect(perl_args, 1) == 1)
       {
-        arg = perl_arg_index < items ? ST(perl_arg_index) : &PL_sv_undef;
+        arg = __builtin_expect(perl_arg_index < items, 1) ? ST(perl_arg_index) : &PL_sv_undef;
         perl_arg_index++;
       }
       else
@@ -51,10 +75,13 @@
         }
       }
 
-      count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, extra_data, arg, &freeme);
+      __builtin_expect(count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, extra_data, arg, &freeme), 1);
       SPAGAIN;
-      i += count;
+      i += __builtin_expect(count, 1);
     }
+
+    PREFETCH8(self->ffi_cif);
+    PREFETCH9(TARG);
 
   /*
    * CALL
@@ -116,7 +143,7 @@
 
   current_argv = &arguments;
 
-  if(self->any_post)
+  if(__builtin_expect(self->any_post, 0))
   {
     for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
     {
@@ -164,10 +191,12 @@
 
   SV *perl_return = NULL;
 
-  if(self->native_to_perl == ffi_pl_rtypes_native_to_perl_ffi_sint32)
+  if(__builtin_expect(self->native_to_perl == ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
   {
-    sv_setiv(targ, (IV)result.sint32);
-    perl_return = targ;
+    sv_setiv(TARG, (IV)result.sint32);
+    XSprePUSH;
+    PUSHTARG;
+    XSRETURN(1);
   }
   else if(self->native_to_perl)
   {
@@ -175,7 +204,7 @@
     SPAGAIN;
   }
 
-  if(freeme)
+  if(__builtin_expect(!!freeme, 0))
   {
     SvREFCNT_dec(freeme);
   }
@@ -187,7 +216,7 @@
   current_argv = NULL;
 
 
-  if(perl_return == TARG)
+  if(__builtin_expect(perl_return == TARG, 1))
   {
     XSprePUSH;
     PUSHTARG;
