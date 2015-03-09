@@ -270,7 +270,10 @@ _new_closure(class, return_type_arg, ...)
       croak("Only types that can be converted to FFI types are supported as closure return types");
     }
 
-    ffi_return_type = INT2PTR(ffi_type *, SvIV((SV *) SvRV(return_type_arg)));
+    if(ffi_pl_rtypes_prepare_any(NULL, NULL, &ffi_return_type, (&ffi_return_type)+1,
+				 return_type_arg, ffi_pl_rtypes_extra_data(return_type_arg)) < 0) {
+      croak("Type preparation failed");
+    }
 
     for(i=0; i<(items-2); i++)
     {
