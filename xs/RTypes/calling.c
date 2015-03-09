@@ -319,16 +319,86 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
   int n;
   int orig_i = i;
 
+  int argument_count;
+
   svp = hv_fetch(hv, "perl_to_native", strlen("perl_to_native"), 0);
   if (svp) {
     perl_to_native_sv = *svp;
   }
 
+  /* The following code simulates this Perl code:
+   * do {
+   *   local $FFI::Platypus::arguments = [];
+   *   my @ret = $callback->(...);
+   *   for my $i (0..$argument_count-1) {
+   *     if (exists $FFI::Platypus::arguments->[$i]) {
+   *       $ret[$i] = $FFI::Platypus::arguments->[$i];
+   *     }
+   *   }
+   * };
+   *
+   * Note, in particular, that we check existence rather than SvOK of
+   * the arguments, so you can safely set an argument to undef to pass
+   * a NULL pointer.
+   */
+  ENTER;
+  HV *stash = gv_stashpv("FFI::Platypus", 0);
+  svp = hv_fetch(stash, "arguments", strlen("arguments"), 0);
+  if(!svp)
+  {
+    croak("cannot find FFI::Platypus::arguments");
+  }
+  GV *gv = (GV*)(*svp);
+  SV *dollar_arguments = save_scalar(gv); /* local $FFI::Platypus::arguments; */
+  sv_setsv(dollar_arguments, newRV_noinc(newAV()));
+  svp = hv_fetch(stash, "argument_types", strlen("argument_types"), 0);
+  if(!svp)
+  {
+    croak("cannot find FFI::Platypus::argument_types");
+  }
+  gv = (GV*)(*svp);
+  SV *dollar_argument_types = save_scalar(gv); /* local $FFI::Platypus::argument_types; */
+
+  svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
+  if (svp) {
+    argument_count = SvIV(*svp) + 1;
+  } else {
+    argument_count = 1;
+  }
+
   arg2 = ffi_pl_rtypes_custom_array_perl(
     perl_to_native_sv,
     arg,
-    i
+    0
   );
+
+  if(!SvROK(dollar_argument_types) || SvTYPE(SvRV(dollar_argument_types)) != SVt_PVAV)
+  {
+    sv_setsv(dollar_argument_types, sv_2mortal(newRV_noinc((SV*)newAV())));
+  }
+  else
+  {
+    sv_2mortal(dollar_argument_types);
+  }
+
+  /* we're a bit more paranoid here, since the user might have done
+   * just anything to our precious dollar_arguments variable. Ignore
+   * it if isn't an array ref */
+  if(SvOK(dollar_arguments) && SvROK(dollar_arguments) && SvTYPE(SvRV(dollar_arguments)) == SVt_PVAV)
+  {
+    if(arg2 != NULL && SvROK(arg2) && SvTYPE(SvRV(arg2)) == SVt_PVAV)
+    {
+      for(n=0; n<argument_count; n++)
+      {
+	svp = av_fetch((AV*)SvRV(dollar_arguments), n, 0);
+
+	if(svp)
+	{
+	  av_store((AV*)SvRV(arg2), n, SvREFCNT_inc(*svp));
+	}
+      }
+    }
+  }
 
   if(arg2 != NULL && SvROK(arg2) && SvTYPE(SvRV(arg2)) == SVt_PVAV) {
     int j, perl_j;
@@ -342,7 +412,9 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
 
     arg2_len = av_len((AV*)SvRV(arg2)) + 1;
     for(j=0,perl_j=0; j<arg2_len; j++,perl_j++) {
-      svp = av_fetch(type_av, perl_j, 0);
+      svp = av_fetch((AV*)SvRV(dollar_argument_types), perl_j, 0);
+      if(!svp || !sv_isobject(*svp))
+	svp = av_fetch(type_av, perl_j, 0);
       {
 	dSP;
 	int count;
@@ -436,6 +508,7 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
   {
     croak("invalid argument returned from Perl handler");
   }
+  LEAVE;
 
   svp = hv_fetch(hv, "argument_count", strlen("argument_count"), 0);
   if (svp) {

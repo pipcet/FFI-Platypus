@@ -1241,6 +1241,10 @@ sub _have_pm
   $ok;
 }
 
+$FFI::Platypus::arguments = undef; # a global variable. But don't
+				   # worry, it's localized before use.
+$FFI::Platypus::argument_types = undef; # ditto
+
 package FFI::Platypus::Function;
 
 # VERSION
