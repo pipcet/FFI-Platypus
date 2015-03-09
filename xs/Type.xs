@@ -266,9 +266,8 @@ _new_closure(class, return_type_arg, ...)
     SV *sv;
     int flags = 0;
   CODE:
-    if (!sv_isobject(return_type_arg) ||
-        !sv_derived_from(return_type_arg, "FFI::Platypus::Type::FFI")) {
-      croak("Only native types are supported as closure return types");
+    if (!sv_isobject(return_type_arg)) {
+      croak("Only types that can be converted to FFI types are supported as closure return types");
     }
 
     ffi_return_type = INT2PTR(ffi_type *, SvIV((SV *) SvRV(return_type_arg)));
@@ -276,10 +275,8 @@ _new_closure(class, return_type_arg, ...)
     for(i=0; i<(items-2); i++)
     {
       arg = ST(2+i);
-      if (!sv_isobject(arg) ||
-          (!sv_derived_from(arg, "FFI::Platypus::Type::FFI") &&
-	   !sv_derived_from(arg, "FFI::Platypus::Type::RTypes::String"))) {
-	croak("Only native types and strings are supported as closure argument types");
+      if (!sv_isobject(arg)) {
+	croak("Only types that can be converted to FFI types are supported as closure argument types");
       }
     }
     
@@ -454,6 +451,14 @@ native_to_perl_pointer(self)
     ffi_pl_rtypes_type *self
   CODE:
     RETVAL = NULL;
+  OUTPUT:
+    RETVAL
+
+void *
+prepare_pointer(ffi)
+    ffi_pl_rtypes_type *ffi
+  CODE:
+    RETVAL = ffi_pl_rtypes_prepare_closure;
   OUTPUT:
     RETVAL
 
@@ -636,6 +641,25 @@ native_to_perl_pointer(self)
     }
   OUTPUT:
     RETVAL
+
+void *
+prepare_pointer(ffi)
+    ffi_pl_rtypes_type *ffi
+  PREINIT:
+    int ffi_pl_rtypes_prepare_string(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data)
+    {
+      if(ffi_argument_types != ffi_argument_types_limit)
+	*ffi_argument_types = &ffi_type_pointer;
+      else
+	return -1;
+
+      return 1;
+    }
+  CODE:
+    RETVAL = ffi_pl_rtypes_prepare_string;
+  OUTPUT:
+    RETVAL
+
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::RTypes::FFI
 

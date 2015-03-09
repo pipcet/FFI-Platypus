@@ -111,7 +111,7 @@ new(class, impl, address, abi, return_type_arg, ...)
       }
     }
 
-    for(i=0,n=0; i<(items-5); i++,n++)
+    for(i=0,n=0; i<(items-5); i++)
     {
       arg = ST(i+5);
       self->argument_getters[i].sv = SvREFCNT_inc(arg);
@@ -124,44 +124,29 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native_post(arg, ffi_pl_rtypes_extra_data(arg));
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
-      if(sv_isobject(arg) && sv_derived_from(arg, "FFI::Platypus::Type::FFI"))
+      int d = 1;
+      if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::ExoticFloat"))
       {
-        ffi_argument_types[n] = INT2PTR(ffi_type *, SvIV((SV *) SvRV((SV *)arg)));
+	tmp = ffi_pl_rtypes_extra_data(arg);
+	ffi_argument_types[n] = tmp->ffi_type;
       }
       else
       {
-	if(sv_derived_from(arg, "FFI::Platypus::Type::RTypes::CustomPerl"))
-        {
-	  int d = ffi_pl_rtypes_prepare_customperl(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_rtypes_extra_data(arg)) - 1;
-	  if(d < 0) {
-	    Safefree(self);
-	    Safefree(ffi_argument_types);
-	    croak("prepare_customperl failed");
-	  }
-	    
-	  n += d;
-        }
-	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::Wrap"))
-	{
-	  int d = ffi_pl_rtypes_prepare_any(self->argument_getters+i, self->argument_getters+(items-5), ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments), arg, ffi_pl_rtypes_extra_data(arg)) - 1;
-	  if(d < 0) {
-	    Safefree(self);
-	    Safefree(ffi_argument_types);
-	    croak("prepare_any failed");
-	  }
+	ffi_argument_types[n] = &ffi_type_pointer;
 
-	  n += d;
-	}
-	else if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::ExoticFloat"))
-        {
-	  tmp = ffi_pl_rtypes_extra_data(arg);
-          ffi_argument_types[n] = tmp->ffi_type;
-        }
-        else
-        {
-          ffi_argument_types[n] = &ffi_type_pointer;
-        }
+	d = ffi_pl_rtypes_prepare_any
+	  (self->argument_getters+i, self->argument_getters+(items-5),
+	   ffi_argument_types+n, ffi_argument_types+(items-5+extra_arguments),
+	   arg, ffi_pl_rtypes_extra_data(arg));
       }
+
+      if(d < 0) {
+	Safefree(self);
+	Safefree(ffi_argument_types);
+	croak("prepare_customperl failed");
+      }
+
+      n += d;
       SPAGAIN;
     }
 
@@ -250,6 +235,7 @@ call(self, ...)
     void **argument_pointers;
     ffi_pl_argument *argument_slots;
 #endif
+    dXSTARG;
   CODE:
 #define EXTRA_ARGS 1
 #include "ffi_platypus_rtypes_call.h"

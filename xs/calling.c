@@ -446,10 +446,31 @@ int ffi_pl_rtypes_prepare_sv(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter
   return 1;
 }
 
+int ffi_pl_rtypes_prepare_closure(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data)
+{
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = &ffi_type_pointer;
+  else
+    return -1;
+
+  return 1;
+}
+
+int ffi_pl_rtypes_prepare_string(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data)
+{
+  if(ffi_argument_types != ffi_argument_types_limit)
+    *ffi_argument_types = &ffi_type_pointer;
+  else
+    return -1;
+
+  return 1;
+}
+
 int ffi_pl_rtypes_prepare_generic(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data)
 {
   if(ffi_argument_types != ffi_argument_types_limit)
-    *ffi_argument_types = ((ffi_pl_rtypes_type *)extra_data)->ffi_type;
+    *ffi_argument_types = &ffi_type_pointer;
+
   else
     return -1;
 
