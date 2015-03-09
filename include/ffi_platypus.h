@@ -25,6 +25,9 @@
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
