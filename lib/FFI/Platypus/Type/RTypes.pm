@@ -9,6 +9,7 @@ use Scalar::Util qw( refaddr weaken );
 package FFI::Platypus::Type::RTypes;
 use parent -norequire, 'FFI::Platypus::Type';
 use FFI::Platypus::Type::RTypes::FFI;
+use FFI::Platypus::Type::RTypes::SV;
 
 use warnings;
 use strict;

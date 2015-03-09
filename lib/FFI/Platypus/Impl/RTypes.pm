@@ -9,7 +9,7 @@ use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
 use FFI::Platypus::Type::RTypes;
-
+use FFI::Platypus::Function::RTypes;
 
 # for now, we link Rtypes.o into Platypus.so rather than haing a
 # per-implementation library.
