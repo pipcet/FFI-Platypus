@@ -249,7 +249,7 @@ sizeof(self)
     RETVAL
 
 void
-DESTROY(self)
+NODESTROY(self)
     ffi_pl_type *self
   CODE:
     if(self->platypus_type == FFI_PL_CLOSURE)
