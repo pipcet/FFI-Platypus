@@ -120,7 +120,7 @@ call(self, ...)
 #define EXTRA_ARGS 1
 #include "ffi_platypus_call.h"
 
-void
+SV *
 attach(self, perl_name, path_name, proto)
     SV *self
     const char *perl_name
@@ -158,6 +158,8 @@ attach(self, perl_name, path_name, proto)
      * it was created from.
      */
     SvREFCNT_inc(self);
+
+    XSRETURN_YES;
 
 void
 DESTROY(self)

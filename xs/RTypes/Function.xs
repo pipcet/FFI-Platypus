@@ -354,7 +354,7 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
        object. This could be optimized. */
     method->weakref = NULL;
 
-void
+SV *
 attach(self, perl_name, path_name, proto)
     SV *self
     const char *perl_name
@@ -392,6 +392,8 @@ attach(self, perl_name, path_name, proto)
      * it was created from.
      */
     SvREFCNT_inc(self);
+
+    XSRETURN_YES;
 
 void
 DESTROY(self)
