@@ -1,7 +1,7 @@
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus::API
 
 int
-arguments_count()
+old_arguments_count()
   PROTOTYPE:
   CODE:
     if(current_argv == NULL)
@@ -11,7 +11,7 @@ arguments_count()
     RETVAL
 
 void *
-arguments_get_pointer(i)
+old_arguments_get_pointer(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -22,7 +22,7 @@ arguments_get_pointer(i)
     RETVAL
 
 void
-arguments_set_pointer(i, value)
+old_arguments_set_pointer(i, value)
     int i
     void *value
   PROTOTYPE: $$
@@ -32,7 +32,7 @@ arguments_set_pointer(i, value)
     ffi_pl_arguments_set_pointer(current_argv, i, value);
 
 ffi_pl_string
-arguments_get_string(i)
+old_arguments_get_string(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -43,7 +43,7 @@ arguments_get_string(i)
     RETVAL
 
 void
-arguments_set_string(i, value)
+old_arguments_set_string(i, value)
     int i
     ffi_pl_string value
   PROTOTYPE: $$
@@ -53,7 +53,7 @@ arguments_set_string(i, value)
     ffi_pl_arguments_set_string(current_argv, i, value);
 
 UV
-arguments_get_uint8(i)
+old_arguments_get_uint8(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -64,7 +64,7 @@ arguments_get_uint8(i)
     RETVAL
 
 void
-arguments_set_uint8(i, value)
+old_arguments_set_uint8(i, value)
     int i
     UV value
   PROTOTYPE: $$
@@ -74,7 +74,7 @@ arguments_set_uint8(i, value)
     ffi_pl_arguments_set_uint8(current_argv, i, value);
 
 IV
-arguments_get_sint8(i)
+old_arguments_get_sint8(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -85,7 +85,7 @@ arguments_get_sint8(i)
     RETVAL
 
 void
-arguments_set_sint8(i, value)
+old_arguments_set_sint8(i, value)
     int i
     IV value
   PROTOTYPE: $$
@@ -95,7 +95,7 @@ arguments_set_sint8(i, value)
     ffi_pl_arguments_set_sint8(current_argv, i, value);
 
 float
-arguments_get_float(i)
+old_arguments_get_float(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -106,7 +106,7 @@ arguments_get_float(i)
     RETVAL
 
 void
-arguments_set_float(i, value)
+old_arguments_set_float(i, value)
     int i
     float value
   PROTOTYPE: $$
@@ -116,7 +116,7 @@ arguments_set_float(i, value)
     ffi_pl_arguments_set_float(current_argv, i, value);
 
 double
-arguments_get_double(i)
+old_arguments_get_double(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -127,7 +127,7 @@ arguments_get_double(i)
     RETVAL
 
 void
-arguments_set_double(i, value)
+old_arguments_set_double(i, value)
     int i
     double value
   PROTOTYPE: $$
@@ -137,7 +137,7 @@ arguments_set_double(i, value)
     ffi_pl_arguments_set_double(current_argv, i, value);
 
 UV
-arguments_get_uint16(i)
+old_arguments_get_uint16(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -148,7 +148,7 @@ arguments_get_uint16(i)
     RETVAL
 
 void
-arguments_set_uint16(i, value)
+old_arguments_set_uint16(i, value)
     int i
     UV value
   PROTOTYPE: $$
@@ -158,7 +158,7 @@ arguments_set_uint16(i, value)
     ffi_pl_arguments_set_uint16(current_argv, i, value);
 
 IV
-arguments_get_sint16(i)
+old_arguments_get_sint16(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -169,7 +169,7 @@ arguments_get_sint16(i)
     RETVAL
 
 void
-arguments_set_sint16(i, value)
+old_arguments_set_sint16(i, value)
     int i
     IV value
   PROTOTYPE: $$
@@ -179,7 +179,7 @@ arguments_set_sint16(i, value)
     ffi_pl_arguments_set_sint16(current_argv, i, value);
 
 UV
-arguments_get_uint32(i)
+old_arguments_get_uint32(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -190,7 +190,7 @@ arguments_get_uint32(i)
     RETVAL
 
 void
-arguments_set_uint32(i, value)
+old_arguments_set_uint32(i, value)
     int i
     UV value
   PROTOTYPE: $$
@@ -200,7 +200,7 @@ arguments_set_uint32(i, value)
     ffi_pl_arguments_set_uint32(current_argv, i, value);
 
 IV
-arguments_get_sint32(i)
+old_arguments_get_sint32(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -211,7 +211,7 @@ arguments_get_sint32(i)
     RETVAL
 
 void
-arguments_set_sint32(i, value)
+old_arguments_set_sint32(i, value)
     int i
     IV value
   PROTOTYPE: $$
@@ -221,7 +221,7 @@ arguments_set_sint32(i, value)
     ffi_pl_arguments_set_sint32(current_argv, i, value);
 
 void
-arguments_get_uint64(i)
+old_arguments_get_uint64(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -238,7 +238,7 @@ arguments_get_uint64(i)
 #endif
 
 void
-arguments_set_uint64(i, value)
+old_arguments_set_uint64(i, value)
     int i
     SV* value
   PROTOTYPE: $$
@@ -252,7 +252,7 @@ arguments_set_uint64(i, value)
 #endif
 
 void
-arguments_get_sint64(i)
+old_arguments_get_sint64(i)
     int i
   PROTOTYPE: $
   CODE:
@@ -269,7 +269,7 @@ arguments_get_sint64(i)
 #endif
 
 void
-arguments_set_sint64(i, value)
+old_arguments_set_sint64(i, value)
     int i
     SV* value
   PROTOTYPE: $$

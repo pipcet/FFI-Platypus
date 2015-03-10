@@ -5,8 +5,6 @@ use warnings;
 use FFI::Platypus;
 use base qw( Exporter );
 
-our @EXPORT = grep /^arguments_/, keys %FFI::Platypus::API::;
-
 # ABSTRACT: Platypus arguments and return value API for custom types
 # VERSION
 
@@ -214,5 +212,45 @@ Examples of use:
 =back
 
 =cut
+
+sub arguments_count($) { return $FFI::Platypus::arguments ? $FFI::Platypus::argument_count : old_arguments_count }
+
+my $estr;
+
+our @EXPORT;
+BEGIN {
+  for my $type (qw(pointer uint8 sint8 uint16 sint16 uint32 sint32 uint64 sint64 string double float))
+  {
+    $estr .= qq{
+sub arguments_get_$type(\$)
+{
+  if(\$FFI::Platypus::arguments)
+  {
+    return \$FFI::Platypus::arguments->[\$_[0]];
+  }
+  else
+  {
+    return old_arguments_get_$type(\$_[0]);
+  }
+}
+
+sub arguments_set_$type(\$\$)
+{
+  if(\$FFI::Platypus::arguments)
+  {
+    return \$FFI::Platypus::arguments->[\$_[0]] = \$_[1];
+  }
+  else
+  {
+    return old_arguments_set_$type(\$_[0], \$_[1]);
+  }
+}
+};
+  }
+  eval($estr);
+  die $@ if $@;
+}
+
+@EXPORT = grep /^arguments_/, keys %FFI::Platypus::API::;
 
 1;
