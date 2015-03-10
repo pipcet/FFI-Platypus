@@ -180,6 +180,26 @@ Set the L<lang|/lang> attribute.
 sub new
 {
   my($class, %args) = @_;
+  my $impl = delete $args{impl};
+
+  if(ref $impl eq 'ARRAY')
+  {
+    $args{implname} ||= '['.join(',',@$impl).']';
+    $args{impl} = [@$impl[1..$#$impl]];
+    $impl = $impl->[0];
+  }
+
+  $impl = default_impl() unless defined $impl;
+
+  my $impl_class = _impl_class($impl);
+
+  $args{implname} ||= $impl;
+  $impl_class->new(%args);
+}
+
+sub base_new
+{
+  my($class, %args) = @_;
   my @lib;
   if(defined $args{lib})
   {
@@ -199,11 +219,47 @@ sub new
   bless {
     lib              => \@lib,
     handles          => {},
-    types            => {},
+    implname         => $args{implname},
+    types            => $args{types} || {},
     lang             => $args{lang} || 'C',
     abi              => -1,
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
+}
+
+sub impl
+{
+  my($self) = @_;
+
+  return $self->{implname};
+}
+
+sub _impl_class ($)
+{
+  my($impl) = @_;
+  my $class = "FFI::Platypus::Impl::$impl";
+  unless($class->can('impl_new_function'))
+  {
+    eval qq{ use $class };
+    croak "unable to load $class: $@" if $@;
+  }
+  croak "$class does not provide impl_new_function method"
+    unless $class->can("impl_new_function");
+  $class;
+}
+
+sub _resolver_class ($)
+{
+  my($resolver) = @_;
+  my $class = "FFI::Platypus::Resolver::$resolver";
+  unless($class->can('find_symbol'))
+  {
+    eval qq{ use $class };
+    croak "unable to load $class: $@" if $@;
+  }
+  croak "$class does not provide find_symbol method"
+    unless $class->can("find_symbol");
+  $class;
 }
 
 sub _lang_class ($)
@@ -243,6 +299,11 @@ sub _type_map
   }
   
   $self->{type_map};
+}
+
+sub default_impl
+{
+  return $FFI::Platypus::default_impl || $ENV{FFI_PLATYPUS_IMPL} || 'Libffi';
 }
 
 =head1 ATTRIBUTES
@@ -396,7 +457,8 @@ sub type
     # basic type so you can have many many many copies of a given
     # closure type if you do not spell it exactly the same each time.
     # Recommended that you use an alias for a closure type anyway.
-    $self->{types}->{$name} ||= FFI::Platypus::Type->new($name, $self);
+    $self->{types}->{$name} = $self->impl_new_type($name)
+	unless exists $self->{types}->{$name};
   }
   else
   {
@@ -695,7 +757,7 @@ sub function
   my $address = $name =~ /^-?[0-9]+$/ ? $name : $self->find_symbol($name);
   croak "unable to find $name" unless defined $address || $self->ignore_not_found;
   return unless defined $address;
-  FFI::Platypus::Function->new($self, $address, $self->{abi}, $ret, @args);
+  $self->impl_new_function($address, $ret, @args);
 }
 
 =head2 attach
@@ -966,23 +1028,9 @@ sub find_symbol
 
   foreach my $path (@{ $self->{lib} })
   {
-    my $handle = do { no warnings; $self->{handles}->{$path||0} } || FFI::Platypus::dl::dlopen($path);
-    unless($handle)
-    {
-      warn "error loading $path: ", FFI::Platypus::dl::dlerror()
-        if $ENV{FFI_PLATYPUS_DLERROR};
-      next;
-    }
-    my $address = FFI::Platypus::dl::dlsym($handle, $self->{mangler}->($name));
-    if($address)
-    {
-      $self->{handles}->{$path||0} = $handle;
-      return $address;
-    }
-    else
-    {
-      FFI::Platypus::dl::dlclose($handle) unless $self->{handles}->{$path||0};
-    }
+    my $address = $self->impl_find_symbol($name, $path, $self->{mangler});
+
+    return $address if $address;
   }
   return;
 }
@@ -1122,6 +1170,18 @@ use overload 'bool' => sub {
   my $ffi = shift;
   return $ffi;
 };
+sub new
+{
+  my($class, $ffi, $address, $abi, $return_type, @argument_types) = @_;
+  my $oldabi = $ffi->abi;
+  $ffi->abi($abi);
+
+  my $ret = $ffi->impl_new_function($address, $return_type, @argument_types);
+
+  $ffi->abi($oldabi);
+
+  return $ret;
+}
 
 package FFI::Platypus::Closure;
 
