@@ -124,7 +124,7 @@ subtest 'closure types' => sub {
   }
   
   SKIP: {
-    skip "lazy", 3 if $ffi->impl eq 'Lazy';
+    skip "lazy", 3 if $ffi->is_lazy;
     eval { $ffi->type('((int)->int)->int') };
     isnt $@, '', 'inline closure illegal';
 

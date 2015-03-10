@@ -1252,6 +1252,24 @@ sub _have_pm
   $ok;
 }
 
+=head2 is_lazy
+
+ $ffi->is_lazy();
+
+Check whether the implementation is lazy, which means that it resolves
+types and symbols only as needed and returns placeholder objects
+before that point. Mostly this is transparent to the user, but there
+are exceptions.
+
+=cut
+
+sub is_lazy
+{
+  my($self) = @_;
+
+  return 0;
+}
+
 $FFI::Platypus::arguments = undef; # a global variable. But don't
 				   # worry, it's localized before use.
 $FFI::Platypus::argument_types = undef; # ditto

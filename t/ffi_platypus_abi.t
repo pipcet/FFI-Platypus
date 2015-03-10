@@ -22,7 +22,7 @@ foreach my $abi (keys %abis)
 }
 
 SKIP: {
-  skip "ABIs are checked lazily" => 1 if $ffi->impl eq 'Lazy';
+  skip "ABIs are checked lazily" => 1 if $ffi->is_lazy;
 
   subtest 'bogus' => sub {
     eval { $ffi->abi('bogus') };

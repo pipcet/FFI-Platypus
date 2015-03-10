@@ -24,13 +24,16 @@ subtest 'ffi types' => sub {
     my $align3 = $ffi->alignof("$type *");
     is $align3, $pointer_align, "alignof $type * = $pointer_align";
     
-    $ffi->custom_type("custom_$type" => {
-      native_type => $type,
-      native_to_perl => sub {},
-    });
+    SKIP: {
+      skip "no custom types" => 1 unless $ffi->can('custom_type');
+      $ffi->custom_type("custom_$type" => {
+        native_type => $type,
+        native_to_perl => sub {},
+      });
     
-    my $align4 = $ffi->alignof("custom_$type");
-    is $align4, $align, "alignof custom_$type = $align";
+      my $align4 = $ffi->alignof("custom_$type");
+      is $align4, $align, "alignof custom_$type = $align";
+    }
   }
 };
 

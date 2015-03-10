@@ -5,6 +5,8 @@ use FFI::Platypus;
 use JSON::PP;
 BEGIN { eval q{ use YAML () } };
 
+plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
+
 sub xdump ($)
 {
   my($object) = @_;
