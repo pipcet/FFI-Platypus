@@ -103,12 +103,18 @@ sub impl_new_constant_type
 {
   my($self, $name, @args) = @_;
 
-  return $self->{types}->{$name} = FFI::Platypus::Type::Lazy->new(
+  my $ret = FFI::Platypus::Type::Lazy->new(
     sub
     {
       $self->{impl_base}->impl_new_constant_type(undef, @args);
     }
   );
+
+  if(defined $name) {
+    $self->{types}->{$name} = $ret
+  }
+
+  return $ret;
 }
 
 sub impl_find_symbol
