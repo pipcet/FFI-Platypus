@@ -10,24 +10,34 @@
 #include "perl_math_int64.h"
 #endif
 
-void
-ffi_pl_closure_add_data(SV *closure, ffi_pl_closure *closure_data)
+SV *
+ffi_pl_closure_add_data(SV *closure, SV *type, void *closure_pointer)
 {
   dSP;
+  SV *sv;
+  SV *closure_data = newSV(0);
+
+  sv_setref_pv(closure_data, "FFI::Platypus::ClosureData", closure_pointer);
+
   ENTER;
   SAVETMPS;
   PUSHMARK(SP);
   XPUSHs(closure);
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data))));
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(closure_data->type))));
+  XPUSHs(sv_2mortal(closure_data));
+  XPUSHs(type);
   PUTBACK;
-  call_pv("FFI::Platypus::Closure::add_data", G_DISCARD);
+  call_pv("FFI::Platypus::Closure::add_data", G_SCALAR);
+  SPAGAIN;
+  sv = SvREFCNT_inc(POPs);
+  PUTBACK;
   FREETMPS;
   LEAVE;
+
+  return sv;
 }
 
 ffi_pl_closure *
-ffi_pl_closure_get_data(SV *closure, ffi_pl_type *type)
+ffi_pl_closure_get_data(SV *closure, SV *type)
 {
   dSP;
   int count;
@@ -37,7 +47,7 @@ ffi_pl_closure_get_data(SV *closure, ffi_pl_type *type)
   SAVETMPS;
   PUSHMARK(SP);
   XPUSHs(closure);
-  XPUSHs(sv_2mortal(newSViv(PTR2IV(type))));
+  XPUSHs(type);
   PUTBACK;
   count = call_pv("FFI::Platypus::Closure::get_data", G_SCALAR);
   SPAGAIN;
