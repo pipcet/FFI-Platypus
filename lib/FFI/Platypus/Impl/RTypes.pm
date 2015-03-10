@@ -86,6 +86,8 @@ sub impl_new_function
 {
   my($self, $address, $ret, @args) = @_;
 
+  return unless $address or $address eq '0';
+
   FFI::Platypus::Function::RTypes->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
@@ -151,7 +153,7 @@ sub impl_new_constant_type
     unless $argument_count >= 1;
 
   croak "Usage: \$ffi->constant_type(\$name, { ... })"
-    unless defined $name && ref($cb) eq 'HASH';
+    unless ref($cb) eq 'HASH';
 
   croak "must define a value"
     unless defined $cb->{value};
@@ -159,7 +161,7 @@ sub impl_new_constant_type
   my $value = $cb->{value};
 
   my $type_map = $self->_type_map;
-  croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
+  croak "name conflicts with existing type" if defined $name and ($type_map->{$name} || defined $self->{types}->{$name});
 
   my @types;
   my $size = 0;
@@ -175,13 +177,24 @@ sub impl_new_constant_type
     $size += $type->sizeof;
   }
 
-  $self->{types}->{$name} = FFI::Platypus::Type::RTypes::Constant->_new_constant(
-    \@types,
-    $size,
-    $value,
-  );
+  if(defined $name)
+  {
+    $self->{types}->{$name} = FFI::Platypus::Type::RTypes::Constant->_new_constant(
+      \@types,
+      $size,
+      $value,
+    );
 
-  $self;
+    $self;
+  }
+  else
+  {
+    return FFI::Platypus::Type::RTypes::Constant->_new_constant(
+      \@types,
+      $size,
+      $value,
+    );
+  }
 }
 
 sub impl_resolver

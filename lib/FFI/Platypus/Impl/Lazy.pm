@@ -91,13 +91,12 @@ sub impl_new_custom_type
 
 sub impl_new_constant_type
 {
-  my($self, $type, @args) = @_;
+  my($self, $name, @args) = @_;
 
-  return FFI::Platypus::Type::Lazy->new(
+  return $self->{types}->{$name} = FFI::Platypus::Type::Lazy->new(
     sub
     {
-      $type = $type->realize if $type->can('realize');
-      return($self->{impl_base}->impl_new_constant_type($type, @args));
+      $self->{impl_base}->impl_new_constant_type(undef, @args);
     }
   );
 }
