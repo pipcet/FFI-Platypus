@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use FFI::Platypus;
-use FFI::Platypus::API qw(arguments_set_double);
+use FFI::Platypus::API qw(arguments_set_double arguments_set_sint32);
 
 my $ffi = FFI::Platypus->new;
 
