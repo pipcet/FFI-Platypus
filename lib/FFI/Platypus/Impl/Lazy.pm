@@ -16,6 +16,8 @@ use FFI::Platypus::Address::Lazy;
 use FFI::Platypus::Types::Lazy;
 use FFI::Platypus::TypeMap::Lazy;
 
+use FFI::Platypus::Impl::RTypes;
+
 sub new
 {
   my($class, %args) = @_;
