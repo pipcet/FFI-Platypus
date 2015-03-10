@@ -54,7 +54,15 @@ sub impl_abis
 {
   my($self) = @_;
 
-  return $self->{impl_base}->impl_abis;
+  if(ref $self)
+  {
+    return $self->{impl_base}->impl_abis;
+  }
+  else
+  {
+    # XXX better than nothing.
+    return FFI::Platypus::Impl::RTypes->impl_abis;
+  }
 }
 
 sub impl_new_function
