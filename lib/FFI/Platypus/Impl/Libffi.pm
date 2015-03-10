@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use 5.008001;
 use Carp qw( croak );
+use FFI::Platypus::Type::Libffi;
 use FFI::Platypus::Function::Libffi;
 
 sub new
