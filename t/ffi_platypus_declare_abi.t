@@ -19,9 +19,13 @@ foreach my $abi (keys %abis)
   };
 }
 
-subtest 'bogus' => sub {
-  eval { abi 'bogus' };
-  like $@, qr{no such ABI: bogus}, 'string';
-  eval { abi 999999 };
-  like $@, qr{no such ABI: 999999}, 'integer';
-};
+SKIP: {
+  skip "ABIs are checked lazily" => 1 if FFI::Platypus->new->impl eq 'Lazy';
+
+  subtest 'bogus' => sub {
+    eval { abi 'bogus' };
+    like $@, qr{no such ABI: bogus}, 'string';
+    eval { abi 999999 };
+    like $@, qr{no such ABI: 999999}, 'integer';
+  };
+}

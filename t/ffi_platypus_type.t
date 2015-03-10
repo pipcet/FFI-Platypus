@@ -123,17 +123,20 @@ subtest 'closure types' => sub {
     note xdump($ffi->type_meta('bar'));
   }
   
-  eval { $ffi->type('((int)->int)->int') };
-  isnt $@, '', 'inline closure illegal';
-  
-  eval { $ffi->type('(foo)->int') };
-  is $@, '', 'argument type closure legal' if $ffi->impl ne 'Libffi';
-  isnt $@, '', 'argument type closure illegal' if $ffi->impl eq 'Libffi';
+  SKIP: {
+    skip "lazy", 3 if $ffi->impl eq 'Lazy';
+    eval { $ffi->type('((int)->int)->int') };
+    isnt $@, '', 'inline closure illegal';
 
-  eval { $ffi->type('(int)->foo') };
-  is $@, '', 'return type closure legal' if $ffi->impl ne 'Libffi';
-  isnt $@, '', 'return type closure illegal' if $ffi->impl eq 'Libffi';
+    eval { $ffi->type('(foo)->int') };
+    is $@, '', 'argument type closure legal' if $ffi->impl ne 'Libffi';
+    isnt $@, '', 'argument type closure illegal' if $ffi->impl eq 'Libffi';
   
+    eval { $ffi->type('(int)->foo') };
+    is $@, '', 'return type closure legal' if $ffi->impl ne 'Libffi';
+    isnt $@, '', 'return type closure illegal' if $ffi->impl eq 'Libffi';
+  }
+
   $ffi->type('(int,int,int,char,string,opaque)->void' => 'baz');
   is $ffi->type_meta('baz')->{type}, 'closure', 'a more complicated closure';
   note xdump($ffi->type_meta('baz'));

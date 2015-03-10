@@ -21,9 +21,13 @@ foreach my $abi (keys %abis)
   };
 }
 
-subtest 'bogus' => sub {
-  eval { $ffi->abi('bogus') };
-  like $@, qr{no such ABI: bogus}, 'string';
-  eval { $ffi->abi(999999) };
-  like $@, qr{no such ABI: 999999}, 'integer';
-};
+SKIP: {
+  skip "ABIs are checked lazily" => 1 if $ffi->impl eq 'Lazy';
+
+  subtest 'bogus' => sub {
+    eval { $ffi->abi('bogus') };
+    like $@, qr{no such ABI: bogus}, 'string';
+    eval { $ffi->abi(999999) };
+    like $@, qr{no such ABI: 999999}, 'integer';
+  };
+}
