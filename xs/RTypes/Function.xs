@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function::RTypes
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::Function
 
 ffi_pl_rtypes_function *
 new(class, impl, address, abi, return_type_arg, ...)
@@ -75,7 +75,7 @@ new(class, impl, address, abi, return_type_arg, ...)
     }
     else
     {
-      if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::CustomPerl"))
+      if (sv_derived_from(self->return_type, "FFI::Platypus::RTypes::Type::CustomPerl"))
       {
 	ffi_pl_rtypes_type *return_type = self->extra_data;
         SV *ret_in=NULL, *ret_out;
@@ -99,7 +99,7 @@ new(class, impl, address, abi, return_type_arg, ...)
 
         ffi_return_type = ffi;
       }
-      else if (sv_derived_from(self->return_type, "FFI::Platypus::Type::RTypes::ExoticFloat"))
+      else if (sv_derived_from(self->return_type, "FFI::Platypus::RTypes::Type::ExoticFloat"))
       {
 	ffi_pl_rtypes_type *return_type = self->extra_data;
 
@@ -125,7 +125,7 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       int d = 1;
-      if (sv_derived_from(arg, "FFI::Platypus::Type::RTypes::ExoticFloat"))
+      if (sv_derived_from(arg, "FFI::Platypus::RTypes::Type::ExoticFloat"))
       {
 	tmp = ffi_pl_rtypes_extra_data(arg);
 	ffi_argument_types[n] = tmp->ffi_type;
@@ -270,8 +270,8 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     int count;
     SV *sv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function::RTypes")))
-      croak("self is not of type FFI::Platypus::Function::RTypes");
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")))
+      croak("self is not of type FFI::Platypus::RTypes::Function");
 
     if(path_name == NULL)
       path_name = "unknown";
@@ -363,8 +363,8 @@ attach(self, perl_name, path_name, proto)
   PREINIT:
     CV* cv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function::RTypes")))
-      croak("self is not of type FFI::Platypus::Function::RTypes");
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")))
+      croak("self is not of type FFI::Platypus::RTypes::Function");
 
     if(path_name == NULL)
       path_name = "unknown";

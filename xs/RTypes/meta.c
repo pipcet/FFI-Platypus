@@ -9,32 +9,32 @@
 size_t
 ffi_pl_rtypes_sizeof(SV *selfsv, ffi_pl_rtypes_type *self)
 {
-  if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::CustomPerl"))
+  if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::CustomPerl"))
   {
     return self->extra[0].custom_perl.size;
   }
   else if(sv_derived_from(selfsv, "FFI::Platypus::Type::FFI")
-        ||sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::ExoticFloat"))
+        ||sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::ExoticFloat"))
   {
     return self->ffi_type->size;
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::String"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::String"))
   {
     if(self->extra[0].string.platypus_string_type == FFI_PL_STRING_FIXED)
       return self->extra[0].string.size;
     else
       return sizeof(void*);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Pointer")
-        ||sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Closure"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Pointer")
+        ||sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Closure"))
   {
     return sizeof(void*);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Array"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Array"))
   {
     return self->ffi_type->size * self->extra[0].array.element_count;
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Record"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Record"))
   {
     return self->extra[0].record.size;
   }
@@ -165,10 +165,10 @@ ffi_pl_rtypes_get_type_meta(SV *selfsv)
   {
     hv_store(meta, "element_size", 12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",          4, newSVpv("scalar",0),0);
-    if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::ExoticFloat"))
+    if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::ExoticFloat"))
       hv_store(meta, "exotic", 6, newSViv(1), 0);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::String"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::String"))
   {
     hv_store(meta, "element_size",  12, newSViv(sizeof(void*)), 0);
     hv_store(meta, "type",           4, newSVpv("string",0),0);
@@ -188,23 +188,23 @@ ffi_pl_rtypes_get_type_meta(SV *selfsv)
         break;
     }
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Pointer"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Pointer"))
   {
     hv_store(meta, "element_size", 12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",          4, newSVpv("pointer",0),0);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Array"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Array"))
   {
     hv_store(meta, "element_size",  12, newSViv(self->ffi_type->size), 0);
     hv_store(meta, "type",           4, newSVpv("array",0),0);
     hv_store(meta, "element_count", 13, newSViv(self->extra[0].array.element_count), 0);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Closure"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Closure"))
   {
     hv_store(meta, "element_size", 12, newSViv(sizeof(void*)), 0);
     hv_store(meta, "type",          4, newSVpv("closure",0),0);
   }
-  else if(sv_derived_from(selfsv, "FFI::Platypus::Type::RTypes::Record"))
+  else if(sv_derived_from(selfsv, "FFI::Platypus::RTypes::Type::Record"))
   {
     hv_store(meta, "type",          4, newSVpv("record",0),0);
     hv_store(meta, "ref",           3, newSViv(self->extra[0].record.stash != NULL ? 1 : 0),0);

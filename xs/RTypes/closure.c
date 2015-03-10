@@ -18,7 +18,7 @@ ffi_pl_rtypes_closure_add_data(SV *closure, SV *type, void *closure_pointer)
   SV *sv;
   SV *closure_data = newSV(0);
 
-  sv_setref_pv(closure_data, "FFI::Platypus::ClosureData::RTypes", closure_pointer);
+  sv_setref_pv(closure_data, "FFI::Platypus::RTypes::ClosureData", closure_pointer);
 
   ENTER;
   SAVETMPS;
@@ -27,7 +27,7 @@ ffi_pl_rtypes_closure_add_data(SV *closure, SV *type, void *closure_pointer)
   XPUSHs(sv_2mortal(closure_data));
   XPUSHs(type);
   PUTBACK;
-  call_pv("FFI::Platypus::Closure::RTypes::add_data", G_SCALAR);
+  call_pv("FFI::Platypus::RTypes::Closure::add_data", G_SCALAR);
   SPAGAIN;
   sv = SvREFCNT_inc(POPs);
   PUTBACK;

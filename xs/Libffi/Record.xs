@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Record::Libffi
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Libffi::Record
 
 void
 _accessor(perl_name, path_name, type, offset)

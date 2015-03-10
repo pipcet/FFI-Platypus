@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Type::Libffi
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Libffi::Type
 
 ffi_pl_type *
 _new(class, type, platypus_type, array_or_record_or_string_size, type_classname, rw)

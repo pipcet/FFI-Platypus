@@ -1,4 +1,4 @@
-package FFI::Platypus::Type::RTypes::FFI;
+package FFI::Platypus::RTypes::Type::FFI;
 use parent 'FFI::Platypus::Type::FFI';
 use Carp qw(croak);
 

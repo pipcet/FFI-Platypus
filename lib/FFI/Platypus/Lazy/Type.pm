@@ -1,4 +1,4 @@
-package FFI::Platypus::Type::Lazy;
+package FFI::Platypus::Lazy::Type;
 use parent -norequire, 'FFI::Platypus::Type';
 
 use strict;

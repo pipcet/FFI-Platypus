@@ -1,11 +1,10 @@
-package FFI::Platypus::Type::RTypes::SV;
+package FFI::Platypus::RTypes::Function;
+use parent -norequire, 'FFI::Platypus::Function';
 
 use strict;
 use warnings;
 use 5.008001;
 use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
-
-use parent 'FFI::Platypus::Type::SV';
 
 1;

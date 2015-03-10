@@ -1,4 +1,4 @@
-package FFI::Platypus::Function::Lazy;
+package FFI::Platypus::Lazy::Function;
 use parent -norequire, 'FFI::Platypus::Function';
 use Scalar::Util qw(weaken);
 use Carp qw(croak);

@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::ClosureData::Libffi
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Libffi::ClosureData
 
 void
 DESTROY(self)

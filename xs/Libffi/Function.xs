@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function::Libffi
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Libffi::Function
 
 ffi_pl_function *
 new(class, platypus, address, abi, return_type, ...)
@@ -129,8 +129,8 @@ attach(self, perl_name, path_name, proto)
   PREINIT:
     CV* cv;
   CODE:
-    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Function::Libffi")))
-      croak("self is not of type FFI::Platypus::Function::Libffi");
+    if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::Libffi::Function")))
+      croak("self is not of type FFI::Platypus::Libffi::Function");
 
     if(path_name == NULL)
       path_name = "unknown";

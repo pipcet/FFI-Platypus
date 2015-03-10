@@ -1,5 +1,5 @@
-package FFI::Platypus::Type::RTypes::Wrap;
-use parent 'FFI::Platypus::Type::RTypes', 'FFI::Platypus::Type::Wrap';
+package FFI::Platypus::RTypes::Type::Wrap;
+use parent 'FFI::Platypus::RTypes::Type', 'FFI::Platypus::Type::Wrap';
 use FFI::Platypus::Declare;
 
 # this type demonstrates that we can implement a type purely in Perl

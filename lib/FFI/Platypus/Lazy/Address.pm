@@ -1,4 +1,4 @@
-package FFI::Platypus::Address::Lazy;
+package FFI::Platypus::Lazy::Address;
 
 use strict;
 use warnings;

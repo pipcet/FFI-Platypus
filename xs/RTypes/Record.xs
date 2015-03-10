@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Record::RTypes
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::Record
 
 void
 _accessor(perl_name, path_name, typesv, offset)
@@ -90,7 +90,7 @@ _accessor(perl_name, path_name, typesv, offset)
     else
     {
       ffi_pl_rtypes_type *type = ffi_pl_rtypes_extra_data(typesv);
-      if(sv_derived_from(typesv, "FFI::Platypus::Type::RTypes::Array"))
+      if(sv_derived_from(typesv, "FFI::Platypus::RTypes::Type::Array"))
       {
         member->count = type->extra[0].array.element_count;
         switch(type->ffi_type->type)
@@ -134,7 +134,7 @@ _accessor(perl_name, path_name, typesv, offset)
             break;
         }
       }
-      else if(sv_derived_from(typesv, "FFI::Platypus::Type::RTypes::String"))
+      else if(sv_derived_from(typesv, "FFI::Platypus::RTypes::Type::String"))
       {
         switch(type->extra[0].string.platypus_string_type)
         {
@@ -152,7 +152,7 @@ _accessor(perl_name, path_name, typesv, offset)
             break;
         }
       }
-      else if(sv_derived_from(typesv, "FFI::Platypus::Type::RTypes::Bitfield"))
+      else if(sv_derived_from(typesv, "FFI::Platypus::RTypes::Type::Bitfield"))
       {
 	SV **svp;
 	svp = hv_fetch(type->hv, "bit_offset", strlen("bit_offset"), 0);

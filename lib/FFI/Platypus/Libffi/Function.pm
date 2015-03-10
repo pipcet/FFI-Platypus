@@ -1,4 +1,4 @@
-package FFI::Platypus::Function::Libffi;
+package FFI::Platypus::Libffi::Function;
 
 use parent -norequire, 'FFI::Platypus::Function';
 

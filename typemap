@@ -13,13 +13,13 @@ T_FFI_PL_STRING
   $var != NULL ? sv_setpv((SV*)$arg, $var) : sv_setsv((SV*)$arg, &PL_sv_undef);
 
 T_FFI_PL_TYPE
-  sv_setref_pv($arg, \"FFI::Platypus::Type::Libffi\", (void *) $var);
+  sv_setref_pv($arg, \"FFI::Platypus::Libffi::Type\", (void *) $var);
 
 T_FFI_PL_FUNCTION
-  sv_setref_pv($arg, \"FFI::Platypus::Function::Libffi\", (void *) $var);
+  sv_setref_pv($arg, \"FFI::Platypus::Libffi::Function\", (void *) $var);
 
 T_FFI_PL_CLOSURE_DATA
-  sv_setref_pv($arg, \"FFI::Platypus::ClosureData::Libffi\", (void *) $var);
+  sv_setref_pv($arg, \"FFI::Platypus::Libffi::ClosureData\", (void *) $var);
 
 T_FFI_PL_FFI_TYPE
   sv_setref_pv($arg, class, (void *) $var);
@@ -52,13 +52,13 @@ T_FFI_PL_STRING
   $var = SvOK($arg) ? ($type)SvPV_nolen($arg) : NULL;
 
 T_FFI_PL_TYPE
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Type::Libffi\"))
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Libffi::Type\"))
     $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
   else
     Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Type\");
 
 T_FFI_PL_FUNCTION
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Function::Libffi\"))
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Libffi::Function\"))
     $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
   else
     Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Function\");
@@ -82,23 +82,23 @@ T_FFI_PL_FFI_TYPE
     Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Type::FFI\");
 
 T_FFI_PL_RTYPES_FUNCTION
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Function::RTypes\"))
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::Function\"))
     $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
   else
-    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Function::RTypes\");
+    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::Function\");
 
 T_FFI_PL_RTYPES_CLOSURE_DATA
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::ClosureData::RTypes\"))
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::ClosureData\"))
     $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
   else
-    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::ClosureData::RTypes\");
+    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::ClosureData\");
 
 T_FFI_PL_RTYPES_TYPE
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::Type::RTypes\")) {
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::Type\")) {
     HV *hv = (HV*)SvRV($arg);
     SV **svp = hv_fetch(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), 0);
     if (svp == NULL)
       Perl_croak(aTHX_ \"$var is missing the ffi_pl_type hash entry\");
     $var = INT2PTR($type, SvIV((SV*)SvRV(*svp)));
   } else
-    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Type::RTypes\");
+    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::Type\");

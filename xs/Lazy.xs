@@ -1,4 +1,4 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Function::Lazy
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Lazy::Function
 
 SV *
 attach_method_lazy_address()
