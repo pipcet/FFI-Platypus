@@ -841,7 +841,11 @@ sub attach
       $inner_counter++;
     }
     
-    $function->attach($attach_name, "$filename:$line", $proto);
+    if(!$function->attach($attach_name, "$filename:$line", $proto) and
+       !$self->ignore_not_found)
+    {
+      croak "failed to attach function";
+    }
     
     if($wrapper)
     {
@@ -1034,7 +1038,14 @@ sub sizeof
 {
   my($self,$name) = @_;
   my $type = $self->{types}->{$name} || $self->_type_lookup($name);
-  $type->sizeof;
+  if($type)
+  {
+    $type->sizeof;
+  }
+  else
+  {
+    return;
+  }
 }
 
 =head2 alignof

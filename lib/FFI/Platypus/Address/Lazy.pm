@@ -37,6 +37,8 @@ sub realize
 
   $self->{realization} = $self->{sub}->();
 
+  return unless $self->{realization} or defined $self->{realization} and $self->{realization} eq '0';
+
   return $self->{realization};
 }
 

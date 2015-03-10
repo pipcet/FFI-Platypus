@@ -56,12 +56,12 @@ sub realize
   $self->{return_type} = $self->{return_type}->realize
       if $self->{return_type}->can('realize');
 
-  return unless defined $self->{return_type};
+  return unless $self->{return_type};
 
   my @args = map { $_->can('realize') ? $_->realize : $_ } @{$self->{argument_types}};
   $self->{argument_types} = \@args;
 
-  return if grep { !defined $_ } @args;
+  return if grep { !$_ } @args;
 
   $self->{base} = $self->{ffi}->impl_new_function($self->{address}, $self->{return_type}, @{$self->{argument_types}});
   $self->{realized} = 1;
@@ -81,7 +81,13 @@ sub attach
 {
   my($self, $attach_name, $attach_location, $proto) = @_;
 
+  if(!$self) {
+    return;
+  }
+
   $self->realize->attach($attach_name, $attach_location, $proto);
+
+  return 1;
 }
 
 use Data::Dumper;
@@ -90,7 +96,7 @@ sub _make_attach_method {
   my($data) = @_;
   my $function = $data->{function};
 
-  croak "lazy function has been deleted" unless defined $function;
+  croak "lazy function has been deleted" unless $function;
 
   # replace ourselves
   $function->realize->attach_method($data->{ffi},

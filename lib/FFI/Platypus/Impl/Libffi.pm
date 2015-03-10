@@ -65,6 +65,8 @@ sub impl_new_function
 {
   my($self, $address, $ret, @args) = @_;
 
+  return unless $address or $address eq '0';
+
   FFI::Platypus::Function::Libffi->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
