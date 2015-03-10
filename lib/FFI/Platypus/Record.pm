@@ -252,11 +252,12 @@ sub record_layout
       }
 
       $name = join '::', $caller, $name;
-      my $error_str =_accessor
+      my $error_str = $ffi->impl_record_accessor->(
         $name,
         "$filename:$line",
         $ffi->_type_lookup($type),
-        $offset;
+        $offset
+      );
       croak($error_str) if $error_str;
     };
     
