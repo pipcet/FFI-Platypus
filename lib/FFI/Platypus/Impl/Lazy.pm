@@ -145,4 +145,17 @@ sub find_symbol
   });
 }
 
+sub impl_record_accessor
+{
+  my($self) = @_;
+
+  return sub {
+    my($perl_name, $path_name, $type, $offset) = @_;
+
+    $type = $type->realize if $type->can('realize');
+
+    return $self->{impl_base}->impl_record_accessor->($perl_name, $path_name, $type, $offset);
+  };
+}
+
 1;
