@@ -6,7 +6,7 @@ extern "C" {
 
 void ffi_pl_closure_call(ffi_cif *, void *, void **, void *);
 SV *ffi_pl_closure_add_data(SV *closure, SV *type, void *closure_data);
-ffi_pl_closure *ffi_pl_closure_get_data(SV *closure, SV *type);
+void *ffi_pl_closure_get_data(SV *closure, SV *type);
 SV*  ffi_pl_custom_perl(SV*,SV*,int);
 void ffi_pl_custom_perl_cb(SV *, SV*, int);
 HV *ffi_pl_get_type_meta(ffi_pl_type *);
