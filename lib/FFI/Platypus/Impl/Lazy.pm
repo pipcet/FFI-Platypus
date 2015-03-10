@@ -168,4 +168,18 @@ sub impl_record_accessor
   };
 }
 
+sub is_lazy
+{
+  1; # that's the point.
+}
+
+sub can
+{
+  my($self, $method) = @_;
+
+  return undef if $method eq 'custom_type' and not $self->{impl_base}->can('impl_new_custom_type');
+
+  return $self->SUPER::can($method);
+}
+
 1;

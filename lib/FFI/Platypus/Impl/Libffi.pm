@@ -112,7 +112,7 @@ sub custom_type
   croak "$type is not a native type" unless defined $type_map->{$type} || $type eq 'string';
   croak "name conflicts with existing type" if defined $type_map->{$name} || defined $self->{types}->{$name};
   
-  $self->{types}->{$name} = FFI::Platypus::Type->_new_custom_perl(
+  $self->{types}->{$name} = FFI::Platypus::Type::Libffi->_new_custom_perl(
     $type_map->{$type},
     $cb->{perl_to_native},
     $cb->{native_to_perl},
@@ -165,7 +165,7 @@ sub impl_find_symbol
 
 sub impl_record_accessor
 {
-  return \&FFI::Platypus::Record::_accessor;
+  return \&FFI::Platypus::Record::Libffi::_accessor;
 }
 
 1;
