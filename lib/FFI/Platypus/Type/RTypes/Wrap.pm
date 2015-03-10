@@ -1,5 +1,5 @@
 package FFI::Platypus::Type::RTypes::Wrap;
-use parent -norequire, 'FFI::Platypus::Type::Wrap', 'FFI::Platypus::Type::RTypes';
+use parent 'FFI::Platypus::Type::RTypes', 'FFI::Platypus::Type::Wrap';
 use FFI::Platypus::Declare;
 
 # this type demonstrates that we can implement a type purely in Perl
@@ -140,10 +140,23 @@ sub extra_data {
   return 0;
 }
 
+sub argument_count {
+  my($self) = @_;
+  my $argument_count =  $self->{underlying_types}->[0]->argument_count;
+
+  return $argument_count;
+}
+
 sub count_native_arguments {
   my($self) = @_;
 
   return $self->{underlying_types}->[0]->count_native_arguments;
+}
+
+sub new {
+  my($class, $ffi, $basetype) = @_;
+
+  return bless { underlying_types => [$basetype], ffi => $ffi }, $class;
 }
 
 1;
