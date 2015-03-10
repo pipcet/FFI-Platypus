@@ -222,7 +222,7 @@ sub base_new
     implname         => $args{implname},
     types            => $args{types} || {},
     lang             => $args{lang} || 'C',
-    abi              => -1,
+    resolver         => $args{resolve} || 'dl',
     ignore_not_found => defined $args{ignore_not_found} ? $args{ignore_not_found} : 0,
   }, $class;
 }
@@ -1137,11 +1137,6 @@ sub abi
 sub DESTROY
 {
   my($self) = @_;
-  foreach my $handle (values %{ $self->{handles} })
-  {
-    next unless $handle;
-    FFI::Platypus::dl::dlclose($handle);
-  }
   delete $self->{handles};
 }
 
