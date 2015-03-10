@@ -17,7 +17,16 @@ sub FETCH {
 
   return unless defined $ret;
 
-  $ret->can('realize') ? $ret->realize : $ret;
+  if($ret->can('realize'))
+  {
+    local $self->[0]->{$key} = undef;
+
+    return $self->SUPER::STORE($key, $ret->realize);
+  }
+  else
+  {
+    return $ret;
+  }
 }
 
 1;
