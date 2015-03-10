@@ -183,14 +183,13 @@ sub new
   my($class, %args) = @_;
   my $impl = delete $args{impl};
 
-  if(ref $impl eq 'ARRAY')
-  {
-    $args{implname} ||= '['.join(',',@$impl).']';
-    $args{impl} = [@$impl[1..$#$impl]];
-    $impl = $impl->[0];
-  }
-
   $impl = default_impl() unless defined $impl;
+
+  if($impl =~ /^(.*?)\((.*)\)$/) {
+    $args{implname} ||= $impl;
+    $args{impl} = $2;
+    $impl = $1;
+  }
 
   my $impl_class = _impl_class($impl);
 
@@ -1207,9 +1206,9 @@ sub abis
 {
   my($self) = @_;
 
-  return $self->impl_abis() if ref $self;
+  $self = FFI::Platypus->new unless ref $self;
 
-  return _impl_class(default_impl)->impl_abis();
+  return $self->impl_abis();
 }
 
 =head2 abi

@@ -22,15 +22,15 @@ sub new
 {
   my($class, %args) = @_;
 
-  my $base = delete $args{base};
-  $base = 'RTypes' unless defined $base;
+  my $base = delete $args{impl};
+  $base = FFI::Platypus::default_impl() unless defined $base;
 
   my $self = $class->SUPER::base_new(%args);
 
   my %types;
   tie %types, 'FFI::Platypus::Types::Lazy', $self->{types};
 
-  $self->{impl_base} = FFI::Platypus::_impl_class($base)->new(types => \%types);
+  $self->{impl_base} = FFI::Platypus->new(impl=>$base, types => \%types);
 
   return $self;
 }
