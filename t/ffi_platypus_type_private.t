@@ -1,7 +1,14 @@
 use strict;
 use warnings;
-use Test::More tests => 15;
+use Test::More;
 use FFI::Platypus;
+
+BEGIN
+{
+  plan skip_all => 'internal APIs changed';
+}
+
+plan tests => 15;
 
 # this tests the private OO type API used only internally
 # to FFI::Platypus.  DO NOT USE FFI::Platypus::Type
