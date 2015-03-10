@@ -5,13 +5,28 @@ use strict;
 use warnings;
 use Carp qw(croak);
 
-sub AUTOLOAD {
+sub AUTOLOAD
+{
   my $self = shift;
   my $method = do { no warnings; no strict; $AUTOLOAD };
 
   $method =~ s/.*:://;
 
   $self->realize->$method(@_);
+}
+
+sub sizeof
+{
+  my($self) = @_;
+
+  return $self->realize->sizeof;
+}
+
+sub meta
+{
+  my($self) = @_;
+
+  return $self->realize->meta;
 }
 
 sub realize
