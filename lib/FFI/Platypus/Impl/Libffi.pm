@@ -161,4 +161,9 @@ sub impl_find_symbol
   }
 }
 
+sub impl_record_accessor
+{
+  return \&FFI::Platypus::Record::_accessor;
+}
+
 1;
