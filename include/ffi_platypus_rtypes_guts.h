@@ -12,7 +12,7 @@ SV*  ffi_pl_rtypes_custom_array_perl(SV*,SV*,int);
 void ffi_pl_rtypes_custom_perl_cb(SV *, SV*, int);
 HV *ffi_pl_rtypes_ffi_get_type_meta(ffi_type *);
 HV *ffi_pl_rtypes_get_type_meta(SV *);
-HV *ffi_pl_ffi_get_type_meta(ffi_pl_type *); /* XXX no rtypes prefix */
+HV *ffi_pl_ffi_get_type_meta(ffi_type *); /* XXX no rtypes prefix */
 size_t ffi_pl_rtypes_sizeof(SV *,ffi_pl_rtypes_type *);
 void ffi_pl_rtypes_perl_complex_float(SV *sv, float *ptr);
 void ffi_pl_rtypes_perl_complex_double(SV *sv, double *ptr);
