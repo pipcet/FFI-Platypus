@@ -369,7 +369,7 @@
               }
               else
               {
-                closure->coderef = arg;
+                closure->coderef = SvREFCNT_inc(arg); // XXX does that make it immortal?
                 ffi_pl_closure_add_data(arg, sv_2mortal(newRV_noinc(newSViv(PTR2IV(self->argument_types[i])))), closure);
                 ffi_pl_arguments_set_pointer(arguments, i, closure->function_pointer);
               }
