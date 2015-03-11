@@ -1298,6 +1298,18 @@ sub is_lazy
   return 0;
 }
 
+sub can
+{
+  my($self, $method) = @_;
+
+  if($method eq 'custom_type')
+  {
+    return $self->can('impl_new_custom_type');
+  }
+
+  return $self->SUPER::can($method);
+}
+
 $FFI::Platypus::arguments = undef; # a global variable. But don't
 				   # worry, it's localized before use.
 $FFI::Platypus::argument_types = undef; # ditto

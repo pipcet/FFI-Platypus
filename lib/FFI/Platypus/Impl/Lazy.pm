@@ -184,6 +184,7 @@ sub can
   my($self, $method) = @_;
 
   return undef if $method eq 'custom_type' and not $self->{impl_base}->can('impl_new_custom_type');
+  return undef if $method eq 'impl_new_custom_type' and not $self->{impl_base}->can('impl_new_custom_type');
 
   return $self->SUPER::can($method);
 }
