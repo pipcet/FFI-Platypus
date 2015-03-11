@@ -98,7 +98,7 @@ sub attach
 use Data::Dumper;
 
 sub _make_attach_method {
-  my($interpreter, $data) = @_;
+  my($data) = @_;
   my $function = $data->{function};
 
   croak "lazy function has been deleted" unless $function;
@@ -136,7 +136,7 @@ sub attach_method
 
   $self->{data}->{function} = $self;
   # XXX this depends on the Perl interpreter argument actually being present and breaks on non-threaded Perl.
-  $self->{data}->{body} = $ffi->cast('(opaque, SV, int)->void' => 'opaque', $self->{body_closure});
+  $self->{data}->{body} = $ffi->cast('(SV, int)->void' => 'opaque', $self->{body_closure});
   $self->{data}->{my_name} = $attach_name;
   $self->{data}->{ffi} = $ffi;
   $self->{data}->{argument} = $out_object unless $drop_first_argument;
