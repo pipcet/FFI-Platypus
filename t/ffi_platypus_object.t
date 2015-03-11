@@ -1,8 +1,9 @@
 package main;
 use Test::More;
 
-eval { FFI::Platypus->new->type('SV') };
-plan skip_all => "SV type not present" if $@;
+eval { $ffi->type('SV'); };
+plan(skip_all => "SV type required")
+  if $@ or !$ffi->type('SV');
 
 FFI::Platypus->new->can('attach_method') or
   plan skip_all => "attach_method not defined";

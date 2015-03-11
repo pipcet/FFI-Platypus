@@ -12,6 +12,8 @@ use FFI::Platypus::Declare
   qw( void opaque string ),
   [ '::PointerSizeBuffer' => 'buffer_t2' ];
 
+plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
+
 plan tests => 5;
 
 load_custom_type '::PointerSizeBuffer' => 'buffer_t';

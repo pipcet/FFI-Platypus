@@ -66,19 +66,23 @@ $closure = closure { undef };
 set_closure($closure);
 is do { no warnings; call_closure(2) }, 0, 'call_closure(2) = 0';
 
-subtest 'custom type input' => sub {
-  plan tests => 2;
-  custom_type type1 => { native_type => 'uint64', perl_to_native => sub { is $_[0], -2; $_[0]*2 } };
-  attach [sint64_add => 'custom_add'] => ['type1',sint64] => sint64;
-  is custom_add(-2,-1), -5, 'custom_add(-2,-1) = -5';
-};
+SKIP: {
+  skip "no custom types" => 2 unless FFI::Platypus->new->can('custom_type');
 
-subtest 'custom type output' => sub {
-  plan tests => 2;
-  custom_type type2 => { native_type => 'sint64', native_to_perl => sub { is $_[0], -3; $_[0]*2 } };
-  attach [sint64_add => 'custom_add2'] => [sint64,sint64] => 'type2';
-  is custom_add2(-2,-1), -6, 'custom_add2(-2,-1) = -6';
-};
+  subtest 'custom type input' => sub {
+    plan tests => 2;
+    custom_type type1 => { native_type => 'uint64', perl_to_native => sub { is $_[0], -2; $_[0]*2 } };
+    attach [sint64_add => 'custom_add'] => ['type1',sint64] => sint64;
+    is custom_add(-2,-1), -5, 'custom_add(-2,-1) = -5';
+  };
+  
+  subtest 'custom type output' => sub {
+    plan tests => 2;
+    custom_type type2 => { native_type => 'sint64', native_to_perl => sub { is $_[0], -3; $_[0]*2 } };
+    attach [sint64_add => 'custom_add2'] => [sint64,sint64] => 'type2';
+    is custom_add2(-2,-1), -6, 'custom_add2(-2,-1) = -6';
+  };
+}
 
 attach [pointer_is_null => 'closure_pointer_is_null'] => ['()->void'] => int;
 is closure_pointer_is_null(), 1, 'closure_pointer_is_null() = 1';

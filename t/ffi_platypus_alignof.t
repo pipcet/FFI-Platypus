@@ -25,7 +25,7 @@ subtest 'ffi types' => sub {
     is $align3, $pointer_align, "alignof $type * = $pointer_align";
     
     SKIP: {
-      skip "no custom types" => 1 unless $ffi->can('custom_type');
+      skip "no custom types" => 1 unless FFI::Platypus->new->can('custom_type');
       $ffi->custom_type("custom_$type" => {
         native_type => $type,
         native_to_perl => sub {},

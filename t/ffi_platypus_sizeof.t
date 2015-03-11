@@ -61,12 +61,16 @@ subtest arrays => sub {
 
 };
 
-subtest custom_type => sub {
+SKIP: {
+  skip "no custom types" => 1 unless FFI::Platypus->new->can('custom_type');
 
-  foreach my $type (qw( uint8 uint16 uint32 uint64 sint8 sint16 sint32 sint64 float double opaque ))
-  {
-    my $expected = $ffi->sizeof($type);
-    $ffi->custom_type( "my_$type" => { native_type => $type, native_to_perl => sub {} } );
-    is $ffi->sizeof("my_$type"), $expected, "sizeof my_$type = $expected";
-  }
-};
+  subtest custom_type => sub {
+  
+    foreach my $type (qw( uint8 uint16 uint32 uint64 sint8 sint16 sint32 sint64 float double opaque ))
+    {
+      my $expected = $ffi->sizeof($type);
+      $ffi->custom_type( "my_$type" => { native_type => $type, native_to_perl => sub {} } );
+      is $ffi->sizeof("my_$type"), $expected, "sizeof my_$type = $expected";
+    }
+  };
+}

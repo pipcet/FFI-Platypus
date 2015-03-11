@@ -9,6 +9,8 @@ my $ffi = FFI::Platypus->new;
 plan skip_all => 'recursive types not implemented in Libffi'
   if $ffi->impl eq 'Libffi';
 
+plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
+
 plan tests => 1;
 
 $ffi->load_custom_type('::PointerSizeBuffer' => 'buffer_t');

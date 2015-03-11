@@ -1,7 +1,12 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More;
 use FFI::CheckLib;
+use FFI::Platypus;
+
+plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
+
+plan tests => 3;
 use FFI::Platypus::Declare
   qw( int string void ),
   [ '::StringPointer' => 'string_p'];

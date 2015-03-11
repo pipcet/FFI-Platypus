@@ -63,7 +63,9 @@ call_closure("zero one  two  three");
 is $save, "zero ", "save=zero ";
 
 SKIP: {
-    skip "no custom strings in Libffi", 2 if FFI::Platypus->new->impl eq 'Libffi';
+  skip "no custom types" => 2 unless FFI::Platypus->new->can('custom_type');
+  skip "no custom strings in Libffi", 2 if FFI::Platypus->new->impl eq 'Libffi';
+
   subtest 'custom type input' => sub {
     plan tests => 1;
     custom_type type1 => { native_type => 'string', perl_to_native => sub { $_[0] x 3 } };
