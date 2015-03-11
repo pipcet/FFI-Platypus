@@ -7,7 +7,7 @@ use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
-use FFI::Platypus::Address::Lazy;
+use FFI::Platypus::Lazy::Address;
 
 sub new
 {
@@ -21,7 +21,7 @@ sub find_symbol
 {
   my($self, $symbol) = @_;
 
-  return FFI::Platypus::Address::Lazy->new(
+  return FFI::Platypus::Lazy::Address->new(
     sub
     {
       warn "realizing";

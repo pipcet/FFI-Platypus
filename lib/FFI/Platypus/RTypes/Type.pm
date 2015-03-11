@@ -6,10 +6,10 @@ use 5.008001;
 use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 
-package FFI::Platypus::Type::RTypes;
+package FFI::Platypus::RTypes::Type;
 use parent -norequire, 'FFI::Platypus::Type';
-use FFI::Platypus::Type::RTypes::FFI;
-use FFI::Platypus::Type::RTypes::SV;
+use FFI::Platypus::RTypes::Type::FFI;
+use FFI::Platypus::RTypes::Type::SV;
 
 use warnings;
 use strict;
@@ -97,7 +97,7 @@ sub new
   }
   elsif($type eq "SV")
   {
-    return FFI::Platypus::Type::RTypes::SV->new;
+    return FFI::Platypus::RTypes::Type::SV->new;
   }
   else
   {
@@ -113,7 +113,7 @@ sub new
     }
     else
     {
-      return FFI::Platypus::Type::RTypes::FFI->new($type);
+      return FFI::Platypus::RTypes::Type::FFI->new($type);
     }
   }
 
@@ -143,11 +143,11 @@ sub DESTROY
 {
 }
 
-package FFI::Platypus::Type::RTypes::String;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::String;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::Pointer;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Pointer;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 sub count_native_arguments
 {
@@ -156,11 +156,11 @@ sub count_native_arguments
   return 2;
 }
 
-package FFI::Platypus::Type::RTypes::Array;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Array;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::Closure;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Closure;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 sub meta {
   my ($self) = @_;
@@ -178,11 +178,11 @@ sub meta {
   return $meta;
 }
 
-package FFI::Platypus::Type::RTypes::Constant;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Constant;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::CustomPerl;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::CustomPerl;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 sub count_native_arguments
 {
@@ -223,16 +223,16 @@ sub meta {
   return $meta;
 }
 
-package FFI::Platypus::Type::RTypes::Record;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Record;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::Struct;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::Struct;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::ExoticFloat;
-use parent -norequire, 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::ExoticFloat;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-package FFI::Platypus::Type::RTypes::SV;
-use parent -norequire, 'FFI::Platypus::Type::SV', 'FFI::Platypus::Type::RTypes';
+package FFI::Platypus::RTypes::Type::SV;
+use parent -norequire, 'FFI::Platypus::Type::SV', 'FFI::Platypus::RTypes::Type';
 
 1;

@@ -113,36 +113,40 @@ do {
   free $ptr;
 };
 
-subtest 'custom type input' => sub {
-  plan tests => 2;
-  custom_type type1 => { perl_to_native => sub { 
-    is cast(opaque=>string,$_[0]), "abc";
-    free $_[0];
-    strdup "def";
-  } };
-  attach [pointer_set_my_pointer => 'custom1_setp'] => ['type1'] => void;
-  
-  custom1_setp(strdup("abc"));
-  
-  my $ptr = getp();
-  is cast(opaque=>string,$ptr), "def";
-  free $ptr;
-};
+SKIP: {
+  skip "no custom types" => 2 unless FFI::Platypus->new->can('custom_type');
 
-subtest 'custom type output' => sub {
-  plan tests => 2;
-
-  setp(strdup("ABC"));
+  subtest 'custom type input' => sub {
+    plan tests => 2;
+    custom_type type1 => { perl_to_native => sub { 
+      is cast(opaque=>string,$_[0]), "abc";
+      free $_[0];
+      strdup "def";
+    } };
+    attach [pointer_set_my_pointer => 'custom1_setp'] => ['type1'] => void;
+    
+    custom1_setp(strdup("abc"));
+    
+    my $ptr = getp();
+    is cast(opaque=>string,$ptr), "def";
+    free $ptr;
+  };
   
-  custom_type type2 => { native_to_perl => sub {
-    is cast(opaque=>string,$_[0]), "ABC";
-    free $_[0];
-    "DEF";
-  } };
+  subtest 'custom type output' => sub {
+    plan tests => 2;
   
-  attach [pointer_get_my_pointer => 'custom2_getp'] => [] => 'type2';
-  
-  is custom2_getp(), "DEF";
-  
-  setp(undef);
-};
+    setp(strdup("ABC"));
+    
+    custom_type type2 => { native_to_perl => sub {
+      is cast(opaque=>string,$_[0]), "ABC";
+      free $_[0];
+      "DEF";
+    } };
+    
+    attach [pointer_get_my_pointer => 'custom2_getp'] => [] => 'type2';
+    
+    is custom2_getp(), "DEF";
+    
+    setp(undef);
+  };
+}

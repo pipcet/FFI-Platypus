@@ -1,4 +1,4 @@
-package FFI::Platypus::Type::Libffi;
+package FFI::Platypus::Libffi::Type;
 
 use parent -norequire, 'FFI::Platypus::Type';
 use Carp qw( croak );

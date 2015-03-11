@@ -1,4 +1,4 @@
-package FFI::Platypus::Function::Lazy;
+package FFI::Platypus::Lazy::Function;
 use parent -norequire, 'FFI::Platypus::Function';
 use Scalar::Util qw(weaken);
 use Carp qw(croak);
@@ -53,8 +53,9 @@ sub realize
 
   return unless defined $self->{address};
 
-  $self->{return_type} = $self->{return_type}->realize
-      if $self->{return_type}->can('realize');
+  my $real = $self->{return_type};
+  $real = $real->realize while $real->can('realize');
+  $self->{return_type} = $real;
 
   return unless $self->{return_type};
 
@@ -65,6 +66,10 @@ sub realize
 
   $self->{base} = $self->{ffi}->impl_new_function($self->{address}, $self->{return_type}, @{$self->{argument_types}});
   $self->{realized} = 1;
+
+  $real = $self->{base};
+  $real = $real->realize while $real->can('realize');
+  $self->{base} = $real;
 
   return $self->{base};
 }

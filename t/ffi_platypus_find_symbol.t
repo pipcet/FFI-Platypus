@@ -15,7 +15,7 @@ subtest external => sub {
   ok $good, "ffi.find_symbol(f0) = $good";
 
   SKIP: {
-    skip "lazy bogus symbols are defined" => 2 if FFI::Platypus->new->impl eq 'Lazy';
+    skip "lazy bogus symbols are defined" => 2 if FFI::Platypus->new->is_lazy;
     my $bad  = $ffi->find_symbol('bogus');
     is $bad, undef, 'ffi.find_symbol(bogus) = undef';
     is !$bad, 1, 'ffi.find_symbol(bogus) false';
@@ -33,7 +33,7 @@ subtest internal => sub {
 
   my $bad  = $ffi->find_symbol('bogus');
   SKIP: {
-    skip "invalid lazy functions are false but defined", 1 if $ffi->impl eq 'Lazy';
+    skip "invalid lazy functions are false but defined", 1 if $ffi->is_lazy;
     is $bad, undef, 'ffi.find_symbol(bogus) = undef';
   };
   is !$bad, 1, 'ffi.find_symbol(bogus) false';

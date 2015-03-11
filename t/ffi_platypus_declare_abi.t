@@ -20,7 +20,7 @@ foreach my $abi (keys %abis)
 }
 
 SKIP: {
-  skip "ABIs are checked lazily" => 1 if FFI::Platypus->new->impl eq 'Lazy';
+  skip "ABIs are checked lazily" => 1 if FFI::Platypus->new->is_lazy;
 
   subtest 'bogus' => sub {
     eval { abi 'bogus' };

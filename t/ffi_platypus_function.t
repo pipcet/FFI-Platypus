@@ -1,8 +1,12 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More;
 use FFI::Platypus;
 use FFI::CheckLib;
+
+plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
+
+plan tests => 2;
 
 subtest 'built in type' => sub {
   plan tests => 4;

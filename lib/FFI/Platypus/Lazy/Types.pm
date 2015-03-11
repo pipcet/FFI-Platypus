@@ -1,4 +1,4 @@
-package FFI::Platypus::Types::Lazy;
+package FFI::Platypus::Lazy::Types;
 use Tie::Hash;
 use parent -norequire, 'Tie::ExtraHash';
 

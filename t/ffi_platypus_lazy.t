@@ -5,10 +5,15 @@ use FFI::Platypus;
 
 my $ffi = FFI::Platypus->new;
 
-plan skip_all => "no lazy implementation of Libffi yet"
+plan(skip_all => "no lazy implementation of Libffi yet")
   if $ffi->impl eq 'Libffi';
 
-$ffi = FFI::Platypus->new(impl=>'Lazy');
+my $okay;
+$okay = eval { $ffi->cast('SV', 'opaque', 0); };
+plan(skip_all => "SV type required")
+  if $@ or !$okay;
+
+$ffi = FFI::Platypus->new(impl=>'Lazy('.$ffi->impl.')');
 
 plan tests => 4;
 $ffi->lib(undef);

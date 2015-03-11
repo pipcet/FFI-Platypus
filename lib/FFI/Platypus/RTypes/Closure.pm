@@ -1,4 +1,4 @@
-package FFI::Platypus::Closure::RTypes;
+package FFI::Platypus::RTypes::Closure;
 use parent -norequire, 'FFI::Platypus::Closure';
 
 sub add_data { FFI::Platypus::Closure::add_data(@_) }

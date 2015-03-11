@@ -8,10 +8,11 @@ use Carp qw( croak );
 use Scalar::Util qw( refaddr weaken );
 use Carp::Always;
 
-use FFI::Platypus::Type::RTypes;
-use FFI::Platypus::Function::RTypes;
-use FFI::Platypus::Closure::RTypes;
-use FFI::Platypus::Type::RTypes::Wrap;
+use FFI::Platypus::RTypes::Type;
+use FFI::Platypus::RTypes::Function;
+use FFI::Platypus::RTypes::Closure;
+use FFI::Platypus::RTypes::Type::Wrap;
+use FFI::Platypus::RTypes::Type::FFI;
 
 # for now, we link Rtypes.o into Platypus.so rather than haing a
 # per-implementation library.
@@ -88,7 +89,7 @@ sub impl_new_function
 
   return unless $address or $address eq '0';
 
-  FFI::Platypus::Function::RTypes->new($self, $address, $self->{impl_abi}, $ret, @args);
+  FFI::Platypus::RTypes::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
 sub impl_new_type
@@ -98,13 +99,13 @@ sub impl_new_type
   if(!defined($class) or
      $class eq 'FFI::Platypus::Type')
   {
-    $class = 'FFI::Platypus::Type::RTypes';
+    $class = 'FFI::Platypus::RTypes::Type';
   }
   elsif($class->isa('FFI::Platypus::Type::FFI'))
   {
-    $class = 'FFI::Platypus::Type::RTypes::FFI';
+    $class = 'FFI::Platypus::RTypes::Type::FFI';
   }
-  elsif(!$class->isa('FFI::Platypus::Type::RTypes'))
+  elsif(!$class->isa('FFI::Platypus::RTypes::Type'))
   {
     croak "type $class is not usable by the RTypes implementation";
   }
@@ -118,7 +119,7 @@ sub impl_new_wrapped_type
 
   if($layer eq 'wrap' or
      $layer eq 'debug') {
-    return FFI::Platypus::Type::RTypes::Wrap->new($self, $type);
+    return FFI::Platypus::RTypes::Type::Wrap->new($self, $type);
   } else {
     croak "cannot wrap type in $layer";
   }
@@ -129,7 +130,7 @@ sub impl_new_custom_type
   my($self, $types, $size, $perl_to_native, $native_to_perl, $perl_to_native_post,
      $in_argument_count, $out_argument_count) = @_;
 
-  return FFI::Platypus::Type::RTypes::CustomPerl->_new_custom_perl(
+  return FFI::Platypus::RTypes::Type::CustomPerl->_new_custom_perl(
     $types,
     $size,
     $perl_to_native,
@@ -179,7 +180,7 @@ sub impl_new_constant_type
 
   if(defined $name)
   {
-    $self->{types}->{$name} = FFI::Platypus::Type::RTypes::Constant->_new_constant(
+    $self->{types}->{$name} = FFI::Platypus::RTypes::Type::Constant->_new_constant(
       \@types,
       $size,
       $value,
@@ -189,7 +190,7 @@ sub impl_new_constant_type
   }
   else
   {
-    return FFI::Platypus::Type::RTypes::Constant->_new_constant(
+    return FFI::Platypus::RTypes::Type::Constant->_new_constant(
       \@types,
       $size,
       $value,
@@ -239,7 +240,7 @@ sub impl_find_symbol
 
 sub impl_record_accessor
 {
-  return \&FFI::Platypus::Record::RTypes::_accessor;
+  return \&FFI::Platypus::RTypes::Record::_accessor;
 }
 
 1;

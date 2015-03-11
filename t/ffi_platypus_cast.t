@@ -43,8 +43,14 @@ subtest 'cast closure to opaque' => sub {
   my $testname = 'dynamic';
 
   my $closure = $ffi->closure(sub { is $_[0], "testvalue", $testname });
+  use Data::Dumper;
+  warn Dumper($closure);
   my $pointer = $ffi->cast('(string)->void' => opaque => $closure);
 
+  warn $pointer;
+  warn Dumper($closure);
+  warn $closure->{code};
+  
   $ffi->function(string_set_closure => ['opaque'] => 'void')->call($pointer);
   $ffi->function(string_call_closure => ['string'] => 'void')->call("testvalue");
 
@@ -53,6 +59,11 @@ subtest 'cast closure to opaque' => sub {
 
   $ffi->attach_cast('cast3', '(string)->void' => 'opaque');
   my $pointer2 = cast3($closure);
+
+  warn $pointer;
+  warn $pointer2;
+  warn $closure;
+  warn $closure->{code};
 
   $testname = 'static';
   $ffi->function(string_set_closure => ['opaque'] => 'void')->call($pointer2);

@@ -1,4 +1,4 @@
-package FFI::Platypus::Address::Lazy;
+package FFI::Platypus::Lazy::Address;
 
 use strict;
 use warnings;
@@ -8,16 +8,32 @@ use overload
     '""' => sub { my $self = shift; $self->realize },
     '0+' => sub { my $self = shift; $self->realize },
     'eq' => sub {
+      no warnings;
       my($self, $other) = @_;
-      $self->realize eq ($other->can('realize') ? $other->realize : $other);
+
+      # if it's a lazy object stringification will force it
+      $self = "$self";
+      $other = "$other";
+
+      $self eq $other;
     },
     'cmp' => sub {
+      no warnings;
       my($self, $other) = @_;
-      $self->realize cmp ($other->can('realize') ? $other->realize : $other);
+
+      $self = "$self";
+      $other = "$other";
+
+      $self cmp $other;
     },
     '<=>' => sub {
+      no warnings;
       my($self, $other) = @_;
-      $self->realize <=> ($other->can('realize') ? $other->realize : $other);
+
+      $self = 0+$self;
+      $other = 0+$other;
+
+      $self <=> $other;
     };
 
 sub AUTOLOAD {
@@ -38,6 +54,10 @@ sub realize
   $self->{realization} = $self->{sub}->();
 
   return unless $self->{realization} or defined $self->{realization} and $self->{realization} eq '0';
+
+  my $real = $self->{realization};
+  $real = $real->realize while $real->can('realize');
+  $self->{realization} = $real;
 
   return $self->{realization};
 }

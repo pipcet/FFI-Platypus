@@ -1,8 +1,12 @@
 package main;
 use Test::More;
 
-plan skip_all => "no object methods in Libffi"
-  if FFI::Platypus->new->impl eq 'Libffi';
+eval { $ffi->type('SV'); };
+plan(skip_all => "SV type required")
+  if $@ or !$ffi->type('SV');
+
+FFI::Platypus->new->can('attach_method') or
+  plan skip_all => "attach_method not defined";
 
 plan tests => 8;
 

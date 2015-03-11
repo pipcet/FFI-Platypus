@@ -1,8 +1,8 @@
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::ClosureData
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::Libffi::ClosureData
 
 void
 DESTROY(self)
-    ffi_pl_rtypes_closure *self
+    ffi_pl_closure *self
   CODE:
     /*
     if(PL_dirty)

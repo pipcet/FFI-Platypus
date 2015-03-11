@@ -8,6 +8,7 @@
 #define PREFETCH8 (void)
 #define PREFETCH9 (void)
 #define PREFETCH10 (void)
+#define __builtin_expect(expr, value) (expr)
 
     PREFETCH10(self);
 
@@ -203,14 +204,17 @@
 
   SV *perl_return = NULL;
 
-  if(__builtin_expect(self->native_to_perl == ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
+#if 0
+  if(__builtin_expect(self->native_to_perl == (void*)ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
   {
     sv_setiv(TARG, (IV)result.sint32);
     XSprePUSH;
     PUSHTARG;
     XSRETURN(1);
   }
-  else if(self->native_to_perl)
+  else
+#endif
+  if(self->native_to_perl)
   {
     perl_return = self->native_to_perl(TARG, &result, self->return_type, self->extra_data);
     SPAGAIN;
