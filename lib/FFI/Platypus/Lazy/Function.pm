@@ -49,7 +49,7 @@ sub realize
   return $self->{base} if $self->{realized};
 
   $self->{address} = $self->{address}->realize
-      if ref $self->{address} and $self->{address}->can('realize');
+      while ref($self->{address}) and $self->{address}->can('realize');
 
   return unless defined $self->{address};
 
@@ -68,7 +68,7 @@ sub realize
   $self->{realized} = 1;
 
   $real = $self->{base};
-  $real = $real->realize while $real->can('realize');
+  $real = $real->realize while ref($real) and $real->can('realize');
   $self->{base} = $real;
 
   return $self->{base};
