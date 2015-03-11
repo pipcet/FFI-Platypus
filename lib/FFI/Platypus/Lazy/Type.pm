@@ -4,6 +4,8 @@ use parent -norequire, 'FFI::Platypus::Type';
 use strict;
 use warnings;
 use Carp qw(croak);
+use overload
+    bool => sub { my $self = shift; $self->realize };
 
 sub AUTOLOAD
 {
@@ -35,9 +37,9 @@ sub realize
 
   return $self->{realization} if $self->{realization};
 
-  $self->{realization} = $self->{sub}->();
-
-  croak 'failed to realize type' unless $self->{realization};
+  my $real = $self;
+  $real = $real->{sub}->() while ref($real) and $real->can('realize');
+  $self->{realization} = $real;
 
   delete $self->{sub};
 
