@@ -205,7 +205,7 @@
   SV *perl_return = NULL;
 
 #if 0
-  if(__builtin_expect(self->native_to_perl == ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
+  if(__builtin_expect(self->native_to_perl == (void*)ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
   {
     sv_setiv(TARG, (IV)result.sint32);
     XSprePUSH;

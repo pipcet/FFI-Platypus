@@ -350,7 +350,7 @@ ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i
   }
   GV *gv = (GV*)(*svp);
   SV *dollar_arguments = save_scalar(gv); /* local $FFI::Platypus::arguments; */
-  sv_setsv(dollar_arguments, newRV_noinc(newAV()));
+  sv_setsv(dollar_arguments, newRV_noinc((SV*)newAV()));
   svp = hv_fetch(stash, "argument_types", strlen("argument_types"), 0);
   if(!svp)
   {
