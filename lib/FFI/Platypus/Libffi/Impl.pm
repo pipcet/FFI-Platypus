@@ -1,4 +1,4 @@
-package FFI::Platypus::Impl::Libffi;
+package FFI::Platypus::Libffi::Impl;
 use parent 'FFI::Platypus';
 
 use strict;

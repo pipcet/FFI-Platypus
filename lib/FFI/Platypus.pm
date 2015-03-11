@@ -237,7 +237,7 @@ sub impl
 sub _impl_class ($)
 {
   my($impl) = @_;
-  my $class = "FFI::Platypus::Impl::$impl";
+  my $class = "FFI::Platypus::${impl}::Impl";
   unless($class->can('impl_new_function'))
   {
     eval qq{ use $class };
