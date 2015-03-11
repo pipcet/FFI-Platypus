@@ -135,7 +135,6 @@ sub attach_method
   $self->{data} = $data;
 
   $self->{data}->{function} = $self;
-  # XXX this depends on the Perl interpreter argument actually being present and breaks on non-threaded Perl.
   $self->{data}->{body} = $ffi->cast('(SV, int)->void' => 'opaque', $self->{body_closure});
   $self->{data}->{my_name} = $attach_name;
   $self->{data}->{ffi} = $ffi;
