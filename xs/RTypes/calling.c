@@ -629,7 +629,7 @@ int (*ffi_pl_rtypes_prepare(SV *arg_type, void *extra_data))(ffi_pl_rtypes_gette
   SPAGAIN;
 
   if(count == 1)
-    out_arg = INT2PTR(void *, SvRV(POPs));
+    out_arg = INT2PTR(void *, SvIVX(POPs));
   else
     out_arg = NULL;
 
