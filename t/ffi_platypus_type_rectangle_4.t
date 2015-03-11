@@ -7,7 +7,7 @@ use FFI::Platypus::API qw(arguments_set_double);
 my $ffi = FFI::Platypus->new;
 
 plan skip_all => 'recursive types not implemented in Libffi'
-  if $ffi->impl eq 'Libffi';
+  if $ffi->impl =~ 'Libffi';
 
 plan skip_all => "requires custom types" unless FFI::Platypus->new->can('custom_type');
 

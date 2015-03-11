@@ -814,12 +814,12 @@ Examples:
 
 my $inner_counter=0;
 
-sub attach
+sub _attach
 {
   my $wrapper;
   $wrapper = pop if ref $_[-1] eq 'CODE';
 
-  my($self, $name, $args, $ret, $proto) = @_;
+  my($self, $caller_data, $name, $args, $ret, $proto) = @_;
   my($c_name, $perl_name) = ref($name) ? @$name : ($name, $name);
 
   croak "you tried to provide a perl name that looks like an address"
@@ -829,7 +829,7 @@ sub attach
   
   if(defined $function)
   {
-    my($caller, $filename, $line) = caller;
+    my($caller, $filename, $line) = @$caller_data;
     $perl_name = join '::', $caller, $perl_name
       unless $perl_name =~ /::/;
     
@@ -856,6 +856,13 @@ sub attach
   }
   
   $self;
+}
+
+sub attach
+{
+  my($self, @args) = @_;
+  my @caller_data = caller();
+  return $self->_attach(\@caller_data, @args);
 }
 
 =head2 attach_method
@@ -915,9 +922,9 @@ sub _make_attach_method
   }
 }
 
-sub attach_method
+sub _attach_method
 {
-  my($self, $object, $name, $args, $ret, $proto) = @_;
+  my($self, $caller_data, $object, $name, $args, $ret, $proto) = @_;
   my($in_object, $out_object) = (ref($object) eq 'ARRAY') ? @$object : ($object, $object);
   my($c_name, $perl_name) = (ref($name) eq 'ARRAY') ? @$name : ($name, $name);
   my $drop_first_argument = (ref($object) eq 'ARRAY') && ($#$object == 0);
@@ -938,7 +945,7 @@ sub attach_method
 
   if(defined $function)
   {
-    my($caller, $filename, $line) = caller;
+    my($caller, $filename, $line) = @$caller_data;
     $perl_name = join '::', $caller, $perl_name
       unless $perl_name =~ /::/;
 
@@ -948,6 +955,13 @@ sub attach_method
   }
 
   $self;
+}
+
+sub attach_method
+{
+  my($self, @args) = @_;
+  my @caller_data = caller();
+  return $self->_attach_method(\@caller_data, @args);
 }
 
 =head2 closure
@@ -998,14 +1012,22 @@ faster and may be useful if you are calling a particular cast a lot.
 
 =cut
 
-sub attach_cast
+sub _attach_cast
 {
-  my($self, $name, $type1, $type2) = @_;
-  my $caller = caller;
+  my($self, $caller_data, $name, $type1, $type2) = @_;
+  my $caller = $caller_data->[0];
   $name = join '::', $caller, $name unless $name =~ /::/;
   $self->attach([0 => $name] => [$type1] => $type2 => '$');
   $self;
 }
+
+sub attach_cast
+{
+  my($self, @args) = @_;
+  my @caller_data = caller();
+  return $self->_attach_cast(\@caller_data, @args);
+}
+
 
 =head2 sizeof
 
@@ -1155,14 +1177,14 @@ built when your distribution was installed.
 
 =cut
 
-sub package
+sub _package
 {
-  my($self, $module, $modlibname) = @_;
+  my($self, $caller_data, $module, $modlibname) = @_;
   
   require FFI::Platypus::ConfigData;
   my @dlext = @{ FFI::Platypus::ConfigData->config("config_dlext") };
 
-  ($module, $modlibname) = caller() unless defined $modlibname;  
+  ($module, $modlibname) = @$caller_data unless defined $modlibname;
   my @modparts = split /::/, $module;
   my $modfname = $modparts[-1];
   my $modpname = join('/',@modparts);
@@ -1186,6 +1208,13 @@ sub package
   }
   
   $self;
+}
+
+sub package
+{
+  my($self, @args) = @_;
+  my @caller_data = caller();
+  return $self->_package(\@caller_data, @args);
 }
 
 =head2 abis
@@ -1269,6 +1298,18 @@ sub is_lazy
   return 0;
 }
 
+sub can
+{
+  my($self, $method) = @_;
+
+  if($method eq 'custom_type')
+  {
+    return $self->can('impl_new_custom_type');
+  }
+
+  return $self->SUPER::can($method);
+}
+
 $FFI::Platypus::arguments = undef; # a global variable. But don't
 				   # worry, it's localized before use.
 $FFI::Platypus::argument_types = undef; # ditto
@@ -1294,6 +1335,11 @@ sub new
 
   return $ret;
 }
+
+use overload 'bool' => sub {
+  my $ffi = shift;
+  return $ffi;
+};
 
 package FFI::Platypus::Closure;
 

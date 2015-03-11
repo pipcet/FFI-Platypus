@@ -35,3 +35,9 @@ env:
   - FFI_PLATYPUS_IMPL=Libffi
   - FFI_PLATYPUS_IMPL="Lazy(RTypes)"
   - FFI_PLATYPUS_IMPL="Lazy(Libffi)"
+  - FFI_PLATYPUS_IMPL="Debug(Libffi)"
+  - FFI_PLATYPUS_IMPL="Debug(RTypes)"
+  - FFI_PLATYPUS_IMPL="Lazy(Debug(RTypes))"
+  - FFI_PLATYPUS_IMPL="Lazy(Debug(Libffi))"
+  - FFI_PLATYPUS_IMPL="Debug(Lazy(Libffi))"
+  - FFI_PLATYPUS_IMPL="Debug(Lazy(RTypes))"
