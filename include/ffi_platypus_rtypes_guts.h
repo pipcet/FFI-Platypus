@@ -17,6 +17,8 @@ size_t ffi_pl_rtypes_sizeof(SV *,ffi_pl_rtypes_type *);
 void ffi_pl_rtypes_perl_complex_float(SV *sv, float *ptr);
 void ffi_pl_rtypes_perl_complex_double(SV *sv, double *ptr);
 
+void ffi_pl_rtypes_method_call_body(pTHX_ void *self_ptr, int extra_args);
+
 int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
 int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
 SV *ffi_pl_rtypes_any_native_to_perl(SV *, ffi_pl_result *, SV *, void *);

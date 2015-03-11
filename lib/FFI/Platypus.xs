@@ -79,7 +79,7 @@ XS(ffi_pl_rtypes_sub_call_old)
 
 /* this code is shared between implementations */
 static void *
-ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(void *, int), SV **first_argument, SV *object)
+ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pTHX_ void *, int), SV **first_argument, SV *object)
 {
   dVAR;
   dSP;
@@ -88,7 +88,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
   SV *body_object;
   SV *function_object;
 
-  void (*body)(void *, int);
+  void (*body)(pTHX_ void *, int);
   void *function;
 
   ENTER;
@@ -146,45 +146,25 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(vo
   return function;
 }
 
-/* this code is specific to one implementation */
-static void ffi_pl_rtypes_method_call_body(void *self_ptr, int extra_args)
-{
-  ffi_pl_rtypes_function *self;
-  char *buffer;
-  size_t buffer_size;
-  int i,n, perl_arg_index, perl_type_index;
-  SV *arg;
-  ffi_pl_result result;
-  ffi_pl_rtypes_arguments arguments;
-  SV *first_argument = NULL;
-  SV *freeme = NULL;
-
-  dVAR; dXSARGS;
-  dXSTARG;
-  PUTBACK;
-
-  self = self_ptr;
-
-#define EXTRA_ARGS (extra_args)
-#include "ffi_platypus_rtypes_call.h"
-}
-
 /* this code is shared between implementations. */
 XS(ffi_pl_method_call)
 {
   ffi_pl_cached_method *cached;
-  void (*body)(void *self, int extra_args);
+  void (*body)(pTHX_ void *self, int extra_args);
   void *self;
+  SV *object;
   SV *first_argument = NULL;
+  cached = (ffi_pl_cached_method *) CvXSUBANY(cv).any_ptr;
+  __builtin_prefetch(cached);
 
-  dVAR; dXSARGS;
+  dVAR; dXSARGS; dORIGMARK;
+  object = ST(0);
 
   if(items == 0)
   {
     croak("cannot call an object method without arguments");
   }
 
-  cached = (ffi_pl_cached_method *) CvXSUBANY(cv).any_ptr;
   body = cached->body;
   self = cached->function;
 
@@ -217,17 +197,17 @@ XS(ffi_pl_method_call)
   if(first_argument != NULL)
     ST(0) = first_argument;
 
-  PUTBACK;
-  PUSHMARK(MARK);
+  PUSHMARK(ORIGMARK);
   PUTBACK;
 
-  body(self, first_argument == NULL);
+  body(aTHX_ self, first_argument == NULL);
 }
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus
 
 BOOT:
 #ifndef HAVE_IV_IS_64
+
     PERL_MATH_INT64_LOAD_OR_CROAK;
 #endif
 
@@ -342,7 +322,7 @@ _attach_body_data(ffi, object, key, argument, drop_first_argument, perl_name, pa
 
     hv_store_ent(method->other_methods, key, value, 0);
 
-INCLUDE: ../../xs/Lazy.xs
+INCLUDE: ../../xs/Lazy/Function.xs
 INCLUDE: ../../xs/dl.xs
 INCLUDE: ../../xs/Declare.xs
 INCLUDE: ../../xs/API.xs
