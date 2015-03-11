@@ -137,15 +137,6 @@ int ffi_pl_rtypes_prepare_closure(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_g
 
 int ffi_pl_rtypes_prepare_any(ffi_pl_rtypes_getter *getters, ffi_pl_rtypes_getter *getters_limit, ffi_type **ffi_argument_types, ffi_type **ffi_argument_types_limit, SV *arg_type, void *extra_data);
 
-typedef struct _ffi_pl_cached_method {
-  SV *weakref;
-  void (*body)(void *, int);
-  void *function;
-  SV *argument;
-
-  HV *other_methods;
-} ffi_pl_cached_method;
-
 #ifdef __cplusplus
 }
 #endif

@@ -57,6 +57,15 @@ void ffi_pl_perl_complex_double(SV *sv, double *ptr);
     sv_setnv(sv, *(ptr));                                        \
   }
 
+  typedef struct _ffi_pl_cached_method {
+    SV *weakref;
+    void (*body)(pTHX_ void *, int);
+    void *function;
+    SV *argument;
+
+    HV *other_methods;
+  } ffi_pl_cached_method;
+
 #ifdef __cplusplus
 }
 #endif
