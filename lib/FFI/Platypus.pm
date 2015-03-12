@@ -869,7 +869,7 @@ sub attach
 
  $ffi->attach_method($object, $name => \@argument_types => $return_type);
  $ffi->attach_method([$object=>$replacement], [$c_name => $perl_name] => \@argument_types => $return_type);
- $ffi->attach_method([$object], [$c_name => $perl_name] => \@argument_types => $return_type);
+ $ffi->attach_method([$object=>], [$c_name => $perl_name] => \@argument_types => $return_type);
  $ffi->attach_method($object, [$address => $perl_name] => ['void',...] => $return_type);
 
 Like L<attach|/attach>, but the Perl xsub that is being created
@@ -877,8 +877,8 @@ behaves like an object method of I<$object>.  If the first argument
 passed to the Perl xsub is I<$object>, the C function is called using
 the I<$ffi> object whose attach_method method was called; if it isn't,
 an error is thrown. A replacement argument for the object can be
-specified, or the object dropped entirely by specifying the first
-argument type to be void.
+specified, or the object dropped entirely by putting it into an array
+reference of its own.
 
 There is machinery behind the scenes to allow several objects in one
 class, potentially with different I<$ffi> objects, to share the xsub
@@ -899,6 +899,13 @@ Unlike L<attach|/attach>, there is no way to specify a I<$wrapper>
 argument. If you need such a wrapper, you might as well handle the
 object detection in the wrapper sub.
 
+If you care about garbage collection, your DESTROY methods should call
+the I<$ffi> object's L<cleanup_methods|/cleanup_methods> method The
+return value of attach_method is important if you care about garbage
+collection: it needs to be saved in the object, so that its DESTROY
+method is called when the object is deallocated and can no longer be
+used. As a special convenience, you can call attach_method in void
+context and it will
 =cut
 
 sub _make_attach_method
@@ -962,6 +969,40 @@ sub attach_method
   my($self, @args) = @_;
   my @caller_data = caller();
   return $self->_attach_method(\@caller_data, @args);
+}
+
+
+
+sub _cleanup_methods
+{
+  my($self, $caller_data, $method, $object) = @_;
+
+  $method = $caller_data->[0] . "::$method" unless $method =~ /::/;
+
+  my $om = $self->_get_other_methods($method);
+
+  if($om) {
+    if($object) {
+      delete $om->{$object};
+    } else {
+      my @keys = keys %$om;
+      for my $key (@keys) {
+	if(!$om->{$key}->{weakref}) {
+	  delete $om->{$key};
+	}
+      }
+    }
+  }
+
+  $self;
+}
+
+sub cleanup_methods
+{
+  my($self, $method, $object) = @_;
+  my @caller_data = caller;
+
+  $self->_cleanup_methods(\@caller_data, $method, $object);
 }
 
 =head2 closure
