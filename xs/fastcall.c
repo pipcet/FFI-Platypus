@@ -56,10 +56,12 @@ XS(ffi_pl_method_call)
     if(!self) {
       croak("could not generate a method on demand");
     }
+
+    if(first_argument != NULL)
+    {
+      ST(0) = first_argument;
+    }
+
+    body(aTHX_ self, first_argument == NULL);
   }
-
-  if(first_argument != NULL)
-    ST(0) = first_argument;
-
-  body(aTHX_ self, first_argument == NULL);
 }
