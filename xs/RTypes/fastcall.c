@@ -45,6 +45,6 @@ void ffi_pl_rtypes_method_call_body(pTHX_ void *self_ptr, int extra_args)
 
   self = self_ptr;
 
-#define EXTRA_ARGS (0)
+#define EXTRA_ARGS (extra_args)
 #include "ffi_platypus_rtypes_call.h"
 }

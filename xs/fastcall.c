@@ -21,7 +21,6 @@ XS(ffi_pl_method_call)
   void (*body)(pTHX_ void *self, int extra_args);
   void *self;
   SV *object;
-  SV *first_argument = NULL;
   SV *weakref;
   cached = (ffi_pl_cached_method *) CvXSUBANY(cv).any_ptr;
 
@@ -44,13 +43,11 @@ XS(ffi_pl_method_call)
   && SvROK(object)
   && (SvRV(weakref) == SvRV(object))) {
     /* the common case: fall through to the calling code */
-    ST(0) = cached->argument;
-
-    body(aTHX_ self, 0);
+    body(aTHX_ self, NULL == (ST(0) = cached->argument));
   }
   else
   {
-    SV *argument;
+    SV *first_argument = NULL;
 #if 0
     else if(cached->weakref
 	 && SvPOK(object)
