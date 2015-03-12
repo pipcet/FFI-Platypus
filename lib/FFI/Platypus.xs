@@ -131,7 +131,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
 
   if(SvROK(object))
   {
-    cached->weakref = newRV_inc(SvRV(object));
+    cached->weakref = newSVsv(object);
     sv_rvweaken(cached->weakref);
   }
   else if(SvPOK(object))
