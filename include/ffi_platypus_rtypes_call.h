@@ -1,17 +1,3 @@
-#define PREFETCH1 (void)
-#define PREFETCH2 (void)
-#define PREFETCH3 (void)
-#define PREFETCH4 (void)
-#define PREFETCH5 (void)
-#define PREFETCH6 (void)
-#define PREFETCH7 (void)
-#define PREFETCH8 (void)
-#define PREFETCH9 (void)
-#define PREFETCH10 (void)
-#define __builtin_expect(expr, value) (expr)
-
-    PREFETCH10(self);
-
 #ifdef FFI_PL_PROBE_RUNTIMESIZEDARRAYS
 /* This is a workaround for the Debian version of GCC 4.9.2-10. When
    allocating the runtime-sized arrays the normal way (the #if 0
@@ -43,30 +29,23 @@
     int pointer_index;
     int slot_index;
 
-    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<__builtin_expect(self->ffi_cif.nargs,4); perl_type_index++)
+    for(pointer_index=0, slot_index=0, perl_type_index=0; pointer_index<self->ffi_cif.nargs; perl_type_index++)
     {
       int j;
 
-      for(j=0; j<__builtin_expect(self->argument_getters[perl_type_index].native_args,1); j++)
+      for(j=0; j<self->argument_getters[perl_type_index].native_args; j++)
       {
 	argument_pointers[pointer_index++] = &argument_slots[slot_index++];
       }
 
-      slot_index += __builtin_expect(self->argument_getters[perl_type_index].stack_args, 0);
-      PREFETCH1(self->argument_getters[perl_type_index].perl_to_native);
-      PREFETCH2(self->argument_getters[perl_type_index].extra_data);
-      PREFETCH3(ST(perl_type_index));
-      //__builtin_prefetch(self->argument_getters[perl_type_index].perl_to_native);
+      slot_index += self->argument_getters[perl_type_index].stack_args;
     }
-
-    PREFETCH6(self->ffi_cif);
-    PREFETCH7(TARG);
 
     /*
      * ARGUMENT IN
      */
 
-    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < __builtin_expect(self->ffi_cif.nargs, 4); perl_type_index++)
+    for(i=0, perl_type_index=0, perl_arg_index=EXTRA_ARGS; i < self->ffi_cif.nargs; perl_type_index++)
     {
       SV *type_sv = self->argument_getters[perl_type_index].sv;
       void *extra_data = self->argument_getters[perl_type_index].extra_data;
@@ -74,13 +53,9 @@
       int native_args = self->argument_getters[perl_type_index].native_args;
       int count;
 
-      PREFETCH4(self->argument_getters[perl_type_index].perl_to_native);
-      PREFETCH5(self->argument_getters[perl_type_index].extra_data);
-
-      __builtin_prefetch(self->argument_getters[perl_type_index].perl_to_native);
-      if(__builtin_expect(perl_args, 1) == 1)
+      if(perl_args == 1)
       {
-        arg = __builtin_expect(perl_arg_index < items, 1) ? ST(perl_arg_index) : &PL_sv_undef;
+        arg = (perl_arg_index < items) ? ST(perl_arg_index) : &PL_sv_undef;
         perl_arg_index++;
       }
       else
@@ -92,13 +67,10 @@
         }
       }
 
-      __builtin_expect(count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, extra_data, arg, &freeme), 1);
+      count = self->argument_getters[perl_type_index].perl_to_native(&arguments, i, type_sv, extra_data, arg, &freeme);
       SPAGAIN;
-      i += __builtin_expect(count, 1);
+      i += count;
     }
-
-    PREFETCH8(self->ffi_cif);
-    PREFETCH9(TARG);
 
   /*
    * CALL
@@ -156,7 +128,7 @@
    * ARGUMENT OUT
    */
 
-  if(__builtin_expect(self->any_post, 0))
+  if(self->any_post)
   {
     for(i=self->ffi_cif.nargs,perl_arg_index--,perl_type_index--; i > 0; perl_type_index--)
     {
@@ -205,7 +177,7 @@
   SV *perl_return = NULL;
 
 #if 0
-  if(__builtin_expect(self->native_to_perl == (void*)ffi_pl_rtypes_native_to_perl_ffi_sint32, 1))
+  if(self->native_to_perl == (void*)ffi_pl_rtypes_native_to_perl_ffi_sint32)
   {
     sv_setiv(TARG, (IV)result.sint32);
     XSprePUSH;
@@ -220,7 +192,7 @@
     SPAGAIN;
   }
 
-  if(__builtin_expect(!!freeme, 0))
+  if(freeme)
   {
     SvREFCNT_dec(freeme);
   }
@@ -230,7 +202,7 @@
   Safefree(argument_slots);
 #endif
 
-  if(__builtin_expect(perl_return == TARG, 1))
+  if(perl_return == TARG)
   {
     XSprePUSH;
     PUSHTARG;
