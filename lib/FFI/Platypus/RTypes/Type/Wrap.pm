@@ -6,13 +6,13 @@ use FFI::Platypus::Declare;
 # even though it needs to return C closures for some of its
 # operations.
 
-sub perl_to_native_pointer {
+sub perl_to_native_cmethod {
   my($self) = @_;
 
-  return $self->{perl_to_native_pointer} if exists $self->{perl_to_native_pointer};
+  return $self->{perl_to_native_cmethod} if exists $self->{perl_to_native_cmethod};
 
   my $underlying_type = $self->{underlying_types}->[0];
-  my $address = $underlying_type->perl_to_native_pointer;
+  my $address = $underlying_type->perl_to_native_cmethod;
 
   undef $underlying_type;
 
@@ -42,18 +42,18 @@ sub perl_to_native_pointer {
 
   $self->{perl_to_native_closure} = $closure;
 
-  $self->{perl_to_native_pointer} = $self->{ffi}->cast('(opaque, int, SV, opaque, SV, opaque)->int', 'opaque', $closure);
+  $self->{perl_to_native_cmethod} = $self->{ffi}->cast('(opaque, int, SV, opaque, SV, opaque)->int', 'opaque', $closure);
 
-  return $self->{perl_to_native_pointer};
+  return $self->{perl_to_native_cmethod};
 }
 
-sub perl_to_native_post_pointer {
+sub perl_to_native_post_cmethod {
   my($self) = @_;
 
-  return $self->{perl_to_native_post_pointer} if exists $self->{perl_to_native_post_pointer};
+  return $self->{perl_to_native_post_cmethod} if exists $self->{perl_to_native_post_cmethod};
 
   my $underlying_type = $self->{underlying_types}->[0];
-  my $address = $underlying_type->perl_to_native_post_pointer;
+  my $address = $underlying_type->perl_to_native_post_cmethod;
 
   return 0 unless $address;
 
@@ -71,18 +71,18 @@ sub perl_to_native_post_pointer {
 
   $self->{perl_to_native_post_closure} = $closure;
 
-  my $ret = $self->{perl_to_native_post_pointer} = $self->{ffi}->cast('(opaque, int, SV, opaque, long, long)->int', 'opaque', $closure);
+  my $ret = $self->{perl_to_native_post_cmethod} = $self->{ffi}->cast('(opaque, int, SV, opaque, long, long)->int', 'opaque', $closure);
 
   return $ret;
 }
 
-sub native_to_perl_pointer {
+sub native_to_perl_cmethod {
   my($self) = @_;
 
-  return $self->{native_to_perl_pointer} if exists $self->{native_to_perl_pointer};
+  return $self->{native_to_perl_cmethod} if exists $self->{native_to_perl_cmethod};
 
   my $underlying_type = $self->{underlying_types}->[0];
-  my $address = $underlying_type->native_to_perl_pointer;
+  my $address = $underlying_type->native_to_perl_cmethod;
 
   return 0 unless $address;
 
@@ -107,18 +107,18 @@ sub native_to_perl_pointer {
 
   $self->{native_to_perl_closure} = $closure;
 
-  my $ret = $self->{native_to_perl_pointer} = $self->{ffi}->cast('(SV, long, SV, opaque)->SV', 'opaque', $closure);
+  my $ret = $self->{native_to_perl_cmethod} = $self->{ffi}->cast('(SV, long, SV, opaque)->SV', 'opaque', $closure);
   return $ret;
 }
 
-sub prepare_pointer {
+sub prepare_cmethod {
   my($self) = @_;
 
-  return $self->{prepare_pointer} if exists $self->{prepare_pointer};
+  return $self->{prepare_cmethod} if exists $self->{prepare_cmethod};
 
   my $underlying_type = $self->{underlying_types}->[0];
   my $underlying_extra_data = $underlying_type->extra_data;
-  my $address = $underlying_type->prepare_pointer;
+  my $address = $underlying_type->prepare_cmethod;
 
   my $sub = sub {
     my ($getter_pointers, $getter_limits, $ffi_pointers, $ffi_limits, $type, $extra_data) = @_;
@@ -132,7 +132,7 @@ sub prepare_pointer {
 
   $self->{prepare_closure} = $closure;
 
-  my $ret = $self->{prepare_pointer} = $self->{ffi}->cast('(opaque, opaque, opaque, opaque, SV, opaque)->int', 'opaque', $closure);
+  my $ret = $self->{prepare_cmethod} = $self->{ffi}->cast('(opaque, opaque, opaque, opaque, SV, opaque)->int', 'opaque', $closure);
   return $ret;
 }
 

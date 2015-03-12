@@ -65,7 +65,7 @@ new(class, impl, address, abi, return_type_arg, ...)
     }
     self->return_type = SvREFCNT_inc(return_type_arg);
     self->extra_data = ffi_pl_rtypes_extra_data(return_type_arg);
-    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_rtypes_arguments_native_to_perl(self->return_type, self->extra_data);
+    self->native_to_perl = (native_to_perl_method_t) ffi_pl_rtypes_native_to_perl_method(self->return_type, self->extra_data);
     self->any_post = 0;
     SPAGAIN;
     
@@ -120,8 +120,8 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->argument_getters[i].stack_args = 0;
       
       self->argument_getters[i].extra_data = ffi_pl_rtypes_extra_data(arg);
-      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native(arg, ffi_pl_rtypes_extra_data(arg));
-      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native_post(arg, ffi_pl_rtypes_extra_data(arg));
+      self->argument_getters[i].perl_to_native = (perl_to_native_method_t) ffi_pl_rtypes_perl_to_native_method(arg, ffi_pl_rtypes_extra_data(arg));
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_method_t) ffi_pl_rtypes_perl_to_native_post_method(arg, ffi_pl_rtypes_extra_data(arg));
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       int d = 1;

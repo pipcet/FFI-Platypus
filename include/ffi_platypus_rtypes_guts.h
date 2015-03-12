@@ -19,14 +19,14 @@ void ffi_pl_rtypes_perl_complex_double(SV *sv, double *ptr);
 
 void ffi_pl_rtypes_method_call_body(pTHX_ void *self_ptr, int extra_args);
 
-int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
-int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(6)));
 SV *ffi_pl_rtypes_any_native_to_perl(SV *, ffi_pl_result *, SV *, void *);
 
 void *ffi_pl_rtypes_extra_data(SV *);
-perl_to_native_pointer_t ffi_pl_rtypes_arguments_perl_to_native(SV *, void *);
-perl_to_native_pointer_t ffi_pl_rtypes_arguments_perl_to_native_post(SV *, void *);
-native_to_perl_pointer_t ffi_pl_rtypes_arguments_native_to_perl(SV *, void *);
+perl_to_native_method_t ffi_pl_rtypes_perl_to_native_method(SV *, void *);
+perl_to_native_method_t ffi_pl_rtypes_perl_to_native_post_method(SV *, void *);
+native_to_perl_method_t ffi_pl_rtypes_native_to_perl_method(SV *, void *);
 
 #define ffi_pl_perl_to_long_double(sv, ptr)                           \
   if(!SvOK(sv))                                                       \
@@ -71,39 +71,39 @@ native_to_perl_pointer_t ffi_pl_rtypes_arguments_native_to_perl(SV *, void *);
     sv_setnv(sv, *(ptr));                                        \
   }
 
-int ffi_pl_rtypes_arguments_set_ffi_void(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_uint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_sint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_float(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_double(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ffi_pointer(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_void(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_uint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_sint8(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_uint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_sint16(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_uint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_uint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_sint64(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_float(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_double(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_ffi_pointer(ffi_pl_rtypes_arguments *arguments, int i, SV *arg_type, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 
-int ffi_pl_rtypes_arguments_set_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_array(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_closure(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_constant(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_customperl(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_exoticfloat(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_perl_string(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_perl_string_variable(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_record(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_any(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_array(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_closure(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_constant(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_customperl(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_exoticfloat(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_perl_string(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_perl_string_variable(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_record(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_pointer(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_pointer_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 int ffi_pl_rtypes_sv_perl_to_native(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 
-int ffi_pl_rtypes_arguments_set_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_array_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_closure_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_custom_perl_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_exoticfloat_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
-int ffi_pl_rtypes_arguments_set_ref_post_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_any_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_array_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_closure_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_custom_perl_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_exoticfloat_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_pointer_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
+int ffi_pl_rtypes_perl_to_native_pointer_post_sint32(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 int ffi_pl_rtypes_sv_perl_to_native_post(ffi_pl_rtypes_arguments *arguments, int i, SV *type_sv, void *extra_data, SV *arg, SV **freeme) __attribute__((regparm(3))) __attribute((regparm(6)));
 
 SV *ffi_pl_rtypes_native_to_perl_void(SV *targ, ffi_pl_result *result, SV *return_type, void *extra_data);
