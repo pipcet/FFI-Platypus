@@ -101,7 +101,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   count = call_pv("FFI::Platypus::_make_attach_method", G_ARRAY);
   SPAGAIN;
 
-  if(count < 2 || count > 3)
+  if(count < 2)
   {
     croak("make_attach_method failed");
   }
@@ -110,6 +110,17 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   {
     *first_argument = SvREFCNT_inc(POPs);
   }
+  else if(count > 3)
+  {
+    int i;
+    *first_argument = (SV *)newAV();
+
+    for(i=0; i<count-2; i++)
+    {
+      av_store((AV *)*first_argument, count-2-i, SvREFCNT_inc(POPs));
+    }
+  }
+
   function_object = POPs;
   body_object = POPs;
 
@@ -139,6 +150,11 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
     cached->weakref = SvREFCNT_inc(object);
   }
 
+  /* don't cache multi-argument method calls for now. */
+  if(count > 3) {
+    SvREFCNT_dec(*first_argument);
+    cached->weakref = NULL;
+  }
   PUTBACK;
   FREETMPS;
   LEAVE;

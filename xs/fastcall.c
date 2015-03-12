@@ -59,9 +59,57 @@ XS(ffi_pl_method_call)
 
     if(first_argument != NULL)
     {
-      ST(0) = first_argument;
-    }
+      if(SvTYPE(first_argument) == SVt_PVAV) {
+	AV *arguments = (AV *)first_argument;
+	AV *results = newAV();
+	int i;
 
+	POPMARK; /* undo our optimistic orig mark push */
+	ENTER;
+	SAVETMPS;
+
+	PUSHMARK(SP);
+	for(i=0; i<av_len(arguments)+1; i++)
+	{
+	  SV **svp = av_fetch(arguments, i, 0);
+	  XPUSHs(*svp);
+	}
+
+	for(i=1; i<items; i++)
+	{
+	  XPUSHs(ST(i));
+	}
+	PUTBACK;
+
+	body(aTHX_ self, 0);
+	SPAGAIN;
+
+	{
+	  dITEMS;
+	  for(i=0; i<items; i++)
+	  {
+	    SV *sv = POPs;
+	    av_push(results, SvREFCNT_inc(sv));
+	  }
+	}
+	SPAGAIN;
+
+	{
+	  dXSARGS; /* this time, we don't push the mark back */
+	}
+
+	for(i=0; i<av_len(results)+1; i++)
+	{
+	  XPUSHs(*av_fetch(results, i, 0));
+	}
+
+	sv_2mortal((SV *)results);
+	XSRETURN(av_len(results)+1);
+      } else {
+	ST(0) = first_argument;
+      }
+
+    }
     body(aTHX_ self, first_argument == NULL);
   }
 }
