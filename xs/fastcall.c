@@ -48,30 +48,18 @@ XS(ffi_pl_method_call)
   else
   {
     SV *first_argument = NULL;
-#if 0
-    else if(cached->weakref
-	 && SvPOK(object)
-	 && SvPOK(cached->weakref)
-	 && sv_eq(cached->weakref, ST(0)))
-    {
-      /* slightly slower: class method. Also fall through. */
-      first_argument = cached->argument;
+
+    /* the slow case. Go back to Perl to retrieve our method. */
+    ffi_pl_make_method(cached, &self, &body, &first_argument, object);
+    SPAGAIN;
+
+    if(!self) {
+      croak("could not generate a method on demand");
     }
-#endif
-    if(1)
-    {
-      /* the slow case. Go back to Perl to retrieve our method. */
-      ffi_pl_make_method(cached, &self, &body, &first_argument, object);
-      SPAGAIN;
-
-      if(!self) {
-	croak("could not generate a method on demand");
-      }
-    }
-
-    if(first_argument != NULL)
-      ST(0) = first_argument;
-
-    body(aTHX_ self, first_argument == NULL);
   }
+
+  if(first_argument != NULL)
+    ST(0) = first_argument;
+
+  body(aTHX_ self, first_argument == NULL);
 }
