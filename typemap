@@ -25,7 +25,24 @@ T_FFI_PL_FFI_TYPE
   sv_setref_pv($arg, class, (void *) $var);
 
 T_FFI_PL_RTYPES_FUNCTION
-  sv_setref_pv($arg, class, (void *) $var);
+  do
+  {
+    HV *hv;
+    SV *sv = newSV(0);
+    HV *stash = gv_stashpv(class, GV_ADD);
+    SV *tmp;
+    hv = $var->hv;
+    if (!hv)
+    {
+      hv = newHV();
+      $var->hv = hv;
+    }
+    sv_setref_pv(sv, \"FFI::Platypus::RTypes::FunctionData\", (void *) $var);
+    hv_store(hv, \"function_data\", strlen(\"function_data\"), sv, 0);
+    tmp = newRV_noinc((SV*)hv);
+    $arg = sv_2mortal(sv_bless(tmp, stash));
+  }
+  while(0);
 
 T_FFI_PL_RTYPES_TYPE
   do
@@ -40,7 +57,7 @@ T_FFI_PL_RTYPES_TYPE
       hv = newHV();
       $var->hv = hv;
     }
-    sv_setref_pv(sv, \"FFI::Platypus::TypeData::RTypes\", (void *) $var);
+    sv_setref_pv(sv, \"FFI::Platypus::RTypes::TypeData\", (void *) $var);
     hv_store(hv, \"ffi_pl_type\", strlen(\"ffi_pl_type\"), sv, 0);
     tmp = newRV_noinc((SV*)hv);
     $arg = sv_2mortal(sv_bless(tmp, stash));
@@ -81,17 +98,21 @@ T_FFI_PL_FFI_TYPE
   else
     Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::Type::FFI\");
 
-T_FFI_PL_RTYPES_FUNCTION
-  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::Function\"))
-    $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
-  else
-    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::Function\");
-
 T_FFI_PL_RTYPES_CLOSURE_DATA
   if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::ClosureData\"))
     $var = INT2PTR($type, SvIV((SV *) SvRV($arg)));
   else
     Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::ClosureData\");
+
+T_FFI_PL_RTYPES_FUNCTION
+  if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::Function\")) {
+    HV *hv = (HV*)SvRV($arg);
+    SV **svp = hv_fetch(hv, \"function_data\", strlen(\"function_data\"), 0);
+    if (svp == NULL)
+      Perl_croak(aTHX_ \"$var is missing the function_data hash entry\");
+    $var = INT2PTR($type, SvIV((SV*)SvRV(*svp)));
+  } else
+    Perl_croak(aTHX_ \"$var is not of type FFI::Platypus::RTypes::Function\");
 
 T_FFI_PL_RTYPES_TYPE
   if(sv_isobject($arg) && sv_derived_from($arg, \"FFI::Platypus::RTypes::Type\")) {

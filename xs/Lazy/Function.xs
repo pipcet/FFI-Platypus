@@ -6,12 +6,12 @@ attach_method_lazy_address()
     void _attach_method_lazy(pTHX_ void *self_ptr)
     {
       SV *hashref = self_ptr;
-      SV **svp = hv_fetch((HV*)hashref, "body", strlen("body"), 0);
+      SV **svp = hv_fetch((HV*)SvRV(hashref), "body", strlen("body"), 0);
       if(!svp)
 	croak("internal error in lazy Platypus code");
       void (*body)(void *) = INT2PTR(void (*)(void *), SvIV(*svp));
 
-      svp = hv_fetch((HV*)hashref, "my_name", strlen("my_name"), 0);
+      svp = hv_fetch((HV*)SvRV(hashref), "my_name", strlen("my_name"), 0);
       if(!svp)
 	croak("internal error in lazy Platypus code");
       SV *my_name = *svp;

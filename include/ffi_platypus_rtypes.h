@@ -108,6 +108,7 @@ typedef struct _ffi_pl_rtypes_getter {
 } ffi_pl_rtypes_getter;
 
 typedef struct _ffi_pl_rtypes_function {
+  void *hv; /* The Perl HV* corresponding to our object. Not reference-counted to avoid a circular reference */
   void *address;
   void *impl_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;

@@ -839,7 +839,7 @@ native_to_perl_cmethod(svraw)
   OUTPUT:
     RETVAL
 
-MODULE = FFI::Platypus PACKAGE = FFI::Platypus::TypeData::RTypes
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::TypeData
 
 void
 DESTROY(self_sv)

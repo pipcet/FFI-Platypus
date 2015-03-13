@@ -121,7 +121,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
     }
   }
 
-  function_object = POPs;
+  function = INT2PTR(void *, POPi);
   body_object = POPs;
 
   if(!body_object || !SvIOK(body_object))
@@ -130,8 +130,6 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   }
 
   body = INT2PTR(void (*)(pTHX_ void *, int), SvIV(body_object));
-  function = INT2PTR(ffi_pl_rtypes_function *, SvIV(SvRV(function_object)));
-
   *bodyp = body;
   *selfp = function;
 
