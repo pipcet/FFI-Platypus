@@ -34,7 +34,7 @@ sub native_to_perl_cexpr
   my $meta = $self->meta;
 
   if($meta->{size} eq '8' and $meta->{sign}) {
-    return ['sint64_t', "SvIV(${expr})"];
+    return ['long int', "SvIV(${expr})"];
   } elsif($meta->{size} eq '4' and $meta->{sign}) {
     return ['int', "SvIV(${expr})"];
   }

@@ -9,7 +9,7 @@ use Scalar::Util qw( refaddr weaken );
 
 sub xs_cdecl
 {
-  my($self, $name) = @_;
+  my($self, $name, $bailout) = @_;
   my $i = 0;
   my @argcond;
   my @argexpr;
@@ -17,8 +17,8 @@ sub xs_cdecl
 
   for my $argtype (@{$self->{argument_types}})
   {
-    if($argtype->can('perl_to_native_precondition')) {
-      my $cexpr = $argtype->perl_to_native_precondition("ST($i)");
+    if($argtype->can('perl_to_native_precondition_cexpr')) {
+      my $cexpr = $argtype->perl_to_native_precondition_cexpr("ST($i)");
 
       return undef unless $cexpr;
 
@@ -55,23 +55,23 @@ sub xs_cdecl
 
     my $rettype = $retexpr->[0];
     my $retsigil = "i";
-    my $cond = join("||", map { $_->[1] } @argcond);
+    my $cond = @argcond ? join("&&", map { $_->[1] } @argcond) : "1";
     my $args = join(", ", map { $_->[1] } @argexpr);
     my $argtypes = join(", ", map { $_->[0] } @argexpr);
     my $address = $self->{address};
     my $function = "${rettype} (\*f)(${argtypes}) = ${address}UL";
-    my $fallback_stmt = "*(int *)0 = 0;";
+    my $fallback_stmt = "do { ${rettype} (*bailout)(void) = ${bailout}UL; PUSHMARK(ORIGMARK); return bailout(); } while(0);";
     my $items = scalar @argexpr;
 
     return qq{
 XS(${name})
 {
-  dVAR; dXSARGS; dXSTARG;
+  dVAR; dXSARGS; dXSTARG; dORIGMARK;
   ${function};
 
   ${rettype} RETVAL;
 
-  if(items != ${items})
+  if(items != ${items} || !(${cond}))
     ${fallback_stmt}
   RETVAL = f(${args});
   SPAGAIN;

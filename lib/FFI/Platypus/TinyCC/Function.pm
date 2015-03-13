@@ -16,8 +16,12 @@ sub attach
 
   my $name = "TESTTEST";
 
+  my $bailout_closure = $self->{ffi}->closure(sub { return $self->call(@_); });
+  push @{$self->{bailout_closures}}, $bailout_closure;
+
+  my $bailout = $self->{ffi}->cast('()->long', 'opaque', $bailout_closure);
   my $xs;
-  $xs = $self->xs_cdecl($name) if $self->can('xs_cdecl');
+  $xs = $self->xs_cdecl($name, $bailout) if $self->can('xs_cdecl');
 
   return $self->SUPER::attach($attach_name, $attach_location, $proto) unless defined $xs;
 
