@@ -19,6 +19,7 @@ install:
   - cpanm -n Devel::PPPort
   - cpanm -n Carp::Always
   - cpanm -n FFI::TinyCC
+  - cpanm -n local::lib
 
 perl:
   - "5.20"
@@ -29,7 +30,7 @@ script:
   - ./Build --verbose
   - ./Build test --verbose
   - ./Build install --verbose
-  
+
 env:
   - FFI_PLATYPUS=1
   - FFI_PLATYPUS_IMPL=RTypes
