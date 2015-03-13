@@ -11,9 +11,24 @@ sub xs_cdecl
 {
   my($self, $name) = @_;
   my $i = 0;
+  my @argcond;
   my @argexpr;
   my $retexpr;
 
+  for my $argtype (@{$self->{argument_types}})
+  {
+    if($argtype->can('perl_to_native_precondition')) {
+      my $cexpr = $argtype->perl_to_native_precondition("ST($i)");
+
+      return undef unless $cexpr;
+
+      push @argcond, $cexpr;
+    }
+
+    $i++;
+  }
+
+  $i = 0;
   for my $argtype (@{$self->{argument_types}})
   {
     if($argtype->can('perl_to_native_cexpr')) {
@@ -40,6 +55,7 @@ sub xs_cdecl
 
     my $rettype = $retexpr->[0];
     my $retsigil = "i";
+    my $cond = join("||", map { $_->[1] } @argcond);
     my $args = join(", ", map { $_->[1] } @argexpr);
     my $argtypes = join(", ", map { $_->[0] } @argexpr);
     my $address = $self->{address};

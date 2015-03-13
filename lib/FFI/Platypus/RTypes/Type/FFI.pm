@@ -7,6 +7,13 @@ sub count_native_arguments
   1;
 }
 
+sub perl_to_native_precondition_cexpr
+{
+  my($self, $expr) = @_;
+
+  return [undef, "SvOK(${expr})"];
+}
+
 sub perl_to_native_cexpr
 {
   my($self, $expr) = @_;
