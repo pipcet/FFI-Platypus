@@ -232,7 +232,6 @@ new(class, impl, address, abi, return_type_arg, ...)
         croak("unknown error with ffi_prep_cif");
     }
     
-    hv_store(hv, "ffi", strlen("ffi"), SvREFCNT_inc(impl), 0);
     self->impl_sv = SvREFCNT_inc(impl);
 
     RETVAL = self;
