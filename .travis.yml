@@ -18,6 +18,7 @@ install:
   - cpanm -n Time::Seconds
   - cpanm -n Devel::PPPort
   - cpanm -n Carp::Always
+  - cpanm -n FFI::TinyCC
 
 perl:
   - "5.20"
