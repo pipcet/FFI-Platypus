@@ -89,7 +89,9 @@ sub impl_new_function
 
   return unless $address or $address eq '0';
 
-  FFI::Platypus::RTypes::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
+  require FFI::Platypus::TinyCC::Function;
+
+  FFI::Platypus::TinyCC::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
 sub impl_new_type
