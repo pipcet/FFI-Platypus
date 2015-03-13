@@ -9,6 +9,8 @@ new(class, impl, address, abi, return_type_arg, ...)
     SV *return_type_arg
   PREINIT:
     ffi_pl_rtypes_function *self;
+    HV *hv;
+    AV *av;
     int i,n,j;
     SV* arg;
     void *buffer;
@@ -21,6 +23,8 @@ new(class, impl, address, abi, return_type_arg, ...)
     int extra_arguments;
     int stack_args;
   CODE:
+    hv = newHV();
+
     ffi_abi = abi == -1 ? FFI_DEFAULT_ABI : abi;
     
     for(i=0,extra_arguments=0; i<(items-5); i++)
@@ -56,8 +60,18 @@ new(class, impl, address, abi, return_type_arg, ...)
   
     Newx(buffer, (sizeof(ffi_pl_rtypes_function) + sizeof(ffi_pl_rtypes_getter)*(items-5)), char);
     self = (ffi_pl_rtypes_function*)buffer;
+    self->hv = hv;
     Newx(ffi_argument_types, items-5+extra_arguments, ffi_type*);
     
+    hv_store(hv, "address", strlen("address"), newSViv((IV)address), 0);
+    hv_store(hv, "return_type", strlen("return_type"), SvREFCNT_inc(return_type_arg), 0);
+    av = newAV();
+    for(i=0; i < items-5; i++)
+    {
+      av_push(av, SvREFCNT_inc(ST(i+5)));
+    }
+    hv_store(hv, "argument_types", strlen("argument_types"), newRV_noinc((SV*)av), 0);
+
     self->address = address;
     if(self->address == NULL)
     {
@@ -65,7 +79,7 @@ new(class, impl, address, abi, return_type_arg, ...)
     }
     self->return_type = SvREFCNT_inc(return_type_arg);
     self->extra_data = ffi_pl_rtypes_extra_data(return_type_arg);
-    self->native_to_perl = (native_to_perl_pointer_t) ffi_pl_rtypes_arguments_native_to_perl(self->return_type, self->extra_data);
+    self->native_to_perl = (native_to_perl_method_t) ffi_pl_rtypes_native_to_perl_method(self->return_type, self->extra_data);
     self->any_post = 0;
     SPAGAIN;
     
@@ -120,8 +134,8 @@ new(class, impl, address, abi, return_type_arg, ...)
       self->argument_getters[i].stack_args = 0;
       
       self->argument_getters[i].extra_data = ffi_pl_rtypes_extra_data(arg);
-      self->argument_getters[i].perl_to_native = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native(arg, ffi_pl_rtypes_extra_data(arg));
-      self->argument_getters[i].perl_to_native_post = (perl_to_native_pointer_t) ffi_pl_rtypes_arguments_perl_to_native_post(arg, ffi_pl_rtypes_extra_data(arg));
+      self->argument_getters[i].perl_to_native = (perl_to_native_method_t) ffi_pl_rtypes_perl_to_native_method(arg, ffi_pl_rtypes_extra_data(arg));
+      self->argument_getters[i].perl_to_native_post = (perl_to_native_method_t) ffi_pl_rtypes_perl_to_native_post_method(arg, ffi_pl_rtypes_extra_data(arg));
       self->any_post |= (self->argument_getters[i].perl_to_native_post != NULL);
 
       int d = 1;
@@ -218,6 +232,7 @@ new(class, impl, address, abi, return_type_arg, ...)
         croak("unknown error with ffi_prep_cif");
     }
     
+    hv_store(hv, "ffi", strlen("ffi"), SvREFCNT_inc(impl), 0);
     self->impl_sv = SvREFCNT_inc(impl);
 
     RETVAL = self;
@@ -269,7 +284,17 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     SV *value;
     int count;
     SV *sv;
+    ffi_pl_rtypes_function *function_data;
   CODE:
+    if(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")) {
+      HV *hv = (HV*)SvRV(self);
+      SV **svp = hv_fetch(hv, "function_data", strlen("function_data"), 0);
+      if (svp == NULL)
+        Perl_croak(aTHX_ "function_data is missing the function_data hash entry");
+      function_data = INT2PTR(ffi_pl_rtypes_function *, SvIV((SV*)SvRV(*svp)));
+    } else
+      Perl_croak(aTHX_ "function_data is not of type FFI::Platypus::RTypes::Function");
+
     if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")))
       croak("self is not of type FFI::Platypus::RTypes::Function");
 
@@ -337,7 +362,7 @@ attach_method(self, ffi, object, object_key, first_argument, drop_first_argument
     sv = POPs;
     hv_store((HV*)SvRV(value), "body", strlen("body"), SvREFCNT_inc(sv), 0);
     sv = POPs;
-    hv_store((HV*)SvRV(value), "function", strlen("function"), SvREFCNT_inc(sv), 0);
+    hv_store((HV*)SvRV(value), "function", strlen("function"), newSViv(PTR2IV(function_data)), 0);
 
     if(SvROK(object))
     {
@@ -362,7 +387,17 @@ attach(self, perl_name, path_name, proto)
     ffi_pl_string proto
   PREINIT:
     CV* cv;
+    ffi_pl_rtypes_function *function_data;
   CODE:
+    if(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")) {
+      HV *hv = (HV*)SvRV(self);
+      SV **svp = hv_fetch(hv, "function_data", strlen("function_data"), 0);
+      if (svp == NULL)
+        Perl_croak(aTHX_ "function_data is missing the function_data hash entry");
+      function_data = INT2PTR(ffi_pl_rtypes_function *, SvIV((SV*)SvRV(*svp)));
+    } else
+      Perl_croak(aTHX_ "function_data is not of type FFI::Platypus::RTypes::Function");
+
     if(!(sv_isobject(self) && sv_derived_from(self, "FFI::Platypus::RTypes::Function")))
       croak("self is not of type FFI::Platypus::RTypes::Function");
 
@@ -385,7 +420,7 @@ attach(self, perl_name, path_name, proto)
       cv = get_cv(perl_name,0);
 #endif
     }
-    CvXSUBANY(cv).any_ptr = (void *) INT2PTR(ffi_pl_rtypes_function*, SvIV((SV*) SvRV(self)));
+    CvXSUBANY(cv).any_ptr = (void *)function_data;
     /*
      * No coresponding decrement !!
      * once attached, you can never free the function object, or the FFI::Platypus
@@ -395,17 +430,16 @@ attach(self, perl_name, path_name, proto)
 
     XSRETURN_YES;
 
+MODULE = FFI::Platypus PACKAGE = FFI::Platypus::RTypes::FunctionData
+
 void
 DESTROY(self)
-    ffi_pl_rtypes_function *self
+    SV *self
   PREINIT:
-    int i;
+    void *data;
   CODE:
-    SvREFCNT_dec(self->impl_sv);
-    SvREFCNT_dec(self->return_type);
-    for (i=0; i<self->nargs_perl; i++) {
-      SvREFCNT_dec(self->argument_getters[i].sv);
-    }
-    Safefree(self->ffi_cif.arg_types);
-    Safefree(self);
+    data = INT2PTR(void *, SvIV(SvRV(self)));
+
+    Safefree(data);
+
 

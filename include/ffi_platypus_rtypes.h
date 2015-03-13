@@ -94,8 +94,8 @@ typedef struct _ffi_pl_rtypes_type {
 typedef struct _ffi_pl_rtypes_arguments ffi_pl_rtypes_arguments;
 typedef union _ffi_pl_result ffi_pl_result;
 
-typedef int (*perl_to_native_pointer_t)(ffi_pl_rtypes_arguments *arguments, int i, void *type_sv, void *extra_data, void *arg, void *freeme)  __attribute__((regparm(6)));
-typedef void *(*native_to_perl_pointer_t)(void *targ, ffi_pl_result *result, void *return_type, void *extra_data);
+typedef int (*perl_to_native_method_t)(ffi_pl_rtypes_arguments *arguments, int i, void *type_sv, void *extra_data, void *arg, void *freeme)  __attribute__((regparm(6)));
+typedef void *(*native_to_perl_method_t)(void *targ, ffi_pl_result *result, void *return_type, void *extra_data);
 
 typedef struct _ffi_pl_rtypes_getter {
   void *sv; /* type object */
@@ -103,11 +103,12 @@ typedef struct _ffi_pl_rtypes_getter {
   int perl_args;
   int native_args;
   int stack_args;
-  perl_to_native_pointer_t perl_to_native;
-  perl_to_native_pointer_t perl_to_native_post;
+  perl_to_native_method_t perl_to_native;
+  perl_to_native_method_t perl_to_native_post;
 } ffi_pl_rtypes_getter;
 
 typedef struct _ffi_pl_rtypes_function {
+  void *hv; /* The Perl HV* corresponding to our object. Not reference-counted to avoid a circular reference */
   void *address;
   void *impl_sv;  /* really a Perl SV* */
   ffi_cif ffi_cif;
@@ -118,7 +119,7 @@ typedef struct _ffi_pl_rtypes_function {
 
   int any_post;
 
-  native_to_perl_pointer_t native_to_perl;
+  native_to_perl_method_t native_to_perl;
   ffi_pl_rtypes_getter argument_getters[0];
 } ffi_pl_rtypes_function;
 

@@ -1,4 +1,4 @@
-package FFI::Platypus::Impl::RTypes;
+package FFI::Platypus::RTypes::Impl;
 use parent 'FFI::Platypus';
 
 use strict;
@@ -20,7 +20,7 @@ use FFI::Platypus::RTypes::Type::FFI;
 
 # require XSLoader;
 # XSLoader::load(
-#   'FFI::Platypus::Impl::RTypes', eval q{ $VERSION } || do {
+#   'FFI::Platypus::RTypes::Impl', eval q{ $VERSION } || do {
 #     # this is for testing without dzil
 #     # it expects MYMETA.json for FFI::Platypus
 #     # to be in the current working directory.
@@ -89,7 +89,9 @@ sub impl_new_function
 
   return unless $address or $address eq '0';
 
-  FFI::Platypus::RTypes::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
+  require FFI::Platypus::TinyCC::Function;
+
+  FFI::Platypus::TinyCC::Function->new($self, $address, $self->{impl_abi}, $ret, @args);
 }
 
 sub impl_new_type

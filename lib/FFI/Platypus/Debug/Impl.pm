@@ -1,4 +1,4 @@
-package FFI::Platypus::Impl::Debug;
+package FFI::Platypus::Debug::Impl;
 use parent -norequire, 'FFI::Platypus';
 
 use strict;
@@ -25,7 +25,7 @@ sub AUTOLOAD
   eval qq{package } . caller;
   die $@ if $@;
   my @ret = ref($self) ? $self->{impl_base}->$method(@args) : FFI::Platypus->new(impl=>'RTypes')->$method(@args);
-  eval qq{package FFI::Platypus::Impl::Debug};
+  eval qq{package FFI::Platypus::Debug::Impl};
 
   #warn "$method: " . Dumper(\@args) . " -> " . Dumper(\@ret) . "\n";
 
@@ -38,8 +38,8 @@ for my $method (keys %FFI::Platypus::) {
   # special methods need access to caller()
   next if $method =~ /^attach/ or $method eq 'package';
   next if $method eq "new";
-  next if exists $FFI::Platypus::Impl::Debug::{$method};
-  eval qq{no warnings 'redefine'; sub FFI::Platypus::Impl::Debug::$method { local \$AUTOLOAD="$method"; my \$self = shift; \$self->AUTOLOAD(\@_); }};
+  next if exists $FFI::Platypus::Debug::Impl::{$method};
+  eval qq{no warnings 'redefine'; sub FFI::Platypus::Debug::Impl::$method { local \$AUTOLOAD="$method"; my \$self = shift; \$self->AUTOLOAD(\@_); }};
   die $@ if $@;
 }
 

@@ -95,11 +95,11 @@ sub attach
   return 1;
 }
 
-use Data::Dumper;
-
 sub _make_attach_method {
   my($data) = @_;
+  $data = $$data;
   my $function = $data->{function};
+  $function = $$function;
 
   croak "lazy function has been deleted" unless $function;
 
@@ -134,7 +134,7 @@ sub attach_method
   $self->{body_closure} = $ffi->closure(\&_make_attach_method);
   $self->{data} = $data;
 
-  $self->{data}->{function} = $self;
+  $self->{data}->{function} = \$self;
   $self->{data}->{body} = $ffi->cast('(SV, int)->void' => 'opaque', $self->{body_closure});
   $self->{data}->{my_name} = $attach_name;
   $self->{data}->{ffi} = $ffi;

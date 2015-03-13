@@ -146,6 +146,20 @@ sub DESTROY
 package FFI::Platypus::RTypes::Type::String;
 use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
+sub perl_to_native_precondition_cexpr
+{
+  my($self, $expr) = @_;
+
+  return ['char *', "SvOK(${expr})"];
+}
+
+sub perl_to_native_cexpr
+{
+  my($self, $expr) = @_;
+
+  return ['char *', "SvPV_nolen(${expr})"];
+}
+
 package FFI::Platypus::RTypes::Type::Pointer;
 use parent -norequire, 'FFI::Platypus::RTypes::Type';
 

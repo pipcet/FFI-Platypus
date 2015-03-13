@@ -96,7 +96,7 @@ ffi_pl_rtypes_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, voi
     av = (AV*)SvRV(*svp);
     for(i=0; i< ffi_cif->nargs; i++)
     {
-      native_to_perl_pointer_t f;
+      native_to_perl_method_t f;
       SV *arg_type_sv;
       SV *arg;
       SV *sv = sv_newmortal();
@@ -105,7 +105,7 @@ ffi_pl_rtypes_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, voi
       arg_type_sv = *svp;
 
       PUTBACK;
-      f = ffi_pl_rtypes_arguments_native_to_perl(arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
+      f = ffi_pl_rtypes_native_to_perl_method(arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
       SPAGAIN;
 
       arg = f(sv, (ffi_pl_result *)arguments[i], arg_type_sv, ffi_pl_rtypes_extra_data(arg_type_sv));
@@ -151,7 +151,7 @@ ffi_pl_rtypes_closure_call(ffi_cif *ffi_cif, void *result, void **arguments, voi
     svp = hv_fetch(hv, "return_type", strlen("return_type"), 0);
     SV *ret_sv = *svp;
 
-    perl_to_native_pointer_t perl_to_native = ffi_pl_rtypes_arguments_perl_to_native(ret_sv, ffi_pl_rtypes_extra_data(ret_sv));
+    perl_to_native_method_t perl_to_native = ffi_pl_rtypes_perl_to_native_method(ret_sv, ffi_pl_rtypes_extra_data(ret_sv));
     SPAGAIN;
     int count2 = perl_to_native(&arguments, 0, ret_sv, ffi_pl_rtypes_extra_data(ret_sv), sv, &freeme);
     SPAGAIN;

@@ -35,13 +35,10 @@ XS(ffi_pl_rtypes_sub_call)
 void ffi_pl_rtypes_method_call_body(pTHX_ void *self_ptr, int extra_args)
 {
   ffi_pl_rtypes_function *self;
-  char *buffer;
-  size_t buffer_size;
   int i,n, perl_arg_index, perl_type_index;
   SV *arg;
   ffi_pl_result result;
   ffi_pl_rtypes_arguments arguments;
-  SV *first_argument = NULL;
   SV *freeme = NULL;
 
   dVAR; dXSARGS; dXSTARG;

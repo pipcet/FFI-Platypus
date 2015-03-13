@@ -4,7 +4,7 @@
 # can lead to an error message much later, and that might be
 # confusing.
 
-package FFI::Platypus::Impl::Lazy;
+package FFI::Platypus::Lazy::Impl;
 use parent -norequire,'FFI::Platypus';
 
 use strict;
@@ -16,7 +16,7 @@ use FFI::Platypus::Lazy::Address;
 use FFI::Platypus::Lazy::Types;
 use FFI::Platypus::Lazy::TypeMap;
 
-use FFI::Platypus::Impl::RTypes;
+use FFI::Platypus::RTypes::Impl;
 
 sub new
 {
@@ -63,7 +63,7 @@ sub impl_abis
   else
   {
     # XXX better than nothing.
-    return FFI::Platypus::Impl::RTypes->impl_abis;
+    return FFI::Platypus::RTypes::Impl->impl_abis;
   }
 }
 

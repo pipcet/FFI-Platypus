@@ -78,7 +78,7 @@ XS(ffi_pl_rtypes_sub_call_old)
 }
 
 /* this code is shared between implementations */
-static void *
+void *
 ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pTHX_ void *, int), SV **first_argument, SV *object)
 {
   dVAR;
@@ -101,7 +101,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   count = call_pv("FFI::Platypus::_make_attach_method", G_ARRAY);
   SPAGAIN;
 
-  if(count < 2 || count > 3)
+  if(count < 2)
   {
     croak("make_attach_method failed");
   }
@@ -110,7 +110,18 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   {
     *first_argument = SvREFCNT_inc(POPs);
   }
-  function_object = POPs;
+  else if(count > 3)
+  {
+    int i;
+    *first_argument = (SV *)newAV();
+
+    for(i=0; i<count-2; i++)
+    {
+      av_store((AV *)*first_argument, count-2-i, SvREFCNT_inc(POPs));
+    }
+  }
+
+  function = INT2PTR(void *, POPi);
   body_object = POPs;
 
   if(!body_object || !SvIOK(body_object))
@@ -118,9 +129,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
     croak("make_attach_method failed");
   }
 
-  body = INT2PTR(void (*)(void *, int), SvIV(body_object));
-  function = INT2PTR(ffi_pl_rtypes_function *, SvIV(SvRV(function_object)));
-
+  body = INT2PTR(void (*)(pTHX_ void *, int), SvIV(body_object));
   *bodyp = body;
   *selfp = function;
 
@@ -131,7 +140,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
 
   if(SvROK(object))
   {
-    cached->weakref = newRV_inc(SvRV(object));
+    cached->weakref = newSVsv(object);
     sv_rvweaken(cached->weakref);
   }
   else if(SvPOK(object))
@@ -139,6 +148,11 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
     cached->weakref = SvREFCNT_inc(object);
   }
 
+  /* don't cache multi-argument method calls for now. */
+  if(count > 3) {
+    SvREFCNT_dec(*first_argument);
+    cached->weakref = NULL;
+  }
   PUTBACK;
   FREETMPS;
   LEAVE;
@@ -146,62 +160,7 @@ ffi_pl_make_method(ffi_pl_cached_method *cached, void **selfp, void (**bodyp)(pT
   return function;
 }
 
-/* this code is shared between implementations. */
-XS(ffi_pl_method_call)
-{
-  ffi_pl_cached_method *cached;
-  void (*body)(pTHX_ void *self, int extra_args);
-  void *self;
-  SV *object;
-  SV *first_argument = NULL;
-  cached = (ffi_pl_cached_method *) CvXSUBANY(cv).any_ptr;
-  __builtin_prefetch(cached);
-
-  dVAR; dXSARGS; dORIGMARK;
-  object = ST(0);
-
-  if(items == 0)
-  {
-    croak("cannot call an object method without arguments");
-  }
-
-  body = cached->body;
-  self = cached->function;
-
-  if(cached->weakref
-  && SvROK(ST(0))
-  && SvROK(cached->weakref)
-  && (SvRV(cached->weakref) == SvRV(ST(0)))) {
-    /* the common case: fall through to the calling code */
-    first_argument = cached->argument;
-  }
-  else if(cached->weakref
-       && SvPOK(ST(0))
-       && SvPOK(cached->weakref)
-       && sv_eq(cached->weakref, ST(0)))
-  {
-    /* slightly slower: class method. Also fall through. */
-    first_argument = cached->argument;
-  }
-  else
-  {
-    /* the slow case. Go back to Perl to retrieve our method. */
-    ffi_pl_make_method(cached, &self, &body, &first_argument, ST(0));
-    SPAGAIN;
-
-    if(!self) {
-      croak("could not generate a method on demand");
-    }
-  }
-
-  if(first_argument != NULL)
-    ST(0) = first_argument;
-
-  PUSHMARK(ORIGMARK);
-  PUTBACK;
-
-  body(aTHX_ self, first_argument == NULL);
-}
+XS(ffi_pl_method_call);
 
 MODULE = FFI::Platypus PACKAGE = FFI::Platypus
 
@@ -243,6 +202,29 @@ BOOT:
 #ifndef HAVE_IV_IS_64
     PERL_MATH_INT64_LOAD_OR_CROAK;
 #endif
+
+SV *
+_get_other_methods(ffi, perl_name)
+    SV *ffi
+    const char *perl_name
+  PREINIT:
+    CV *cv;
+    ffi_pl_cached_method *method;
+    SV *value;
+  CODE:
+    cv = get_cv(perl_name, 0);
+
+    if(cv == NULL
+    || CvXSUB(cv) != ffi_pl_method_call)
+      RETVAL = NULL;
+    else
+    {
+      method = CvXSUBANY(cv).any_ptr;
+
+      RETVAL = newRV_inc((SV*)method->other_methods);
+    }
+  OUTPUT:
+    RETVAL
 
 void
 _attach_body_data(ffi, object, key, argument, drop_first_argument, perl_name, path_name, proto, body, data)
