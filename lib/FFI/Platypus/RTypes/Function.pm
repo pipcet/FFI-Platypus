@@ -71,7 +71,7 @@ XS(${name})
 
   ${rettype} RETVAL;
 
-  if(items != ${items} || !(${cond}))
+  if((items != ${items}) || !(${cond}))
     ${fallback_stmt}
   RETVAL = f(${args});
   SPAGAIN;
