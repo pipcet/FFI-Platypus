@@ -95,13 +95,9 @@ sub attach
   return 1;
 }
 
-use Data::Dumper;
-
 sub _make_attach_method {
   my($data) = @_;
   $data = $$data;
-  use Data::Dumper;
-  warn Dumper($data);
   my $function = $data->{function};
   $function = $$function;
 
