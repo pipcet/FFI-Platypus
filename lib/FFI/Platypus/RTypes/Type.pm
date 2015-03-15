@@ -159,6 +159,12 @@ use parent -norequire, 'FFI::Platypus::RTypes::Type';
 sub perl_to_native_cexpr
 {
   my($self, $expr) = @_;
+  my $meta = $self->meta;
+
+  if($meta->{ffi_type} eq 'longdouble')
+  {
+    return undef;
+  }
 
   return ['void *', "INT2PTR(void *, SvOK(${expr}) ? SvIV(${expr}) : 0)"]
 }
