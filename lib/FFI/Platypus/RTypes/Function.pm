@@ -59,7 +59,7 @@ sub xs_cdecl
     my $args = join(", ", map { $_->[1] } @argexpr);
     my $argtypes = join(", ", map { $_->[0] } @argexpr);
     my $address = $self->{address};
-    my $function = "${rettype} (\*f)(${argtypes}) = ${address}UL";
+    my $function = "((${rettype} (\*)(${argtypes}))(unsigned long)${address}UL)";
     my $fallback_stmt = "do { ${rettype} (*bailout)(void) = ${bailout}UL; PUSHMARK(ORIGMARK); return bailout(); } while(0);";
     my $items = scalar @argexpr;
 
@@ -67,13 +67,12 @@ sub xs_cdecl
 XS(${name})
 {
   dVAR; dXSARGS; dXSTARG; dORIGMARK;
-  ${function};
 
   ${rettype} RETVAL;
 
   if((items != ${items}) || !(${cond}))
     ${fallback_stmt}
-  RETVAL = f(${args});
+  RETVAL = ${function}(${args});
   SPAGAIN;
   XSprePUSH;
   PUSH${retsigil}(RETVAL);
