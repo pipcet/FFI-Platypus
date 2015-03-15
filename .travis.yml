@@ -9,7 +9,7 @@ before_install:
 
 install:
   - cpanm -n Alien::FFI
-  - git clone https://github.com/pipcet/Alien-TinyCC; cd Alien-TinyCC; perl ./Build.PL && perl ./Build && perl ./Build install; cd ..
+  - git clone --recursive https://github.com/pipcet/Alien-TinyCC && cpanm ./Alien-TinyCC
   - cpanm -n ExtUtils::CBuilder
   - cpanm -n Config::AutoConf
   - cpanm -n FFI::CheckLib
