@@ -45,12 +45,27 @@ $xs
 void install_xsub(void)
 {
   dTHX;
-  newXS("$attach_name", $name, "$attach_location");
+  newXS(strdup("$attach_name"), $name, strdup("$attach_location"));
 }
 };
+
+  #warn "program is $program";
   $tcc->compile_string($program) or die "couldn't compile string";
   my $address = $tcc->get_symbol('install_xsub');
+  my $start = $tcc->{store};
+  my $stop = $tcc->{store} + $tcc->{size};
+  my $test_address = $tcc->get_symbol('TESTTEST');
+  #warn "size is " . ($stop-$start);
+  #warn(qq{disass/rm ${start},${stop}});
+  sleep(0);
+  if(0 &&!fork()) {
+    system(qq{gdb -p $$ --ex "disass/rm ${start},${stop}" --batch});
+    exit(0);
+  }
   $self->{ffi}->function($address => [] => 'void')->call();
+
+  push @{$self->{tccs}}, $tcc;
+  $self->{self} = $self;
 
   return 1;
 }
