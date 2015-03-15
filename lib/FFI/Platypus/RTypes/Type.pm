@@ -146,22 +146,22 @@ sub DESTROY
 package FFI::Platypus::RTypes::Type::String;
 use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
-sub perl_to_native_precondition_cexpr
+sub perl_to_native_cexpr
 {
   my($self, $expr) = @_;
 
-  return ['char *', "SvOK(${expr})"];
+  return ['char *', "SvOK(${expr}) ? SvPV_nolen(${expr}) : NULL"];
 }
+
+package FFI::Platypus::RTypes::Type::Pointer;
+use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 sub perl_to_native_cexpr
 {
   my($self, $expr) = @_;
 
-  return ['char *', "SvPV_nolen(${expr})"];
+  return ['void *', "INT2PTR(void *, SvOK(${expr}) ? SvIV(${expr}) : 0)"]
 }
-
-package FFI::Platypus::RTypes::Type::Pointer;
-use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 sub count_native_arguments
 {
@@ -175,6 +175,13 @@ use parent -norequire, 'FFI::Platypus::RTypes::Type';
 
 package FFI::Platypus::RTypes::Type::Closure;
 use parent -norequire, 'FFI::Platypus::RTypes::Type';
+
+sub perl_to_native_cexpr
+{
+  my($self, $expr) = @_;
+
+  return undef;
+}
 
 sub meta {
   my ($self) = @_;
